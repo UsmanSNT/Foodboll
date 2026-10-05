@@ -150,9 +150,14 @@ export const paymentInstructions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [
-    check('payment_instructions_account_number_length', sql`char_length(${t.accountNumber}) between 4 and 64`),
+    check(
+      'payment_instructions_account_number_length',
+      sql`char_length(${t.accountNumber}) between 4 and 64`,
+    ),
     // At most one active row, enforced by the database rather than application code.
-    uniqueIndex('payment_instructions_single_active_idx').on(t.isActive).where(sql`${t.isActive}`),
+    uniqueIndex('payment_instructions_single_active_idx')
+      .on(t.isActive)
+      .where(sql`${t.isActive}`),
   ],
 );
 
@@ -170,7 +175,10 @@ export const paymentInstructionTranslations = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.paymentInstructionId, t.languageCode] }),
-    check('payment_instruction_translations_length', sql`char_length(${t.bankName}) between 1 and 100 and char_length(${t.instructions}) between 1 and 2000`),
+    check(
+      'payment_instruction_translations_length',
+      sql`char_length(${t.bankName}) between 1 and 100 and char_length(${t.instructions}) between 1 and 2000`,
+    ),
   ],
 );
 
@@ -207,7 +215,10 @@ export const legalDocumentTranslations = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.documentId, t.languageCode] }),
-    check('legal_document_translations_length', sql`char_length(${t.title}) between 1 and 200 and char_length(${t.body}) between 1 and 100000`),
+    check(
+      'legal_document_translations_length',
+      sql`char_length(${t.title}) between 1 and 200 and char_length(${t.body}) between 1 and 100000`,
+    ),
   ],
 );
 
@@ -229,7 +240,9 @@ export const notifications = pgTable(
       .references(() => languages.code, { onUpdate: 'cascade', onDelete: 'restrict' }),
     title: text('title').notNull(),
     body: text('body').notNull(),
-    params: jsonb('params').notNull().default(sql`'{}'::jsonb`),
+    params: jsonb('params')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     status: text('status').notNull().default('PENDING'),
     createdAt: createdAt(),
     sentAt: timestamp('sent_at', { withTimezone: true }),
@@ -238,7 +251,9 @@ export const notifications = pgTable(
     check('notifications_type_valid', oneOf(t.type, NOTIFICATION_TYPES)),
     check('notifications_channel_valid', oneOf(t.channel, NOTIFICATION_CHANNELS)),
     check('notifications_status_valid', oneOf(t.status, ['PENDING', 'SENT', 'FAILED'])),
-    index('notifications_pending_idx').on(t.createdAt).where(sql`${t.status} = 'PENDING'`),
+    index('notifications_pending_idx')
+      .on(t.createdAt)
+      .where(sql`${t.status} = 'PENDING'`),
     index('notifications_user_idx').on(t.userId, t.createdAt),
   ],
 );

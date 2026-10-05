@@ -37,6 +37,8 @@ export const uz: typeof ko = {
     teams: 'Jamoalar',
     players: 'Futbolchilar',
     myPage: 'Profil',
+    main: 'Asosiy menyu',
+    breadcrumb: 'Joriy joy',
   },
   myPage: {
     title: 'Profil',
@@ -111,6 +113,11 @@ export const uz: typeof ko = {
     cancellation: 'Bekor qilish siyosati',
     refund: 'Pulni qaytarish siyosati',
     notAvailable: 'Hujjat hali e’lon qilinmagan.',
+  },
+  format: {
+    dateTime:
+      '{day}-{month, select, 1 {yanvar} 2 {fevral} 3 {mart} 4 {aprel} 5 {may} 6 {iyun} 7 {iyul} 8 {avgust} 9 {sentabr} 10 {oktabr} 11 {noyabr} 12 {dekabr} other {}} {year}, {weekday, select, 0 {yakshanba} 1 {dushanba} 2 {seshanba} 3 {chorshanba} 4 {payshanba} 5 {juma} 6 {shanba} other {}}, {hour}:{minute}',
+    krw: '₩{amount}',
   },
   form: {
     required: 'Majburiy maydon.',

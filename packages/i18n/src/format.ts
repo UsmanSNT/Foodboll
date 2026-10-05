@@ -1,33 +1,41 @@
-import { LOCALES, type LocaleCode } from './locales';
+import { translate } from './messages';
+import type { LocaleCode } from './locales';
 
 /** Players live in Korea; dates are always shown in Korean time, not the device's zone. */
 export const DISPLAY_TIME_ZONE = 'Asia/Seoul';
 
-const dateTimeFormats = new Map<LocaleCode, Intl.DateTimeFormat>();
-const currencyFormats = new Map<LocaleCode, Intl.NumberFormat>();
+// Parts are extracted with a locale that every ICU build ships (en-US) and rendered through the
+// catalog (`format.dateTime`), so output never depends on the device's data for ko/uz.
+const partsFormat = new Intl.DateTimeFormat('en-US', {
+  timeZone: DISPLAY_TIME_ZONE,
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+const amountFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
 export function formatDateTime(locale: LocaleCode, value: Date | string | number): string {
-  let format = dateTimeFormats.get(locale);
-  if (!format) {
-    format = new Intl.DateTimeFormat(LOCALES[locale].intlTag, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      timeZone: DISPLAY_TIME_ZONE,
-    });
-    dateTimeFormats.set(locale, format);
-  }
-  return format.format(new Date(value));
+  const parts = Object.fromEntries(
+    partsFormat.formatToParts(new Date(value)).map((part) => [part.type, part.value]),
+  );
+  const year = Number(parts.year);
+  const month = Number(parts.month);
+  const day = Number(parts.day);
+  return translate(locale, 'format.dateTime', {
+    year,
+    month,
+    day,
+    // Day of week of the Seoul calendar date (0 = Sunday), independent of any locale.
+    weekday: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
+    hour: String(parts.hour).padStart(2, '0'),
+    minute: String(parts.minute).padStart(2, '0'),
+  });
 }
 
 export function formatKrw(locale: LocaleCode, amount: number): string {
-  let format = currencyFormats.get(locale);
-  if (!format) {
-    format = new Intl.NumberFormat(LOCALES[locale].intlTag, {
-      style: 'currency',
-      currency: 'KRW',
-      maximumFractionDigits: 0,
-    });
-    currencyFormats.set(locale, format);
-  }
-  return format.format(amount);
+  return translate(locale, 'format.krw', { amount: amountFormat.format(amount) });
 }

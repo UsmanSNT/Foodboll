@@ -37,7 +37,12 @@ describe('detectLocale', () => {
 
 describe('parseAcceptLanguage', () => {
   it('orders by quality and keeps header order for ties', () => {
-    expect(parseAcceptLanguage('en;q=0.5, uz-UZ, ko;q=0.9, ru')).toEqual(['uz-UZ', 'ru', 'ko', 'en']);
+    expect(parseAcceptLanguage('en;q=0.5, uz-UZ, ko;q=0.9, ru')).toEqual([
+      'uz-UZ',
+      'ru',
+      'ko',
+      'en',
+    ]);
   });
   it('drops q=0, malformed tags and invalid q values', () => {
     expect(parseAcceptLanguage('ko;q=0, <script>, uz;q=abc, ko-KR')).toEqual(['ko-KR']);
@@ -83,7 +88,9 @@ describe('resolveLocale', () => {
     });
   });
   it('ignores invalid stored values', () => {
-    expect(resolveLocale({ account: 'xx', stored: 'yy', deviceLanguages: [] }).source).toBe('default');
+    expect(resolveLocale({ account: 'xx', stored: 'yy', deviceLanguages: [] }).source).toBe(
+      'default',
+    );
   });
 });
 

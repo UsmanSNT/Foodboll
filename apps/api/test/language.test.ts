@@ -165,7 +165,11 @@ describe('admin: user languages', () => {
   it('shows preferred language and device language, and filters by language', async () => {
     const admin = await createUser(ctx, { role: 'ADMIN', preferredLanguage: 'ko' });
     await createUser(ctx, { displayName: 'Aziz', preferredLanguage: 'uz', deviceLocale: 'uz-UZ' });
-    await createUser(ctx, { displayName: 'Minjun', preferredLanguage: 'ko', deviceLocale: 'ko-KR' });
+    await createUser(ctx, {
+      displayName: 'Minjun',
+      preferredLanguage: 'ko',
+      deviceLocale: 'ko-KR',
+    });
     await createUser(ctx, { displayName: 'New', preferredLanguage: null, deviceLocale: 'uz-UZ' });
 
     const all = await get('/v1/admin/users', bearer(admin.token));
@@ -175,12 +179,20 @@ describe('admin: user languages', () => {
 
     const uz = await get('/v1/admin/users?language=uz', bearer(admin.token));
     expect(uz.json().items).toEqual([
-      expect.objectContaining({ displayName: 'Aziz', preferredLanguage: 'uz', deviceLocale: 'uz-UZ' }),
+      expect.objectContaining({
+        displayName: 'Aziz',
+        preferredLanguage: 'uz',
+        deviceLocale: 'uz-UZ',
+      }),
     ]);
 
     const none = await get('/v1/admin/users?language=none', bearer(admin.token));
     expect(none.json().items).toEqual([
-      expect.objectContaining({ displayName: 'New', preferredLanguage: null, deviceLocale: 'uz-UZ' }),
+      expect.objectContaining({
+        displayName: 'New',
+        preferredLanguage: null,
+        deviceLocale: 'uz-UZ',
+      }),
     ]);
   });
 

@@ -22,7 +22,8 @@ export default async function setup(project: TestProject) {
   } catch (error) {
     throw new Error(
       `Cannot reach PostgreSQL at TEST_DATABASE_ADMIN_URL (${ADMIN_URL}). ` +
-        `Start one with "docker compose up -d db". ${String(error)}`,
+        `Start one with "docker compose up -d db".`,
+      { cause: error },
     );
   }
   await admin.query(`create database ${name}`);

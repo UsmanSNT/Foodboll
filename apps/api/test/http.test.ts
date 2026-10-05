@@ -26,16 +26,31 @@ describe('http hardening', () => {
   });
 
   it('returns localized 404 for unknown routes', async () => {
-    const res = await ctx.app.inject({ method: 'GET', url: '/nope', headers: { 'accept-language': 'uz' } });
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/nope',
+      headers: { 'accept-language': 'uz' },
+    });
     expect(res.statusCode).toBe(404);
-    expect(res.json().error).toEqual({ code: 'NOT_FOUND', message: 'So‘ralgan ma’lumot topilmadi.' });
+    expect(res.json().error).toEqual({
+      code: 'NOT_FOUND',
+      message: 'So‘ralgan ma’lumot topilmadi.',
+    });
   });
 
   it('sets security headers and honours the CORS allow-list', async () => {
-    const allowed = await ctx.app.inject({ method: 'GET', url: '/v1/languages', headers: { origin: 'http://localhost:5173' } });
+    const allowed = await ctx.app.inject({
+      method: 'GET',
+      url: '/v1/languages',
+      headers: { origin: 'http://localhost:5173' },
+    });
     expect(allowed.headers['access-control-allow-origin']).toBe('http://localhost:5173');
     expect(allowed.headers['x-content-type-options']).toBe('nosniff');
-    const denied = await ctx.app.inject({ method: 'GET', url: '/v1/languages', headers: { origin: 'https://evil.example' } });
+    const denied = await ctx.app.inject({
+      method: 'GET',
+      url: '/v1/languages',
+      headers: { origin: 'https://evil.example' },
+    });
     expect(denied.headers['access-control-allow-origin']).toBeUndefined();
   });
 
@@ -45,7 +60,11 @@ describe('http hardening', () => {
       const statuses: number[] = [];
       let last = null;
       for (let i = 0; i < 5; i++) {
-        last = await limited.app.inject({ method: 'GET', url: '/v1/languages', headers: { 'accept-language': 'uz' } });
+        last = await limited.app.inject({
+          method: 'GET',
+          url: '/v1/languages',
+          headers: { 'accept-language': 'uz' },
+        });
         statuses.push(last.statusCode);
       }
       expect(statuses).toEqual([200, 200, 200, 429, 429]);

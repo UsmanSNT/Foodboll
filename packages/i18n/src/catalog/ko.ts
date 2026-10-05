@@ -33,6 +33,8 @@ export const ko = {
     teams: '팀',
     players: '선수',
     myPage: '마이페이지',
+    main: '주 메뉴',
+    breadcrumb: '현재 위치',
   },
   myPage: {
     title: '마이페이지',
@@ -107,6 +109,13 @@ export const ko = {
     cancellation: '취소 정책',
     refund: '환불 정책',
     notAvailable: '문서가 아직 게시되지 않았습니다.',
+  },
+  format: {
+    // Date/time and money are composed from catalog patterns, not from platform Intl locale data,
+    // which is incomplete for some languages on some devices.
+    dateTime:
+      '{year}년 {month}월 {day}일({weekday, select, 0 {일} 1 {월} 2 {화} 3 {수} 4 {목} 5 {금} 6 {토} other {}}) {hour}:{minute}',
+    krw: '{amount}원',
   },
   form: {
     required: '필수 입력 항목입니다.',

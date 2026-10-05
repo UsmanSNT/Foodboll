@@ -58,7 +58,11 @@ describe('notification localization', () => {
     const unknown = await createUser(ctx, { deviceLocale: 'en-US' });
     const nothing = await createUser(ctx);
     for (const u of [uzDevice, unknown, nothing]) {
-      await enqueueNotification(ctx.handle.db, { userId: u.id, type: 'PAYMENT_CONFIRMED', channels: ['PUSH'] });
+      await enqueueNotification(ctx.handle.db, {
+        userId: u.id,
+        type: 'PAYMENT_CONFIRMED',
+        channels: ['PUSH'],
+      });
     }
     expect((await rowsFor(uzDevice.id))[0]?.language_code).toBe('uz');
     expect((await rowsFor(unknown.id))[0]?.language_code).toBe('ko');
@@ -67,13 +71,23 @@ describe('notification localization', () => {
 
   it('an explicit choice beats the device language', async () => {
     const user = await createUser(ctx, { preferredLanguage: 'ko', deviceLocale: 'uz-UZ' });
-    await enqueueNotification(ctx.handle.db, { userId: user.id, type: 'PAYMENT_CONFIRMED', channels: ['PUSH'] });
+    await enqueueNotification(ctx.handle.db, {
+      userId: user.id,
+      type: 'PAYMENT_CONFIRMED',
+      channels: ['PUSH'],
+    });
     expect((await rowsFor(user.id))[0]?.language_code).toBe('ko');
   });
 
   it('does nothing without channels and rejects unknown users', async () => {
     const user = await createUser(ctx);
-    expect(await enqueueNotification(ctx.handle.db, { userId: user.id, type: 'PAYMENT_CONFIRMED', channels: [] })).toEqual([]);
+    expect(
+      await enqueueNotification(ctx.handle.db, {
+        userId: user.id,
+        type: 'PAYMENT_CONFIRMED',
+        channels: [],
+      }),
+    ).toEqual([]);
     await expect(
       enqueueNotification(ctx.handle.db, {
         userId: '00000000-0000-4000-8000-000000000000',

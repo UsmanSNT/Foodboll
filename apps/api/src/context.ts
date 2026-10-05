@@ -68,7 +68,10 @@ export function createContextHook(config: AppConfig, db: Db) {
     if (isLocaleCode(query?.lang)) return query.lang;
     if (user?.preferredLanguage) return user.preferredLanguage;
     const header = request.headers['accept-language'];
-    return detectLocale(parseAcceptLanguage(typeof header === 'string' ? header : undefined)) ?? DEFAULT_LOCALE;
+    return (
+      detectLocale(parseAcceptLanguage(typeof header === 'string' ? header : undefined)) ??
+      DEFAULT_LOCALE
+    );
   }
 
   return async function contextHook(request: FastifyRequest, reply: FastifyReply): Promise<void> {

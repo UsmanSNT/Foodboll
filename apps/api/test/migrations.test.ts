@@ -34,7 +34,9 @@ describe('database schema', () => {
 
   it('rejects an unknown preferred language at the database level', async () => {
     await expect(
-      ctx.handle.pool.query(`insert into users (display_name, preferred_language) values ('x', 'zz')`),
+      ctx.handle.pool.query(
+        `insert into users (display_name, preferred_language) values ('x', 'zz')`,
+      ),
     ).rejects.toThrow(/foreign key/i);
   });
 
@@ -43,7 +45,9 @@ describe('database schema', () => {
       `insert into languages (code, native_name, english_name, enabled, sort_order) values ('vi', 'Tiếng Việt', 'Vietnamese', false, 99)`,
     );
     await expect(
-      ctx.handle.pool.query(`insert into users (display_name, preferred_language) values ('x', 'vi')`),
+      ctx.handle.pool.query(
+        `insert into users (display_name, preferred_language) values ('x', 'vi')`,
+      ),
     ).resolves.toBeDefined();
     await ctx.handle.pool.query(`delete from users where display_name = 'x'`);
     await ctx.handle.pool.query(`delete from languages where code = 'vi'`);

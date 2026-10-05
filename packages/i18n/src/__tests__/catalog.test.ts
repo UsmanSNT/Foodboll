@@ -16,8 +16,27 @@ function flatten(node: object, prefix = ''): Map<string, string> {
 }
 
 const flat = Object.fromEntries(LOCALE_CODES.map((code) => [code, flatten(CATALOGS[code])]));
-const placeholders = (message: string) =>
-  [...message.matchAll(/\{(\w+)/g)].map((m) => m[1] as string).sort();
+
+// ICU AST element types that reference an argument: argument, number, date, time, select, plural.
+interface AstElement {
+  type: number;
+  value?: string;
+  options?: Record<string, { value: AstElement[] }>;
+}
+function collectArguments(elements: AstElement[], out: Set<string>): Set<string> {
+  for (const element of elements) {
+    if (element.type >= 1 && element.type <= 6 && element.value) out.add(element.value);
+    for (const option of Object.values(element.options ?? {})) collectArguments(option.value, out);
+  }
+  return out;
+}
+const placeholders = (message: string, code: (typeof LOCALE_CODES)[number]) =>
+  [
+    ...collectArguments(
+      new IntlMessageFormat(message, LOCALES[code].intlTag).getAst() as unknown as AstElement[],
+      new Set(),
+    ),
+  ].sort();
 
 describe('message catalogs', () => {
   it.each(LOCALE_CODES)('%s has exactly the same keys as every other locale', (code) => {
@@ -25,19 +44,22 @@ describe('message catalogs', () => {
     expect([...(flat[code]?.keys() ?? [])].sort()).toEqual(reference);
   });
 
-  it.each(LOCALE_CODES)('%s: every message is non-empty, valid ICU and has no ASCII apostrophe', (code) => {
-    for (const [key, message] of flat[code] ?? []) {
-      expect(message.trim(), key).not.toBe('');
-      expect(message, `${key} contains ASCII apostrophe`).not.toContain("'");
-      expect(() => new IntlMessageFormat(message, LOCALES[code].intlTag), key).not.toThrow();
-    }
-  });
+  it.each(LOCALE_CODES)(
+    '%s: every message is non-empty, valid ICU and has no ASCII apostrophe',
+    (code) => {
+      for (const [key, message] of flat[code] ?? []) {
+        expect(message.trim(), key).not.toBe('');
+        expect(message, `${key} contains ASCII apostrophe`).not.toContain("'");
+        expect(() => new IntlMessageFormat(message, LOCALES[code].intlTag), key).not.toThrow();
+      }
+    },
+  );
 
   it('uses the same placeholders in every locale', () => {
     for (const key of flat.ko?.keys() ?? []) {
-      const expected = placeholders(flat.ko?.get(key) ?? '');
+      const expected = placeholders(flat.ko?.get(key) ?? '', 'ko');
       for (const code of LOCALE_CODES) {
-        expect(placeholders(flat[code]?.get(key) ?? ''), `${code}:${key}`).toEqual(expected);
+        expect(placeholders(flat[code]?.get(key) ?? '', code), `${code}:${key}`).toEqual(expected);
       }
     }
   });
@@ -59,10 +81,10 @@ describe('message catalogs', () => {
       '참가 확정',
       'Ishtirok tasdiqlandi',
     ]);
-    expect([ko('notification.paymentConfirmed.body'), uz('notification.paymentConfirmed.body')]).toEqual([
-      '입금이 확인되었습니다.',
-      'To‘lovingiz tasdiqlandi.',
-    ]);
+    expect([
+      ko('notification.paymentConfirmed.body'),
+      uz('notification.paymentConfirmed.body'),
+    ]).toEqual(['입금이 확인되었습니다.', 'To‘lovingiz tasdiqlandi.']);
     expect([
       ko('notification.participationConfirmed.body'),
       uz('notification.participationConfirmed.body'),

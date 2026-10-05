@@ -23,13 +23,8 @@ import { assertLanguagesEnabled, assertSourceTranslation } from './translations'
 type MatchRow = typeof matches.$inferSelect;
 type TranslationRow = typeof matchTranslations.$inferSelect;
 
-const TRANSLATED_FIELDS = [
-  'description',
-  'rules',
-  'locationInstructions',
-  'equipmentRequirements',
-  'cancellationPolicy',
-] as const;
+type TranslatedField =
+  'description' | 'rules' | 'locationInstructions' | 'equipmentRequirements' | 'cancellationPolicy';
 
 function translationRows(matchId: string, input: MatchInput) {
   return LOCALE_CODES.flatMap((code) => {
@@ -71,11 +66,7 @@ export async function replaceMatch(
 ): Promise<void> {
   await validate(db, input);
   await db.transaction(async (tx) => {
-    const [existing] = await tx
-      .select()
-      .from(matches)
-      .where(eq(matches.id, matchId))
-      .for('update');
+    const [existing] = await tx.select().from(matches).where(eq(matches.id, matchId)).for('update');
     if (!existing) throw notFound('MATCH_NOT_FOUND');
     if (actor.role !== 'ADMIN' && existing.organizerId !== actor.id) throw forbidden();
     await tx
@@ -110,7 +101,7 @@ async function loadTranslations(db: Db, matchIds: readonly string[]) {
 
 function textOf(
   translations: readonly TranslationRow[],
-  field: 'title' | (typeof TRANSLATED_FIELDS)[number],
+  field: 'title' | TranslatedField,
 ): LocalizedText {
   const text: Partial<Record<LocaleCode, string | null>> = {};
   for (const row of translations) {
@@ -119,9 +110,17 @@ function textOf(
   return text;
 }
 
-function summary(row: MatchRow, translations: readonly TranslationRow[], locale: LocaleCode): MatchSummaryDto {
+function summary(
+  row: MatchRow,
+  translations: readonly TranslationRow[],
+  locale: LocaleCode,
+): MatchSummaryDto {
   const sourceLanguage = row.sourceLanguage as LocaleCode;
-  const title: LocalizedValue | null = pickLocalized(textOf(translations, 'title'), locale, sourceLanguage);
+  const title: LocalizedValue | null = pickLocalized(
+    textOf(translations, 'title'),
+    locale,
+    sourceLanguage,
+  );
   if (!title) throw new Error(`Match ${row.id} has no title in any language`);
   return {
     id: row.id,
@@ -133,9 +132,13 @@ function summary(row: MatchRow, translations: readonly TranslationRow[], locale:
   };
 }
 
-function toMatchDto(row: MatchRow, translations: readonly TranslationRow[], locale: LocaleCode): MatchDto {
+function toMatchDto(
+  row: MatchRow,
+  translations: readonly TranslationRow[],
+  locale: LocaleCode,
+): MatchDto {
   const source = row.sourceLanguage as LocaleCode;
-  const field = (name: (typeof TRANSLATED_FIELDS)[number]) =>
+  const field = (name: TranslatedField) =>
     pickLocalized(textOf(translations, name), locale, source);
   return {
     ...summary(row, translations, locale),
@@ -160,7 +163,10 @@ export async function listUpcomingMatches(
     .orderBy(asc(matches.startsAt), asc(matches.id))
     .limit(page.limit)
     .offset(page.offset);
-  const translations = await loadTranslations(db, rows.map((r) => r.id));
+  const translations = await loadTranslations(
+    db,
+    rows.map((r) => r.id),
+  );
   return {
     items: rows.map((row) => summary(row, translations.get(row.id) ?? [], locale)),
     limit: page.limit,

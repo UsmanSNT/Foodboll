@@ -29,7 +29,12 @@ const matchBody = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const post = (token: string, payload: unknown, headers: Record<string, string> = {}) =>
-  ctx.app.inject({ method: 'POST', url: '/v1/matches', headers: { ...bearer(token), ...headers }, payload: payload as object });
+  ctx.app.inject({
+    method: 'POST',
+    url: '/v1/matches',
+    headers: { ...bearer(token), ...headers },
+    payload: payload as object,
+  });
 const get = (url: string, headers: Record<string, string> = {}) =>
   ctx.app.inject({ method: 'GET', url, headers });
 
@@ -95,11 +100,18 @@ describe('multilingual matches', () => {
     const organizer = await createUser(ctx, { role: 'ORGANIZER', preferredLanguage: 'uz' });
     const created = await post(
       organizer.token,
-      matchBody({ sourceLanguage: 'uz', translations: { uz: { title: 'Toshkent jamoasi bilan match' } } }),
+      matchBody({
+        sourceLanguage: 'uz',
+        translations: { uz: { title: 'Toshkent jamoasi bilan match' } },
+      }),
     );
     expect(created.statusCode).toBe(201);
     const view = (await get(`/v1/matches/${created.json().id}?lang=ko`)).json();
-    expect(view.title).toEqual({ text: 'Toshkent jamoasi bilan match', locale: 'uz', isFallback: true });
+    expect(view.title).toEqual({
+      text: 'Toshkent jamoasi bilan match',
+      locale: 'uz',
+      isFallback: true,
+    });
   });
 
   it('same match, two users, only the display language differs', async () => {
@@ -119,7 +131,10 @@ describe('multilingual matches', () => {
   it('negotiates language: ?lang > account > Accept-Language > Korean', async () => {
     const organizer = await createUser(ctx, { role: 'ORGANIZER' });
     const id = (
-      await post(organizer.token, matchBody({ translations: { ko: { title: 'K' }, uz: { title: 'U' } } }))
+      await post(
+        organizer.token,
+        matchBody({ translations: { ko: { title: 'K' }, uz: { title: 'U' } } }),
+      )
     ).json().id as string;
     const title = async (url: string, headers: Record<string, string> = {}) =>
       (await get(url, headers)).json().title.text;
@@ -128,15 +143,26 @@ describe('multilingual matches', () => {
     expect(await title(`/v1/matches/${id}`, { 'accept-language': 'uz-UZ' })).toBe('U');
     expect(await title(`/v1/matches/${id}`, { 'accept-language': 'en-US' })).toBe('K');
     const uzUser = await createUser(ctx, { preferredLanguage: 'uz' });
-    expect(await title(`/v1/matches/${id}`, { ...bearer(uzUser.token), 'accept-language': 'ko' })).toBe('U');
+    expect(
+      await title(`/v1/matches/${id}`, { ...bearer(uzUser.token), 'accept-language': 'ko' }),
+    ).toBe('U');
     expect(await title(`/v1/matches/${id}?lang=ko`, bearer(uzUser.token))).toBe('K');
   });
 
   it('lists only upcoming matches, soonest first, localized', async () => {
     const organizer = await createUser(ctx, { role: 'ORGANIZER' });
     const soon = new Date(Date.now() + 2 * 3600 * 1000).toISOString();
-    await post(organizer.token, matchBody({ startsAt: FUTURE, translations: { ko: { title: 'later' } } }));
-    await post(organizer.token, matchBody({ startsAt: soon, translations: { ko: { title: 'sooner' }, uz: { title: 'tezroq' } } }));
+    await post(
+      organizer.token,
+      matchBody({ startsAt: FUTURE, translations: { ko: { title: 'later' } } }),
+    );
+    await post(
+      organizer.token,
+      matchBody({
+        startsAt: soon,
+        translations: { ko: { title: 'sooner' }, uz: { title: 'tezroq' } },
+      }),
+    );
     await ctx.handle.pool.query(
       `insert into matches (organizer_id, source_language, starts_at, players_per_side, fee_krw)
        values ($1, 'ko', now() - interval '1 day', 5, 0)`,
@@ -182,7 +208,12 @@ describe('match authoring rules', () => {
     const admin = await createUser(ctx, { role: 'ADMIN' });
     const id = (await post(owner.token, matchBody())).json().id as string;
     const put = (token: string, payload: unknown) =>
-      ctx.app.inject({ method: 'PUT', url: `/v1/matches/${id}`, headers: bearer(token), payload: payload as object });
+      ctx.app.inject({
+        method: 'PUT',
+        url: `/v1/matches/${id}`,
+        headers: bearer(token),
+        payload: payload as object,
+      });
 
     expect((await put(other.token, matchBody())).statusCode).toBe(403);
 
@@ -195,7 +226,10 @@ describe('match authoring rules', () => {
     // Old optional fields are gone: PUT is a full replace.
     expect((await get(`/v1/matches/${id}?lang=ko`)).json().rules).toBeNull();
 
-    expect((await put(admin.token, matchBody({ translations: { ko: { title: '관리자 수정' } } }))).statusCode).toBe(200);
+    expect(
+      (await put(admin.token, matchBody({ translations: { ko: { title: '관리자 수정' } } })))
+        .statusCode,
+    ).toBe(200);
   });
 
   it('exposes raw per-language texts to the organizer only', async () => {
@@ -204,13 +238,18 @@ describe('match authoring rules', () => {
     const id = (await post(owner.token, matchBody())).json().id as string;
     const url = `/v1/matches/${id}/translations`;
     const res = await get(url, bearer(owner.token));
-    expect(res.json()).toMatchObject({ sourceLanguage: 'ko', translations: { ko: { title: '서울 풋살장 5v5 매치' } } });
+    expect(res.json()).toMatchObject({
+      sourceLanguage: 'ko',
+      translations: { ko: { title: '서울 풋살장 5v5 매치' } },
+    });
     expect(res.json().translations).not.toHaveProperty('uz');
     expect((await get(url, bearer(other.token))).statusCode).toBe(403);
   });
 
   it('returns 404 for unknown matches and 400 for malformed ids', async () => {
-    const missing = await get('/v1/matches/00000000-0000-4000-8000-000000000000', { 'accept-language': 'uz' });
+    const missing = await get('/v1/matches/00000000-0000-4000-8000-000000000000', {
+      'accept-language': 'uz',
+    });
     expect(missing.statusCode).toBe(404);
     expect(missing.json().error).toEqual({ code: 'MATCH_NOT_FOUND', message: 'Match topilmadi.' });
     expect((await get('/v1/matches/not-a-uuid')).statusCode).toBe(400);
@@ -218,7 +257,10 @@ describe('match authoring rules', () => {
 
   it('stores NFC-normalized text', async () => {
     const organizer = await createUser(ctx, { role: 'ORGANIZER' });
-    const res = await post(organizer.token, matchBody({ translations: { ko: { title: '매치'.normalize('NFD') } } }));
+    const res = await post(
+      organizer.token,
+      matchBody({ translations: { ko: { title: '매치'.normalize('NFD') } } }),
+    );
     expect(res.json().title.text).toBe('매치');
   });
 });

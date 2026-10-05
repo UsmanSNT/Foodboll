@@ -6,11 +6,11 @@ services:
       POSTGRES_PASSWORD: foodboll
       POSTGRES_DB: foodboll
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U foodboll"]
+      test: ['CMD-SHELL', 'pg_isready -U foodboll']
       interval: 5s
       timeout: 3s
       retries: 10

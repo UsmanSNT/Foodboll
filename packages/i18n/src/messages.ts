@@ -16,7 +16,11 @@ export interface TranslatorOptions {
 
 type Flat = ReadonlyMap<string, string>;
 
-function flatten(node: Catalog | Record<string, unknown>, prefix = '', out = new Map<string, string>()) {
+function flatten(
+  node: Catalog | Record<string, unknown>,
+  prefix = '',
+  out = new Map<string, string>(),
+) {
   for (const [name, value] of Object.entries(node)) {
     const path = prefix ? `${prefix}.${name}` : name;
     if (typeof value === 'string') out.set(path, value);

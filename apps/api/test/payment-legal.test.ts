@@ -16,12 +16,20 @@ const both = {
   ...bankless,
   translations: {
     ko: { bankName: '국민은행', instructions: '입금 후 영수증을 업로드해주세요.' },
-    uz: { bankName: 'Kookmin Bank', instructions: 'To‘lovni amalga oshirgandan so‘ng chekni yuklang.' },
+    uz: {
+      bankName: 'Kookmin Bank',
+      instructions: 'To‘lovni amalga oshirgandan so‘ng chekni yuklang.',
+    },
   },
 };
 
 const put = (token: string, url: string, payload: unknown, headers: Record<string, string> = {}) =>
-  ctx.app.inject({ method: 'PUT', url, headers: { ...bearer(token), ...headers }, payload: payload as object });
+  ctx.app.inject({
+    method: 'PUT',
+    url,
+    headers: { ...bearer(token), ...headers },
+    payload: payload as object,
+  });
 const get = (url: string, headers: Record<string, string> = {}) =>
   ctx.app.inject({ method: 'GET', url, headers });
 
@@ -78,7 +86,10 @@ describe('payment instructions', () => {
   it('keeps history and exactly one active row when replaced', async () => {
     const admin = await createUser(ctx, { role: 'ADMIN' });
     await put(admin.token, '/v1/admin/payment-instructions', both);
-    await put(admin.token, '/v1/admin/payment-instructions', { ...both, accountNumber: '999-888-777666' });
+    await put(admin.token, '/v1/admin/payment-instructions', {
+      ...both,
+      accountNumber: '999-888-777666',
+    });
     const { rows } = await ctx.handle.pool.query(
       'select account_number, is_active from payment_instructions order by created_at',
     );
@@ -92,11 +103,16 @@ describe('payment instructions', () => {
     const admin = await createUser(ctx, { role: 'ADMIN' });
     const results = await Promise.all(
       Array.from({ length: 6 }, (_, i) =>
-        put(admin.token, '/v1/admin/payment-instructions', { ...both, accountNumber: `100-200-30000${i}` }),
+        put(admin.token, '/v1/admin/payment-instructions', {
+          ...both,
+          accountNumber: `100-200-30000${i}`,
+        }),
       ),
     );
     expect(results.map((r) => r.statusCode)).toEqual(Array(6).fill(200));
-    const { rows } = await ctx.handle.pool.query('select count(*)::int as n from payment_instructions where is_active');
+    const { rows } = await ctx.handle.pool.query(
+      'select count(*)::int as n from payment_instructions where is_active',
+    );
     expect(rows[0].n).toBe(1);
   });
 
@@ -110,8 +126,12 @@ describe('payment instructions', () => {
 
   it('only admins can change or read the editor view', async () => {
     const organizer = await createUser(ctx, { role: 'ORGANIZER' });
-    expect((await put(organizer.token, '/v1/admin/payment-instructions', both)).statusCode).toBe(403);
-    expect((await get('/v1/admin/payment-instructions/current', bearer(organizer.token))).statusCode).toBe(403);
+    expect((await put(organizer.token, '/v1/admin/payment-instructions', both)).statusCode).toBe(
+      403,
+    );
+    expect(
+      (await get('/v1/admin/payment-instructions/current', bearer(organizer.token))).statusCode,
+    ).toBe(403);
   });
 });
 
@@ -139,7 +159,9 @@ describe('legal documents', () => {
     expect(uz.title).toEqual({ text: '개인정보 처리방침 v2', locale: 'ko', isFallback: true });
     expect(uz.body.isFallback).toBe(true);
 
-    const rows = await ctx.handle.pool.query('select version from legal_documents order by version');
+    const rows = await ctx.handle.pool.query(
+      'select version from legal_documents order by version',
+    );
     expect(rows.rows).toEqual([{ version: 1 }, { version: 2 }]);
   });
 
@@ -156,15 +178,22 @@ describe('legal documents', () => {
       Array.from({ length: 5 }, () => put(admin.token, '/v1/admin/legal/REFUND', doc)),
     );
     expect(results.map((r) => r.statusCode)).toEqual(Array(5).fill(201));
-    const rows = await ctx.handle.pool.query('select version from legal_documents where type = $1 order by version', ['REFUND']);
+    const rows = await ctx.handle.pool.query(
+      'select version from legal_documents where type = $1 order by version',
+      ['REFUND'],
+    );
     expect(rows.rows.map((r: { version: number }) => r.version)).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('validates the document type and requires Korean', async () => {
     const admin = await createUser(ctx, { role: 'ADMIN' });
     expect((await get('/v1/legal/NOPE')).statusCode).toBe(400);
-    expect((await get('/v1/legal/TERMS?lang=uz')).json().error.code).toBe('LEGAL_DOCUMENT_NOT_FOUND');
-    const uzOnly = await put(admin.token, '/v1/admin/legal/TERMS', { translations: { uz: doc.translations.uz } });
+    expect((await get('/v1/legal/TERMS?lang=uz')).json().error.code).toBe(
+      'LEGAL_DOCUMENT_NOT_FOUND',
+    );
+    const uzOnly = await put(admin.token, '/v1/admin/legal/TERMS', {
+      translations: { uz: doc.translations.uz },
+    });
     expect(uzOnly.statusCode).toBe(422);
   });
 

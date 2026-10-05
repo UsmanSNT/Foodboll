@@ -18,9 +18,12 @@ import {
 
 describe('enum label keys', () => {
   it('map every technical value to an existing catalog key', () => {
-    for (const status of PAYMENT_STATUSES) expect(hasMessage(PAYMENT_STATUS_LABEL_KEY[status])).toBe(true);
-    for (const s of REGISTRATION_STATUSES) expect(hasMessage(REGISTRATION_STATUS_LABEL_KEY[s])).toBe(true);
-    for (const t of LEGAL_DOCUMENT_TYPES) expect(hasMessage(LEGAL_DOCUMENT_LABEL_KEY[t])).toBe(true);
+    for (const status of PAYMENT_STATUSES)
+      expect(hasMessage(PAYMENT_STATUS_LABEL_KEY[status])).toBe(true);
+    for (const s of REGISTRATION_STATUSES)
+      expect(hasMessage(REGISTRATION_STATUS_LABEL_KEY[s])).toBe(true);
+    for (const t of LEGAL_DOCUMENT_TYPES)
+      expect(hasMessage(LEGAL_DOCUMENT_LABEL_KEY[t])).toBe(true);
     for (const t of NOTIFICATION_TYPES) {
       expect(hasMessage(NOTIFICATION_MESSAGE_KEYS[t].title)).toBe(true);
       expect(hasMessage(NOTIFICATION_MESSAGE_KEYS[t].body)).toBe(true);
@@ -85,7 +88,10 @@ describe('paymentInstructionInputSchema', () => {
       accountHolder: 'FOOTBALL TEAM',
       translations: {
         ko: { bankName: '국민은행', instructions: '입금 후 영수증을 업로드해주세요.' },
-        uz: { bankName: 'Kookmin Bank', instructions: 'To‘lovni amalga oshirgandan so‘ng chekni yuklang.' },
+        uz: {
+          bankName: 'Kookmin Bank',
+          instructions: 'To‘lovni amalga oshirgandan so‘ng chekni yuklang.',
+        },
       },
     });
     expect(Object.keys(parsed.translations).sort()).toEqual([...LOCALE_CODES].sort());
@@ -107,8 +113,8 @@ describe('updateLanguageInputSchema', () => {
     expect(updateLanguageInputSchema.safeParse({ preferredLanguage: 'en' }).success).toBe(false);
     expect(updateLanguageInputSchema.safeParse({ deviceLocale: 'uz-Latn-UZ' }).success).toBe(true);
     expect(updateLanguageInputSchema.safeParse({ deviceLocale: '<script>' }).success).toBe(false);
-    expect(updateLanguageInputSchema.safeParse({ preferredLanguage: 'uz', nationality: 'UZ' }).success).toBe(
-      false,
-    );
+    expect(
+      updateLanguageInputSchema.safeParse({ preferredLanguage: 'uz', nationality: 'UZ' }).success,
+    ).toBe(false);
   });
 });

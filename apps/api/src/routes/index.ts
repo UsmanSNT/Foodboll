@@ -93,7 +93,11 @@ export function registerRoutes(app: FastifyInstance, db: Db): void {
 
   app.put('/v1/admin/payment-instructions', async (request) => {
     const admin = requireRole(request, 'ADMIN');
-    await replacePaymentInstructions(db, admin.id, paymentInstructionInputSchema.parse(request.body));
+    await replacePaymentInstructions(
+      db,
+      admin.id,
+      paymentInstructionInputSchema.parse(request.body),
+    );
     return getActivePaymentInstructionForAdmin(db);
   });
 

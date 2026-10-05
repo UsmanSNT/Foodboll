@@ -14,7 +14,10 @@ import { registerRoutes } from './routes';
 function localeForError(request: FastifyRequest) {
   if (request.ctx) return request.ctx.locale;
   const header = request.headers['accept-language'];
-  return detectLocale(parseAcceptLanguage(typeof header === 'string' ? header : undefined)) ?? DEFAULT_LOCALE;
+  return (
+    detectLocale(parseAcceptLanguage(typeof header === 'string' ? header : undefined)) ??
+    DEFAULT_LOCALE
+  );
 }
 
 export function buildApp(config: AppConfig, db: Db): FastifyInstance {
