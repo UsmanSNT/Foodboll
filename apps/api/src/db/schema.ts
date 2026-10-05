@@ -18,6 +18,9 @@ import {
 import {
   LEGAL_DOCUMENT_TYPES,
   NOTIFICATION_CHANNELS,
+  PAYMENT_REJECT_REASONS,
+  PAYMENT_STATUSES,
+  REGISTRATION_STATUSES,
   NOTIFICATION_TYPES,
   USER_ROLES,
 } from '@foodboll/contracts';
@@ -89,12 +92,15 @@ export const matches = pgTable(
       .references(() => languages.code, { onUpdate: 'cascade', onDelete: 'restrict' }),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     playersPerSide: smallint('players_per_side').notNull(),
+    /** Registration capacity. */
+    maxPlayers: smallint('max_players').notNull().default(10),
     feeKrw: integer('fee_krw').notNull(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
     check('matches_players_per_side_range', sql`${t.playersPerSide} between 3 and 11`),
+    check('matches_max_players_range', sql`${t.maxPlayers} between 6 and 60`),
     check('matches_fee_range', sql`${t.feeKrw} between 0 and 1000000`),
     index('matches_starts_at_idx').on(t.startsAt),
     index('matches_organizer_idx').on(t.organizerId),
@@ -255,5 +261,64 @@ export const notifications = pgTable(
       .on(t.createdAt)
       .where(sql`${t.status} = 'PENDING'`),
     index('notifications_user_idx').on(t.userId, t.createdAt),
+  ],
+);
+
+/** A player's place in a match. One row per (match, user); re-applying reactivates it. */
+export const matchRegistrations = pgTable(
+  'match_registrations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    matchId: uuid('match_id')
+      .notNull()
+      .references(() => matches.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('APPLIED'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check('match_registrations_status_valid', oneOf(t.status, REGISTRATION_STATUSES)),
+    unique('match_registrations_match_user_key').on(t.matchId, t.userId),
+    index('match_registrations_user_idx').on(t.userId, t.createdAt),
+    index('match_registrations_match_status_idx').on(t.matchId, t.status),
+  ],
+);
+
+/**
+ * Bank-transfer payment for a registration (absent for free matches). Receipts are stored outside
+ * the database; only an opaque key is kept here.
+ */
+export const registrationPayments = pgTable(
+  'registration_payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    registrationId: uuid('registration_id')
+      .notNull()
+      .unique()
+      .references(() => matchRegistrations.id, { onDelete: 'cascade' }),
+    amountKrw: integer('amount_krw').notNull(),
+    status: text('status').notNull().default('AWAITING_PAYMENT'),
+    /** An unpaid seat is released after this time. */
+    dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+    receiptKey: text('receipt_key'),
+    receiptContentType: text('receipt_content_type'),
+    receiptUploadedAt: timestamp('receipt_uploaded_at', { withTimezone: true }),
+    reviewedBy: uuid('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    rejectReason: text('reject_reason'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    check('registration_payments_status_valid', oneOf(t.status, PAYMENT_STATUSES)),
+    check(
+      'registration_payments_reason_valid',
+      sql`${t.rejectReason} is null or ${oneOf(t.rejectReason, PAYMENT_REJECT_REASONS)}`,
+    ),
+    check('registration_payments_amount_positive', sql`${t.amountKrw} > 0`),
+    index('registration_payments_status_idx').on(t.status, t.createdAt),
   ],
 );

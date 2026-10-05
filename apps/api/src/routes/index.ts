@@ -5,13 +5,17 @@ import {
   matchInputSchema,
   paginationSchema,
   paymentInstructionInputSchema,
+  paymentStatusFilterSchema,
+  rejectPaymentInputSchema,
   updateLanguageInputSchema,
   uuidSchema,
 } from '@foodboll/contracts';
 import { z } from 'zod';
 import type { FastifyInstance } from 'fastify';
 import type { Db } from '../db/client';
+import type { ReceiptStorage } from '../storage';
 import { requireRole, requireUser } from '../context';
+import { AppError } from '../errors';
 import { listEnabledLanguages } from '../services/languages';
 import { publishLegalDocument, getCurrentLegalDocument } from '../services/legal';
 import {
@@ -26,6 +30,20 @@ import {
   getActivePaymentInstructionForAdmin,
   replacePaymentInstructions,
 } from '../services/payment-instructions';
+import {
+  applyToMatch,
+  cancelRegistration,
+  confirmPayment,
+  getAdminPayment,
+  getRegistrationDto,
+  listMyRegistrations,
+  listPaymentsForAdmin,
+  MAX_RECEIPT_BYTES,
+  readReceipt,
+  refundPayment,
+  rejectPayment,
+  uploadReceipt,
+} from '../services/registrations';
 import { listUsersForAdmin, toMeDto, updateUserLanguage } from '../services/users';
 
 const idParams = z.object({ id: uuidSchema });
@@ -34,7 +52,23 @@ const adminUsersQuery = paginationSchema.extend({
   language: z.union([localeCodeSchema, z.literal('none')]).optional(),
 });
 
-export function registerRoutes(app: FastifyInstance, db: Db): void {
+const adminPaymentsQuery = paginationSchema.extend({
+  status: paymentStatusFilterSchema.default('PAYMENT_REVIEW'),
+});
+
+export function registerRoutes(
+  app: FastifyInstance,
+  db: Db,
+  storage: ReceiptStorage,
+  uploadsPerMinute: number,
+): void {
+  // Receipts are sent as the raw file body (not multipart), with a larger limit than JSON.
+  app.addContentTypeParser(
+    ['image/jpeg', 'image/png', 'application/pdf'],
+    { parseAs: 'buffer', bodyLimit: MAX_RECEIPT_BYTES },
+    (_request, body, done) => done(null, body),
+  );
+
   // ---- Languages & the current user ------------------------------------------------------
   app.get('/v1/languages', async () => ({ items: await listEnabledLanguages(db) }));
 
@@ -78,6 +112,80 @@ export function registerRoutes(app: FastifyInstance, db: Db): void {
     const { id } = idParams.parse(request.params);
     await replaceMatch(db, user, id, matchInputSchema.parse(request.body));
     return getMatch(db, id, request.ctx.locale);
+  });
+
+  // ---- Registration & payment ---------------------------------------------------------------
+  app.post('/v1/matches/:id/registrations', async (request, reply) => {
+    const user = requireUser(request);
+    const registrationId = await applyToMatch(db, user, idParams.parse(request.params).id);
+    return reply.status(201).send(await getRegistrationDto(db, registrationId, request.ctx.locale));
+  });
+
+  app.get('/v1/me/registrations', async (request) =>
+    listMyRegistrations(
+      db,
+      requireUser(request),
+      request.ctx.locale,
+      paginationSchema.parse(request.query),
+    ),
+  );
+
+  app.post('/v1/registrations/:id/cancel', async (request) => {
+    const { id } = idParams.parse(request.params);
+    await cancelRegistration(db, requireUser(request), id);
+    return getRegistrationDto(db, id, request.ctx.locale);
+  });
+
+  app.put(
+    '/v1/registrations/:id/receipt',
+    { config: { rateLimit: { max: uploadsPerMinute, timeWindow: '1 minute' } } },
+    async (request) => {
+      const user = requireUser(request);
+      const { id } = idParams.parse(request.params);
+      if (!Buffer.isBuffer(request.body)) throw new AppError('INVALID_RECEIPT', 422);
+      await uploadReceipt(db, storage, user, id, request.body);
+      return getRegistrationDto(db, id, request.ctx.locale);
+    },
+  );
+
+  app.get('/v1/registrations/:id/receipt', async (request, reply) => {
+    const { id } = idParams.parse(request.params);
+    const { bytes, contentType } = await readReceipt(db, storage, requireUser(request), id);
+    // Receipts hold bank details: never cached, never sniffed, never allowed to run scripts.
+    return reply
+      .header('Content-Type', contentType)
+      .header('Cache-Control', 'private, no-store')
+      .header('X-Content-Type-Options', 'nosniff')
+      .header('Content-Security-Policy', "default-src 'none'; sandbox")
+      .header('Content-Disposition', 'inline')
+      .send(bytes);
+  });
+
+  // ---- Admin: payment review ---------------------------------------------------------------
+  app.get('/v1/admin/payments', async (request) => {
+    requireRole(request, 'ADMIN');
+    return listPaymentsForAdmin(db, request.ctx.locale, adminPaymentsQuery.parse(request.query));
+  });
+
+  app.post('/v1/admin/registrations/:id/payment/confirm', async (request) => {
+    const admin = requireRole(request, 'ADMIN');
+    const { id } = idParams.parse(request.params);
+    await confirmPayment(db, admin, id);
+    return getAdminPayment(db, request.ctx.locale, id);
+  });
+
+  app.post('/v1/admin/registrations/:id/payment/reject', async (request) => {
+    const admin = requireRole(request, 'ADMIN');
+    const { id } = idParams.parse(request.params);
+    await rejectPayment(db, admin, id, rejectPaymentInputSchema.parse(request.body).reason);
+    return getAdminPayment(db, request.ctx.locale, id);
+  });
+
+  app.post('/v1/admin/registrations/:id/payment/refund', async (request) => {
+    const admin = requireRole(request, 'ADMIN');
+    const { id } = idParams.parse(request.params);
+    await refundPayment(db, admin, id);
+    return getAdminPayment(db, request.ctx.locale, id);
   });
 
   // ---- Payment instructions ----------------------------------------------------------------

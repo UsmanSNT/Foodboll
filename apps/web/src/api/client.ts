@@ -17,8 +17,10 @@ export class ApiError extends Error {
 const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
 
 interface RequestOptions {
-  readonly method?: 'GET' | 'PATCH';
+  readonly method?: 'GET' | 'POST' | 'PUT' | 'PATCH';
   readonly body?: unknown;
+  /** Sends a file as the raw request body (used for receipts). */
+  readonly file?: File;
   /** Language the server should render content in. */
   readonly locale?: LocaleCode;
   readonly signal?: AbortSignal;
@@ -32,6 +34,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const token = readAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  if (options.file) headers['Content-Type'] = options.file.type;
 
   let response: Response;
   try {
@@ -39,6 +42,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       method: options.method ?? 'GET',
       headers,
       ...(options.body !== undefined && { body: JSON.stringify(options.body) }),
+      ...(options.file && { body: options.file }),
       ...(options.signal && { signal: options.signal }),
     });
   } catch (error) {

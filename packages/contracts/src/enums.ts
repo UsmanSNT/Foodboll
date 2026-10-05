@@ -44,13 +44,37 @@ export const LEGAL_DOCUMENT_LABEL_KEY = {
   REFUND: 'legal.refund',
 } as const satisfies Record<LegalDocumentType, MessageKey>;
 
-export const NOTIFICATION_TYPES = ['PAYMENT_CONFIRMED', 'PARTICIPATION_CONFIRMED'] as const;
+export const PAYMENT_REJECT_REASONS = [
+  'AMOUNT_MISMATCH',
+  'RECEIPT_UNREADABLE',
+  'PAYMENT_NOT_FOUND',
+  'OTHER',
+] as const;
+export type PaymentRejectReason = (typeof PAYMENT_REJECT_REASONS)[number];
+
+/** Rejection reasons are codes, not free text, so every user reads them in their own language. */
+export const PAYMENT_REJECT_REASON_LABEL_KEY = {
+  AMOUNT_MISMATCH: 'payment.rejectReason.AMOUNT_MISMATCH',
+  RECEIPT_UNREADABLE: 'payment.rejectReason.RECEIPT_UNREADABLE',
+  PAYMENT_NOT_FOUND: 'payment.rejectReason.PAYMENT_NOT_FOUND',
+  OTHER: 'payment.rejectReason.OTHER',
+} as const satisfies Record<PaymentRejectReason, MessageKey>;
+
+export const NOTIFICATION_TYPES = [
+  'PAYMENT_CONFIRMED',
+  'PAYMENT_REJECTED',
+  'PARTICIPATION_CONFIRMED',
+] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const NOTIFICATION_MESSAGE_KEYS = {
   PAYMENT_CONFIRMED: {
     title: 'notification.paymentConfirmed.title',
     body: 'notification.paymentConfirmed.body',
+  },
+  PAYMENT_REJECTED: {
+    title: 'notification.paymentRejected.title',
+    body: 'notification.paymentRejected.body',
   },
   PARTICIPATION_CONFIRMED: {
     title: 'notification.participationConfirmed.title',

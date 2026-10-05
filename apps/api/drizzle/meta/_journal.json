@@ -15,6 +15,13 @@
       "when": 1791195373879,
       "tag": "0001_seed_languages",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791199710444,
+      "tag": "0002_registrations_payments",
+      "breakpoints": true
     }
   ]
 }

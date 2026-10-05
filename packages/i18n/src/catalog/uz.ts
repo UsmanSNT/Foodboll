@@ -44,6 +44,7 @@ export const uz: typeof ko = {
     title: 'Profil',
     settings: 'Sozlamalar',
     paymentInfo: 'To‘lov bo‘yicha ma’lumot',
+    registrations: 'Mening arizalarim',
     legal: 'Shartlar va siyosat',
   },
   settings: {
@@ -67,6 +68,17 @@ export const uz: typeof ko = {
     equipmentRequirements: 'Kerakli jihozlar',
     cancellationPolicy: 'Bekor qilish shartlari',
     notFound: 'Match topilmadi.',
+    maxPlayers: 'Ishtirokchilar soni',
+  },
+  registration: {
+    title: 'Mening arizalarim',
+    applied: 'Arizangiz qabul qilindi. To‘lovni amalga oshirib, chekni yuklang.',
+    empty: 'Hali hech qaysi matchga yozilmagansiz.',
+    cancel: 'Arizani bekor qilish',
+    dueAt: 'To‘lov muddati',
+    receiptSelect: 'Chek faylini tanlash',
+    receiptHint: 'JPG, PNG, PDF · eng ko‘pi bilan {maxMb} MB',
+    freeConfirmed: 'Ishtirok to‘lovi yo‘q, shuning uchun ishtirokingiz darhol tasdiqlandi.',
   },
   content: {
     fallbackNotice: 'Asl matn ({language}) ko‘rsatilmoqda.',
@@ -85,6 +97,14 @@ export const uz: typeof ko = {
     accountNumber: 'Hisob raqami',
     accountHolder: 'Hisob egasi',
     notAvailable: 'To‘lov bo‘yicha ma’lumot hali kiritilmagan.',
+    amount: 'To‘lov summasi',
+    rejectReasonLabel: 'Sabab',
+    rejectReason: {
+      AMOUNT_MISMATCH: 'To‘lov summasi mos kelmadi',
+      RECEIPT_UNREADABLE: 'Chekni o‘qib bo‘lmadi',
+      PAYMENT_NOT_FOUND: 'To‘lov topilmadi',
+      OTHER: 'Boshqa sabab',
+    },
   },
   stats: {
     title: 'Statistika',
@@ -101,6 +121,10 @@ export const uz: typeof ko = {
     paymentConfirmed: {
       title: 'To‘lov tasdiqlandi',
       body: 'To‘lovingiz tasdiqlandi.',
+    },
+    paymentRejected: {
+      title: 'To‘lov tasdiqlanmadi',
+      body: 'To‘lovni tasdiqlab bo‘lmadi. Sabab: {reason}. Chekni qayta yuklang.',
     },
     participationConfirmed: {
       title: 'Ishtirok tasdiqlandi',
@@ -136,6 +160,14 @@ export const uz: typeof ko = {
     MATCH_NOT_FOUND: 'Match topilmadi.',
     PAYMENT_INSTRUCTIONS_NOT_FOUND: 'To‘lov bo‘yicha ma’lumot hali kiritilmagan.',
     LEGAL_DOCUMENT_NOT_FOUND: 'Hujjat hali e’lon qilinmagan.',
+    PAYLOAD_TOO_LARGE: 'Fayl juda katta. Kichikroq fayl yuklang.',
+    REGISTRATION_NOT_FOUND: 'Ariza topilmadi.',
+    RECEIPT_NOT_FOUND: 'Chek yuklanmagan.',
+    ALREADY_REGISTERED: 'Siz bu matchga allaqachon yozilgansiz.',
+    MATCH_FULL: 'Joylar to‘lgan.',
+    MATCH_STARTED: 'Match allaqachon boshlangan.',
+    INVALID_STATE: 'Hozirgi holatda bu amalni bajarib bo‘lmaydi.',
+    INVALID_RECEIPT: 'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',
   },
   glossary: glossaryMessages('uz'),
 };

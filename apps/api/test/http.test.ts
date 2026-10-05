@@ -77,3 +77,25 @@ describe('http hardening', () => {
     }
   });
 });
+
+describe('upload rate limit', () => {
+  it('caps receipt uploads per client independently of the global limit', async () => {
+    const limited = await startTestApp({ uploadRateLimitPerMinute: 2 });
+    try {
+      const { token } = await createUser(limited);
+      const statuses: number[] = [];
+      for (let i = 0; i < 4; i++) {
+        const res = await limited.app.inject({
+          method: 'PUT',
+          url: '/v1/registrations/00000000-0000-4000-8000-000000000000/receipt',
+          headers: { ...bearer(token), 'content-type': 'image/png' },
+          payload: Buffer.from([0x89, 0x50]),
+        });
+        statuses.push(res.statusCode);
+      }
+      expect(statuses.slice(2)).toEqual([429, 429]);
+    } finally {
+      await limited.close();
+    }
+  });
+});

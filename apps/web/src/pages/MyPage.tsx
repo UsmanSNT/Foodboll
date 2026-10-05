@@ -12,6 +12,9 @@ export function MyPage() {
           <Link to="/me/settings">{t('myPage.settings')}</Link>
         </li>
         <li>
+          <Link to="/me/registrations">{t('myPage.registrations')}</Link>
+        </li>
+        <li>
           <Link to="/me/payment">{t('myPage.paymentInfo')}</Link>
         </li>
       </ul>

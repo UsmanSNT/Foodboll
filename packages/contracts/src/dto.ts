@@ -1,5 +1,5 @@
 import type { LocaleCode, LocalizedValue } from '@foodboll/i18n';
-import type { UserRole } from './enums';
+import type { PaymentRejectReason, PaymentStatus, RegistrationStatus, UserRole } from './enums';
 
 export type LocalizedValueDto = LocalizedValue;
 
@@ -23,6 +23,7 @@ export interface MatchSummaryDto {
   readonly id: string;
   readonly startsAt: string;
   readonly playersPerSide: number;
+  readonly maxPlayers: number;
   readonly feeKrw: number;
   readonly sourceLanguage: LocaleCode;
   readonly title: LocalizedValueDto;
@@ -100,4 +101,36 @@ export interface Page<T> {
   readonly items: readonly T[];
   readonly limit: number;
   readonly offset: number;
+}
+
+export interface RegistrationPaymentDto {
+  readonly status: PaymentStatus;
+  readonly amountKrw: number;
+  /** Seat is released automatically if no receipt is uploaded by this time. */
+  readonly dueAt: string;
+  readonly hasReceipt: boolean;
+  /** Code of the latest rejection; localize with PAYMENT_REJECT_REASON_LABEL_KEY. */
+  readonly rejectReason: PaymentRejectReason | null;
+}
+
+export interface RegistrationDto {
+  readonly id: string;
+  readonly status: RegistrationStatus;
+  readonly createdAt: string;
+  readonly match: MatchSummaryDto;
+  /** Null for free matches, which are confirmed immediately. */
+  readonly payment: RegistrationPaymentDto | null;
+}
+
+export interface AdminPaymentDto {
+  readonly registrationId: string;
+  readonly user: {
+    readonly id: string;
+    readonly displayName: string;
+    readonly preferredLanguage: LocaleCode | null;
+  };
+  readonly match: MatchSummaryDto;
+  readonly registrationStatus: RegistrationStatus;
+  readonly payment: RegistrationPaymentDto;
+  readonly receiptUploadedAt: string | null;
 }

@@ -298,3 +298,162 @@ describe('localized content', () => {
     expect(container.querySelector('img')).toBeNull();
   });
 });
+
+describe('registration and payment', () => {
+  const summary = {
+    id: 'm1',
+    startsAt: '2026-12-01T01:00:00.000Z',
+    playersPerSide: 5,
+    maxPlayers: 10,
+    feeKrw: 10000,
+    sourceLanguage: 'ko',
+    title: { text: '서울 풋살장 5v5 매치', locale: 'ko', isFallback: true },
+  };
+  const registration = (overrides: Record<string, unknown> = {}) => ({
+    id: 'r1',
+    status: 'APPLIED',
+    createdAt: '2026-10-01T00:00:00.000Z',
+    match: summary,
+    payment: {
+      status: 'AWAITING_PAYMENT',
+      amountKrw: 10000,
+      dueAt: '2026-11-30T01:00:00.000Z',
+      hasReceipt: false,
+      rejectReason: null,
+    },
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    window.localStorage.setItem('foodboll.language', 'uz');
+    window.localStorage.setItem('foodboll.accessToken', 'a.b.c');
+    handlers['/api/v1/me'] = () =>
+      json({
+        id: 'u',
+        displayName: 'A',
+        role: 'PLAYER',
+        preferredLanguage: 'uz',
+        effectiveLanguage: 'uz',
+      });
+    handlers['/api/v1/me/language'] = () => json({});
+  });
+
+  it('applies to a match and lands on my registrations', async () => {
+    handlers['/api/v1/matches/m1'] = () =>
+      json({
+        ...summary,
+        description: null,
+        rules: null,
+        locationInstructions: null,
+        equipmentRequirements: null,
+        cancellationPolicy: null,
+      });
+    handlers['/api/v1/matches/m1/registrations'] = () => json(registration(), 201);
+    handlers['/api/v1/me/registrations'] = () =>
+      json({ items: [registration()], limit: 20, offset: 0 });
+    const user = userEvent.setup();
+    renderApp('/matches/m1');
+
+    await user.click(await screen.findByRole('button', { name: 'Matchga yozilish' }));
+    expect(await screen.findByRole('heading', { name: 'Mening arizalarim' })).toBeInTheDocument();
+    expect(screen.getByText('Ariza yuborildi')).toBeInTheDocument();
+    expect(screen.getByText('To‘lov kutilmoqda')).toBeInTheDocument();
+    expect(
+      calls.some(
+        (c) => c.init?.method === 'POST' && c.url.pathname.endsWith('/matches/m1/registrations'),
+      ),
+    ).toBe(true);
+  });
+
+  it('shows a localized error when the application is refused', async () => {
+    handlers['/api/v1/matches/m1'] = () =>
+      json({
+        ...summary,
+        description: null,
+        rules: null,
+        locationInstructions: null,
+        equipmentRequirements: null,
+        cancellationPolicy: null,
+      });
+    handlers['/api/v1/matches/m1/registrations'] = () =>
+      json({ error: { code: 'MATCH_FULL', message: 'ignored' } }, 409);
+    const user = userEvent.setup();
+    renderApp('/matches/m1');
+    await user.click(await screen.findByRole('button', { name: 'Matchga yozilish' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Joylar to‘lgan.');
+  });
+
+  it('uploads a receipt as the raw file with its own content type', async () => {
+    handlers['/api/v1/me/registrations'] = () =>
+      json({ items: [registration()], limit: 20, offset: 0 });
+    handlers['/api/v1/registrations/r1/receipt'] = () => json(registration());
+    const user = userEvent.setup();
+    const { container } = renderApp('/me/registrations');
+    await screen.findByText('To‘lov chekini yuklash');
+
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'receipt.png', {
+      type: 'image/png',
+    });
+    await user.upload(container.querySelector('input[type=file]') as HTMLInputElement, file);
+
+    await waitFor(() => {
+      const put = calls.find((c) => c.init?.method === 'PUT');
+      expect(put?.url.pathname).toBe('/api/v1/registrations/r1/receipt');
+      expect((put?.init?.headers as Record<string, string>)['Content-Type']).toBe('image/png');
+      expect(put?.init?.body).toBe(file);
+    });
+  });
+
+  it('rejects unsupported files on the device without sending anything', async () => {
+    handlers['/api/v1/me/registrations'] = () =>
+      json({ items: [registration()], limit: 20, offset: 0 });
+    const user = userEvent.setup({ applyAccept: false });
+    const { container } = renderApp('/me/registrations');
+    await screen.findByText('To‘lov chekini yuklash');
+    await user.upload(
+      container.querySelector('input[type=file]') as HTMLInputElement,
+      new File(['hi'], 'x.txt', { type: 'text/plain' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',
+    );
+    expect(calls.some((c) => c.init?.method === 'PUT')).toBe(false);
+  });
+
+  it('explains a rejection in the player language and offers a new upload', async () => {
+    handlers['/api/v1/me/registrations'] = () =>
+      json({
+        items: [
+          registration({
+            payment: {
+              status: 'PAYMENT_REJECTED',
+              amountKrw: 10000,
+              dueAt: '2026-11-30T01:00:00.000Z',
+              hasReceipt: true,
+              rejectReason: 'AMOUNT_MISMATCH',
+            },
+          }),
+        ],
+        limit: 20,
+        offset: 0,
+      });
+    renderApp('/me/registrations');
+    expect(await screen.findByText('To‘lov summasi mos kelmadi')).toBeInTheDocument();
+    expect(screen.getByText('To‘lov tasdiqlanmadi')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'To‘lov chekini yuklash' })).toBeEnabled();
+  });
+
+  it('cancels a registration', async () => {
+    handlers['/api/v1/me/registrations'] = () =>
+      json({ items: [registration()], limit: 20, offset: 0 });
+    handlers['/api/v1/registrations/r1/cancel'] = () => json(registration({ status: 'CANCELLED' }));
+    const user = userEvent.setup();
+    renderApp('/me/registrations');
+    await user.click(await screen.findByRole('button', { name: 'Arizani bekor qilish' }));
+    await waitFor(() =>
+      expect(
+        calls.some((c) => c.init?.method === 'POST' && c.url.pathname.endsWith('/r1/cancel')),
+      ).toBe(true),
+    );
+  });
+});

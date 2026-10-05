@@ -4,6 +4,10 @@ import * as schema from './schema';
 
 export type Db = NodePgDatabase<typeof schema>;
 
+/** A transaction handle; same query API as `Db`. */
+export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
+export type DbOrTx = Db | Tx;
+
 export interface DbHandle {
   readonly db: Db;
   readonly pool: pg.Pool;

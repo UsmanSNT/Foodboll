@@ -39,7 +39,6 @@ API tests need PostgreSQL. They create and drop a throwaway database; point them
 ## Status
 
 Implemented: the localization foundation end to end (language selection, account language,
-multilingual matches, payment instructions, legal documents, localized notifications and errors,
-admin visibility). **Not implemented yet:** sign-in/token issuing, match registration, payments and
-receipt upload, teams/player profiles/statistics screens, notification delivery workers, admin UI.
+multilingual matches, registration with bank-transfer payment and receipt upload, admin payment review, payment instructions, legal documents, localized notifications and errors,
+admin visibility). **Not implemented yet:** sign-in/token issuing, admin screens for payment review (the API exists), teams/player profiles/statistics screens, notification delivery workers, admin UI.
 See `docs/i18n.md#open-items`.

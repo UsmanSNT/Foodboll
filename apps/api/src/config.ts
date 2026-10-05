@@ -20,6 +20,10 @@ const envSchema = z.object({
         .map((origin) => origin.trim())
         .filter(Boolean),
     ),
+  /** Directory for payment receipt files. Must be persistent, private, and backed up. */
+  RECEIPT_DIR: z.string().default('./data/receipts'),
+  /** Per-client cap on receipt uploads (large bodies). */
+  UPLOAD_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(10),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
   /** Set when running behind a reverse proxy so client IPs (rate limiting) are correct. */
   TRUST_PROXY: z
@@ -38,7 +42,9 @@ export interface AppConfig {
   readonly jwtIssuer: string;
   readonly jwtAudience: string;
   readonly corsOrigins: readonly string[];
+  readonly receiptDir: string;
   readonly rateLimitPerMinute: number;
+  readonly uploadRateLimitPerMinute: number;
   readonly trustProxy: boolean;
 }
 
@@ -59,7 +65,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     jwtIssuer: e.JWT_ISSUER,
     jwtAudience: e.JWT_AUDIENCE,
     corsOrigins: e.CORS_ORIGINS,
+    receiptDir: e.RECEIPT_DIR,
     rateLimitPerMinute: e.RATE_LIMIT_PER_MINUTE,
+    uploadRateLimitPerMinute: e.UPLOAD_RATE_LIMIT_PER_MINUTE,
     trustProxy: e.TRUST_PROXY,
   };
 }

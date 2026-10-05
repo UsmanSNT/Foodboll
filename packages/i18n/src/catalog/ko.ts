@@ -40,6 +40,7 @@ export const ko = {
     title: '마이페이지',
     settings: '설정',
     paymentInfo: '입금 안내',
+    registrations: '내 신청 내역',
     legal: '약관 및 정책',
   },
   settings: {
@@ -63,6 +64,17 @@ export const ko = {
     equipmentRequirements: '준비물',
     cancellationPolicy: '취소 규정',
     notFound: '매치를 찾을 수 없습니다.',
+    maxPlayers: '모집 인원',
+  },
+  registration: {
+    title: '내 신청 내역',
+    applied: '신청이 접수되었습니다. 입금 후 영수증을 업로드해주세요.',
+    empty: '신청한 매치가 없습니다.',
+    cancel: '신청 취소',
+    dueAt: '입금 기한',
+    receiptSelect: '영수증 파일 선택',
+    receiptHint: 'JPG, PNG, PDF · 최대 {maxMb}MB',
+    freeConfirmed: '참가비가 없어 바로 참가가 확정되었습니다.',
   },
   content: {
     fallbackNotice: '원문({language})을 표시하고 있습니다.',
@@ -81,6 +93,14 @@ export const ko = {
     accountNumber: '계좌번호',
     accountHolder: '예금주',
     notAvailable: '입금 안내가 아직 등록되지 않았습니다.',
+    amount: '입금 금액',
+    rejectReasonLabel: '사유',
+    rejectReason: {
+      AMOUNT_MISMATCH: '입금 금액이 일치하지 않습니다',
+      RECEIPT_UNREADABLE: '영수증을 확인할 수 없습니다',
+      PAYMENT_NOT_FOUND: '입금 내역을 찾을 수 없습니다',
+      OTHER: '기타 사유',
+    },
   },
   stats: {
     title: '기록',
@@ -97,6 +117,10 @@ export const ko = {
     paymentConfirmed: {
       title: '입금 확인 완료',
       body: '입금이 확인되었습니다.',
+    },
+    paymentRejected: {
+      title: '입금 확인 불가',
+      body: '입금을 확인하지 못했습니다. 사유: {reason}. 영수증을 다시 업로드해주세요.',
     },
     participationConfirmed: {
       title: '참가 확정',
@@ -134,6 +158,14 @@ export const ko = {
     MATCH_NOT_FOUND: '매치를 찾을 수 없습니다.',
     PAYMENT_INSTRUCTIONS_NOT_FOUND: '입금 안내가 아직 등록되지 않았습니다.',
     LEGAL_DOCUMENT_NOT_FOUND: '문서가 아직 게시되지 않았습니다.',
+    PAYLOAD_TOO_LARGE: '파일이 너무 큽니다. 더 작은 파일을 올려주세요.',
+    REGISTRATION_NOT_FOUND: '신청 내역을 찾을 수 없습니다.',
+    RECEIPT_NOT_FOUND: '업로드된 영수증이 없습니다.',
+    ALREADY_REGISTERED: '이미 신청한 매치입니다.',
+    MATCH_FULL: '모집이 마감되었습니다.',
+    MATCH_STARTED: '이미 시작된 매치입니다.',
+    INVALID_STATE: '현재 상태에서는 이 작업을 할 수 없습니다.',
+    INVALID_RECEIPT: 'JPG, PNG, PDF 파일만 올릴 수 있습니다.',
   },
   glossary: glossaryMessages('ko'),
 };

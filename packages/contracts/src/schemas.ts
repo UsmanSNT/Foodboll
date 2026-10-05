@@ -1,5 +1,6 @@
 import { LOCALE_CODES } from '@foodboll/i18n';
 import { z } from 'zod';
+import { PAYMENT_REJECT_REASONS, PAYMENT_STATUSES } from './enums';
 
 export const localeCodeSchema = z.enum(LOCALE_CODES);
 
@@ -41,14 +42,24 @@ export const matchTranslationSchema = z.strictObject({
 });
 export type MatchTranslationInput = z.output<typeof matchTranslationSchema>;
 
-export const matchInputSchema = z.strictObject({
-  /** Language the organizer wrote the original in; its translation is mandatory. */
-  sourceLanguage: localeCodeSchema,
-  startsAt: z.iso.datetime({ offset: true }),
-  playersPerSide: z.number().int().min(3).max(11),
-  feeKrw: z.number().int().min(0).max(1_000_000),
-  translations: atLeastOne(matchTranslationSchema),
-});
+export const matchInputSchema = z
+  .strictObject({
+    /** Language the organizer wrote the original in; its translation is mandatory. */
+    sourceLanguage: localeCodeSchema,
+    startsAt: z.iso.datetime({ offset: true }),
+    playersPerSide: z.number().int().min(3).max(11),
+    /** Registration capacity. Defaults to two full sides. */
+    maxPlayers: z.number().int().min(6).max(60).optional(),
+    feeKrw: z.number().int().min(0).max(1_000_000),
+    translations: atLeastOne(matchTranslationSchema),
+  })
+  .refine(
+    (match) => match.maxPlayers === undefined || match.maxPlayers >= match.playersPerSide * 2,
+    {
+      message: 'maxPlayers must fit two full sides',
+      path: ['maxPlayers'],
+    },
+  );
 export type MatchInput = z.output<typeof matchInputSchema>;
 
 export const paymentInstructionTranslationSchema = z.strictObject({
@@ -94,6 +105,12 @@ export const updateLanguageInputSchema = z
 export type UpdateLanguageInput = z.output<typeof updateLanguageInputSchema>;
 
 export const uuidSchema = z.uuid();
+
+export const rejectPaymentInputSchema = z.strictObject({
+  reason: z.enum(PAYMENT_REJECT_REASONS),
+});
+
+export const paymentStatusFilterSchema = z.enum(PAYMENT_STATUSES);
 
 export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),

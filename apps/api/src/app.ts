@@ -10,6 +10,7 @@ import { createContextHook } from './context';
 import type { Db } from './db/client';
 import { AppError, type ErrorDetail } from './errors';
 import { registerRoutes } from './routes';
+import { LocalReceiptStorage, type ReceiptStorage } from './storage';
 
 function localeForError(request: FastifyRequest) {
   if (request.ctx) return request.ctx.locale;
@@ -20,7 +21,11 @@ function localeForError(request: FastifyRequest) {
   );
 }
 
-export function buildApp(config: AppConfig, db: Db): FastifyInstance {
+export function buildApp(
+  config: AppConfig,
+  db: Db,
+  storage: ReceiptStorage = new LocalReceiptStorage(config.receiptDir),
+): FastifyInstance {
   const app = Fastify({
     logger: { level: config.logLevel, redact: ['req.headers.authorization'] },
     trustProxy: config.trustProxy,
@@ -43,7 +48,9 @@ export function buildApp(config: AppConfig, db: Db): FastifyInstance {
   app.addHook('onRequest', createContextHook(config, db));
   // Registered as a plugin so routes load AFTER the rate-limit plugin, which attaches to routes
   // through an `onRoute` hook and would silently skip any route defined before it.
-  app.register(async (instance) => registerRoutes(instance, db));
+  app.register(async (instance) =>
+    registerRoutes(instance, db, storage, config.uploadRateLimitPerMinute),
+  );
 
   const send = (
     request: FastifyRequest,
@@ -73,6 +80,7 @@ export function buildApp(config: AppConfig, db: Db): FastifyInstance {
     }
     const statusCode = 'statusCode' in error ? error.statusCode : undefined;
     if (statusCode === 429) return reply.status(429).send(send(request, 'RATE_LIMITED'));
+    if (statusCode === 413) return reply.status(413).send(send(request, 'PAYLOAD_TOO_LARGE'));
     if (statusCode !== undefined && statusCode >= 400 && statusCode < 500) {
       // Malformed JSON, oversized body, unsupported media type, etc.
       return reply.status(statusCode).send(send(request, 'VALIDATION_FAILED'));

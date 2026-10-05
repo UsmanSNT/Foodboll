@@ -15,7 +15,7 @@ import {
 } from '@foodboll/i18n';
 import { asc, eq, gte, inArray, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
-import type { Db } from '../db/client';
+import type { Db, Tx } from '../db/client';
 import { matches, matchTranslations } from '../db/schema';
 import { forbidden, notFound } from '../errors';
 import { assertLanguagesEnabled, assertSourceTranslation } from './translations';
@@ -48,6 +48,7 @@ export async function createMatch(db: Db, organizerId: string, input: MatchInput
         sourceLanguage: input.sourceLanguage,
         startsAt: new Date(input.startsAt),
         playersPerSide: input.playersPerSide,
+        maxPlayers: input.maxPlayers ?? input.playersPerSide * 2,
         feeKrw: input.feeKrw,
       })
       .returning({ id: matches.id });
@@ -75,6 +76,7 @@ export async function replaceMatch(
         sourceLanguage: input.sourceLanguage,
         startsAt: new Date(input.startsAt),
         playersPerSide: input.playersPerSide,
+        maxPlayers: input.maxPlayers ?? input.playersPerSide * 2,
         feeKrw: input.feeKrw,
         updatedAt: sql`now()`,
       })
@@ -84,7 +86,7 @@ export async function replaceMatch(
   });
 }
 
-async function loadTranslations(db: Db, matchIds: readonly string[]) {
+async function loadTranslations(db: Db | Tx, matchIds: readonly string[]) {
   const byMatch = new Map<string, TranslationRow[]>();
   if (matchIds.length === 0) return byMatch;
   const rows = await db
@@ -126,6 +128,7 @@ function summary(
     id: row.id,
     startsAt: row.startsAt.toISOString(),
     playersPerSide: row.playersPerSide,
+    maxPlayers: row.maxPlayers,
     feeKrw: row.feeKrw,
     sourceLanguage,
     title,
@@ -148,6 +151,23 @@ function toMatchDto(
     equipmentRequirements: field('equipmentRequirements'),
     cancellationPolicy: field('cancellationPolicy'),
   };
+}
+
+/** Localized summaries for the given matches, in two queries regardless of count. */
+export async function loadMatchSummaries(
+  db: Db | Tx,
+  matchIds: readonly string[],
+  locale: LocaleCode,
+): Promise<Map<string, MatchSummaryDto>> {
+  const out = new Map<string, MatchSummaryDto>();
+  if (matchIds.length === 0) return out;
+  const rows = await db
+    .select()
+    .from(matches)
+    .where(inArray(matches.id, [...matchIds]));
+  const translations = await loadTranslations(db, matchIds);
+  for (const row of rows) out.set(row.id, summary(row, translations.get(row.id) ?? [], locale));
+  return out;
 }
 
 /** Upcoming matches, soonest first. Two queries total regardless of page size. */

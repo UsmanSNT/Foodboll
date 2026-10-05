@@ -8,6 +8,8 @@ import {
   matchInputSchema,
   NOTIFICATION_MESSAGE_KEYS,
   NOTIFICATION_TYPES,
+  PAYMENT_REJECT_REASON_LABEL_KEY,
+  PAYMENT_REJECT_REASONS,
   paymentInstructionInputSchema,
   PAYMENT_STATUS_LABEL_KEY,
   PAYMENT_STATUSES,
@@ -24,6 +26,8 @@ describe('enum label keys', () => {
       expect(hasMessage(REGISTRATION_STATUS_LABEL_KEY[s])).toBe(true);
     for (const t of LEGAL_DOCUMENT_TYPES)
       expect(hasMessage(LEGAL_DOCUMENT_LABEL_KEY[t])).toBe(true);
+    for (const r of PAYMENT_REJECT_REASONS)
+      expect(hasMessage(PAYMENT_REJECT_REASON_LABEL_KEY[r])).toBe(true);
     for (const t of NOTIFICATION_TYPES) {
       expect(hasMessage(NOTIFICATION_MESSAGE_KEYS[t].title)).toBe(true);
       expect(hasMessage(NOTIFICATION_MESSAGE_KEYS[t].body)).toBe(true);
