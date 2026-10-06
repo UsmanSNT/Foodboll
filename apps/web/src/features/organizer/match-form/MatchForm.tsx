@@ -10,6 +10,7 @@ import { Sheet } from '../../../ui/Sheet';
 import { useToast } from '../../../ui/Toast';
 import { useSaveMatch } from './api';
 import { ContentFields } from './ContentFields';
+import { PageHeader } from '../../../ui/PageHeader';
 import { FormatFields } from './FormatFields';
 import {
   isDirty,
@@ -117,6 +118,11 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
 
   return (
     <>
+      <PageHeader
+        back
+        onBack={cancel}
+        title={t(matchId === undefined ? 'matchForm.titleNew' : 'matchForm.titleEdit')}
+      />
       <form ref={formRef} className="page page--with-cta" noValidate onSubmit={submit} onKeyDown={ignoreEnter}>
         {locked && <Alert tone="warning">{t('matchForm.startedNotice')}</Alert>}
 

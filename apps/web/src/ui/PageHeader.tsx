@@ -10,9 +10,12 @@ export function PageHeader({
   back,
   actions,
   plain,
+  onBack,
 }: {
   readonly title: string;
   readonly back?: boolean;
+  /** Replaces the default "go to the previous screen", e.g. to confirm discarding unsaved work. */
+  readonly onBack?: () => void;
   readonly actions?: ReactNode;
   /** The page has its own `<h1>` (e.g. a match title): the bar's text must not be a second one. */
   readonly plain?: boolean;
@@ -22,7 +25,7 @@ export function PageHeader({
   return (
     <header className="page-header">
       {back && (
-        <Button variant="ghost" icon aria-label={t('common.back')} onClick={() => void navigate(-1)}>
+        <Button variant="ghost" icon aria-label={t('common.back')} onClick={onBack ?? (() => void navigate(-1))}>
           <ArrowLeft size={22} aria-hidden="true" />
         </Button>
       )}

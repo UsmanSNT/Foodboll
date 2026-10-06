@@ -79,15 +79,12 @@ export function MatchFormPage() {
   }
 
   return (
-    <>
-      {header}
-      <MatchForm
-        matchId={id}
-        initial={initialState(saved.data, tree.data.items, regions, locale)}
-        tree={tree.data.items}
-        regions={regions}
-        locked={saved.data ? hasStarted(saved.data) : false}
-      />
-    </>
+    <MatchForm
+      matchId={id}
+      initial={initialState(saved.data, tree.data.items, regions, locale)}
+      tree={tree.data.items}
+      regions={regions}
+      locked={saved.data ? hasStarted(saved.data) : false}
+    />
   );
 }
