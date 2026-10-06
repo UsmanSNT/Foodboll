@@ -29,6 +29,13 @@
       "when": 1791249374555,
       "tag": "0003_payment_audit_refund_pending",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791249681472,
+      "tag": "0004_regions_match_announcements",
+      "breakpoints": true
     }
   ]
 }

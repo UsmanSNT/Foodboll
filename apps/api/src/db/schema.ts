@@ -53,6 +53,46 @@ export const languages = pgTable(
 );
 
 /**
+ * Where football is played: provinces (level 1) and their cities/districts (level 2). Reference
+ * data seeded by migration from `REGION_SEEDS`; admins can add more at runtime.
+ */
+export const regions = pgTable(
+  'regions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** Stable URL-safe id, e.g. 'seoul' or 'gyeonggi-ansan'. Never changes. */
+    code: text('code').notNull().unique(),
+    parentId: uuid('parent_id').references((): AnyPgColumn => regions.id, { onDelete: 'restrict' }),
+    level: smallint('level').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    enabled: boolean('enabled').notNull().default(true),
+  },
+  (t) => [
+    check('regions_level_valid', sql`${t.level} in (1, 2)`),
+    check('regions_level_matches_parent', sql`(${t.level} = 1) = (${t.parentId} is null)`),
+    check('regions_code_format', sql`${t.code} ~ '^[a-z]+(-[a-z]+)*$'`),
+    index('regions_parent_idx').on(t.parentId, t.sortOrder),
+  ],
+);
+
+export const regionTranslations = pgTable(
+  'region_translations',
+  {
+    regionId: uuid('region_id')
+      .notNull()
+      .references(() => regions.id, { onDelete: 'cascade' }),
+    languageCode: text('language_code')
+      .notNull()
+      .references(() => languages.code, { onUpdate: 'cascade', onDelete: 'restrict' }),
+    name: text('name').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.regionId, t.languageCode] }),
+    check('region_translations_name_length', sql`char_length(${t.name}) between 1 and 60`),
+  ],
+);
+
+/**
  * Deliberately has NO nationality column: speaking Uzbek says nothing about nationality, and we
  * only collect it if a legal requirement appears and the user explicitly provides it.
  */
@@ -69,6 +109,8 @@ export const users = pgTable(
     }),
     /** Raw language tag last reported by the user's device; support context only. */
     deviceLocale: text('device_locale'),
+    /** Where the user plays; the match feed defaults to it. */
+    homeRegionId: uuid('home_region_id').references(() => regions.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -91,7 +133,14 @@ export const matches = pgTable(
     sourceLanguage: text('source_language')
       .notNull()
       .references(() => languages.code, { onUpdate: 'cascade', onDelete: 'restrict' }),
+    regionId: uuid('region_id')
+      .notNull()
+      .references(() => regions.id, { onDelete: 'restrict' }),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+    /** Proper noun as signed locally (usually Korean); not translated. */
+    venueName: text('venue_name').notNull(),
+    venueAddress: text('venue_address'),
     playersPerSide: smallint('players_per_side').notNull(),
     /** Registration capacity. */
     maxPlayers: smallint('max_players').notNull().default(10),
@@ -102,6 +151,12 @@ export const matches = pgTable(
   (t) => [
     check('matches_players_per_side_range', sql`${t.playersPerSide} between 3 and 11`),
     check('matches_max_players_range', sql`${t.maxPlayers} between 6 and 60`),
+    check('matches_ends_after_start', sql`${t.endsAt} > ${t.startsAt}`),
+    check(
+      'matches_venue_length',
+      sql`char_length(${t.venueName}) between 1 and 100 and coalesce(char_length(${t.venueAddress}), 0) <= 200`,
+    ),
+    index('matches_region_starts_idx').on(t.regionId, t.startsAt),
     check('matches_fee_range', sql`${t.feeKrw} between 0 and 1000000`),
     index('matches_starts_at_idx').on(t.startsAt),
     index('matches_organizer_idx').on(t.organizerId),

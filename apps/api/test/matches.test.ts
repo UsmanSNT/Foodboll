@@ -10,11 +10,22 @@ beforeEach(() => ctx.reset());
 
 const FUTURE = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString();
 
-const matchBody = (overrides: Record<string, unknown> = {}) => ({
+const matchBody = (overrides: Record<string, unknown> = {}) => {
+  const merged = matchBodyBase(overrides);
+  return {
+    ...merged,
+    endsAt:
+      merged.endsAt ??
+      new Date(Date.parse(merged.startsAt as string) + 2 * 3600 * 1000).toISOString(),
+  };
+};
+const matchBodyBase = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   sourceLanguage: 'ko',
+  regionCode: 'seoul-gangnam',
   startsAt: FUTURE,
+  venueName: '강남 풋살파크',
+  venueAddress: '서울 강남구 테헤란로 1',
   playersPerSide: 5,
-  feeKrw: 10000,
   translations: {
     ko: {
       title: '서울 풋살장 5v5 매치',
@@ -123,8 +134,10 @@ describe('multilingual matches', () => {
     const id = created.json().id as string;
     const ko = (await get(`/v1/matches/${id}?lang=ko`)).json();
     const uz = (await get(`/v1/matches/${id}?lang=uz`)).json();
-    const { title: _k, ...koRest } = ko;
-    const { title: _u, ...uzRest } = uz;
+    // Titles and region names are localized; everything else is identical for both readers.
+    const { title: _k, region: _kr, ...koRest } = ko;
+    const { title: _u, region: _ur, ...uzRest } = uz;
+    expect(_kr.code).toBe(_ur.code);
     expect(koRest).toEqual(uzRest);
   });
 
@@ -164,8 +177,8 @@ describe('multilingual matches', () => {
       }),
     );
     await ctx.handle.pool.query(
-      `insert into matches (organizer_id, source_language, starts_at, players_per_side, fee_krw)
-       values ($1, 'ko', now() - interval '1 day', 5, 0)`,
+      `insert into matches (organizer_id, region_id, source_language, starts_at, ends_at, venue_name, players_per_side, fee_krw)
+       values ($1, (select id from regions where code = 'seoul'), 'ko', now() - interval '1 day', now() - interval '22 hours', 'x', 5, 0)`,
       [organizer.id],
     );
 

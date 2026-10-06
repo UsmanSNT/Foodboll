@@ -42,15 +42,27 @@ export const matchTranslationSchema = z.strictObject({
 });
 export type MatchTranslationInput = z.output<typeof matchTranslationSchema>;
 
+export const regionCodeSchema = z
+  .string()
+  .max(60)
+  .regex(/^[a-z]+(-[a-z]+)*$/);
+
+const MAX_MATCH_HOURS = 12;
+
 export const matchInputSchema = z
   .strictObject({
     /** Language the organizer wrote the original in; its translation is mandatory. */
     sourceLanguage: localeCodeSchema,
+    /** Region (province or district) the match is played in; decides who sees it. */
+    regionCode: regionCodeSchema,
     startsAt: z.iso.datetime({ offset: true }),
+    endsAt: z.iso.datetime({ offset: true }),
+    /** Proper noun, written as the venue is signed locally (usually Korean). Not translated. */
+    venueName: text(1, 100),
+    venueAddress: optionalText(200),
     playersPerSide: z.number().int().min(3).max(11),
     /** Registration capacity. Defaults to two full sides. */
     maxPlayers: z.number().int().min(6).max(60).optional(),
-    feeKrw: z.number().int().min(0).max(1_000_000),
     translations: atLeastOne(matchTranslationSchema),
   })
   .refine(
@@ -59,6 +71,13 @@ export const matchInputSchema = z
       message: 'maxPlayers must fit two full sides',
       path: ['maxPlayers'],
     },
+  )
+  .refine(
+    (match) => {
+      const span = Date.parse(match.endsAt) - Date.parse(match.startsAt);
+      return span > 0 && span <= MAX_MATCH_HOURS * 3600 * 1000;
+    },
+    { message: `endsAt must be after startsAt, within ${MAX_MATCH_HOURS} hours`, path: ['endsAt'] },
   );
 export type MatchInput = z.output<typeof matchInputSchema>;
 
@@ -115,4 +134,29 @@ export const paymentStatusFilterSchema = z.enum(PAYMENT_STATUSES);
 export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).max(100_000).default(0),
+});
+
+export const regionInputSchema = z.strictObject({
+  code: regionCodeSchema,
+  /** Parent region code, or null to create a province-level region. */
+  parent: regionCodeSchema.nullable(),
+  sortOrder: z.number().int().min(0).max(100_000).default(1000),
+  names: z.strictObject({
+    ko: text(1, 60),
+    uz: text(1, 60).optional(),
+    en: text(1, 60).optional(),
+  }),
+});
+export type RegionInput = z.output<typeof regionInputSchema>;
+
+export const setHomeRegionInputSchema = z.strictObject({
+  regionCode: regionCodeSchema.nullable(),
+});
+
+/** `YYYY-MM-DD`, interpreted in Korean time. */
+export const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const matchFeedQuerySchema = paginationSchema.extend({
+  region: regionCodeSchema.optional(),
+  date: dateOnlySchema.optional(),
 });

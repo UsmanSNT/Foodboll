@@ -4,6 +4,7 @@ import { desc, eq, isNull, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db } from '../db/client';
 import { users } from '../db/schema';
+import { loadRegions } from './regions';
 import { assertLanguagesEnabled } from './translations';
 
 type UserRow = typeof users.$inferSelect;
@@ -13,6 +14,7 @@ const toAuthUser = (row: UserRow): AuthUser => ({
   role: row.role as UserRole,
   displayName: row.displayName,
   preferredLanguage: isLocaleCode(row.preferredLanguage) ? row.preferredLanguage : null,
+  homeRegionId: row.homeRegionId,
 });
 
 export async function findUserById(db: Db, id: string): Promise<AuthUser | null> {
@@ -20,13 +22,18 @@ export async function findUserById(db: Db, id: string): Promise<AuthUser | null>
   return row ? toAuthUser(row) : null;
 }
 
-export function toMeDto(user: AuthUser, effectiveLanguage: LocaleCode): MeDto {
+/** The signed-in user's own view of their account, with their region in the response language. */
+export async function buildMe(db: Db, user: AuthUser, locale: LocaleCode): Promise<MeDto> {
+  const homeRegion = user.homeRegionId
+    ? ((await loadRegions(db, [user.homeRegionId], locale)).get(user.homeRegionId) ?? null)
+    : null;
   return {
     id: user.id,
     displayName: user.displayName,
     role: user.role,
     preferredLanguage: user.preferredLanguage,
-    effectiveLanguage,
+    effectiveLanguage: locale,
+    homeRegion,
   };
 }
 

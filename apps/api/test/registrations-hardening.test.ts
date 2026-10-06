@@ -41,6 +41,7 @@ const asUser = (u: { id: string }, role: AuthUser['role'] = 'PLAYER'): AuthUser 
   role,
   displayName: 'T',
   preferredLanguage: null,
+  homeRegionId: null,
 });
 const files = () => readdirSync(ctx.config.receiptDir).length;
 const db = () => ctx.handle.db;
@@ -343,9 +344,11 @@ describe('capacity edits', () => {
 
     const body = (extra: Record<string, unknown>) => ({
       sourceLanguage: 'ko',
+      regionCode: 'seoul',
       startsAt: new Date(Date.now() + 7 * 24 * hours(1)).toISOString(),
+      endsAt: new Date(Date.now() + 7 * 24 * hours(1) + hours(2)).toISOString(),
+      venueName: '구장',
       playersPerSide: 3,
-      feeKrw: 10000,
       translations: { ko: { title: '수정' } },
       ...extra,
     });

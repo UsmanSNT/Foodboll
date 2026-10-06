@@ -49,7 +49,10 @@ export function buildApp(
   // Registered as a plugin so routes load AFTER the rate-limit plugin, which attaches to routes
   // through an `onRoute` hook and would silently skip any route defined before it.
   app.register(async (instance) =>
-    registerRoutes(instance, db, storage, config.uploadRateLimitPerMinute),
+    registerRoutes(instance, db, storage, {
+      uploadsPerMinute: config.uploadRateLimitPerMinute,
+      matchFeeKrw: config.matchFeeKrw,
+    }),
   );
 
   const send = (

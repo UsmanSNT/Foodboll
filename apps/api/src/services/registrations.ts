@@ -17,6 +17,7 @@ import { contentTypeForKey, sniffReceiptType, type ReceiptStorage } from '../sto
 import { loadMatchSummaries } from './matches';
 import { enqueueNotification } from './notifications';
 import { recordPaymentEvent } from './payment-audit';
+import { lapsedHold } from './seats';
 
 export const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
 const PAYMENT_WINDOW_MS = 24 * 3600 * 1000;
@@ -31,13 +32,6 @@ const invalidState = () => new AppError('INVALID_STATE', 409);
 function paymentDeadline(now: Date, matchStartsAt: Date): Date {
   return new Date(Math.min(now.getTime() + PAYMENT_WINDOW_MS, matchStartsAt.getTime()));
 }
-
-/** SQL: this registration's payment is unpaid and past its deadline. */
-const lapsedHold = (now: Date) => sql`exists (
-  select 1 from registration_payments p
-   where p.registration_id = ${matchRegistrations.id}
-     and p.status in ('AWAITING_PAYMENT', 'PAYMENT_REJECTED')
-     and p.due_at < ${now.toISOString()}::timestamptz)`;
 
 /**
  * The status a reader should see. An unpaid registration past its deadline is shown as cancelled

@@ -9,6 +9,25 @@ export interface LanguageDto {
   readonly englishName: string;
 }
 
+export interface RegionRefDto {
+  readonly id: string;
+  readonly code: string;
+  /** Localized with fallback; region names are proper nouns, so Korean/English fall back freely. */
+  readonly name: LocalizedValueDto;
+}
+
+export interface RegionDto extends RegionRefDto {
+  readonly level: 1 | 2;
+  readonly parent: RegionRefDto | null;
+}
+
+export interface RegionNodeDto extends RegionRefDto {
+  readonly level: 1 | 2;
+  /** Upcoming matches in this region, including its districts. */
+  readonly upcomingMatches: number;
+  readonly children: readonly RegionNodeDto[];
+}
+
 export interface MeDto {
   readonly id: string;
   readonly displayName: string;
@@ -17,16 +36,27 @@ export interface MeDto {
   readonly preferredLanguage: LocaleCode | null;
   /** Language used for this response. */
   readonly effectiveLanguage: LocaleCode;
+  /** Where the user plays; the feed defaults to it. */
+  readonly homeRegion: RegionDto | null;
 }
 
 export interface MatchSummaryDto {
   readonly id: string;
   readonly startsAt: string;
+  readonly endsAt: string;
+  readonly venueName: string;
+  readonly venueAddress: string | null;
+  readonly region: RegionDto;
   readonly playersPerSide: number;
   readonly maxPlayers: number;
+  /** Players holding a seat (confirmed, or awaiting payment within their window). */
+  readonly registeredCount: number;
+  readonly spotsLeft: number;
   readonly feeKrw: number;
   readonly sourceLanguage: LocaleCode;
   readonly title: LocalizedValueDto;
+  /** The signed-in user's own registration for this match, if any. */
+  readonly viewer: { readonly registrationId: string; readonly status: RegistrationStatus } | null;
 }
 
 export interface MatchDto extends MatchSummaryDto {
@@ -69,6 +99,13 @@ export interface LegalDocumentDto {
 /** Raw per-language texts of a match, for the organizer's editor. */
 export interface MatchTranslationsDto {
   readonly sourceLanguage: LocaleCode;
+  readonly regionCode: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly venueName: string;
+  readonly venueAddress: string | null;
+  readonly playersPerSide: number;
+  readonly maxPlayers: number;
   readonly translations: Readonly<
     Partial<
       Record<

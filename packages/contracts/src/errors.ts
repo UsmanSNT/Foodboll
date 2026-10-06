@@ -22,6 +22,8 @@ export const ERROR_CODES = [
   'INVALID_STATE',
   'INVALID_RECEIPT',
   'CAPACITY_BELOW_REGISTRATIONS',
+  'REGION_NOT_FOUND',
+  'REGION_FORBIDDEN',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

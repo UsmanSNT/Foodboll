@@ -18,6 +18,7 @@ export interface AuthUser {
   readonly role: UserRole;
   readonly displayName: string;
   readonly preferredLanguage: LocaleCode | null;
+  readonly homeRegionId: string | null;
 }
 
 export interface RequestContext {

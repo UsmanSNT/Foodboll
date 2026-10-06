@@ -2,7 +2,11 @@ import {
   LEGAL_DOCUMENT_TYPES,
   legalDocumentInputSchema,
   localeCodeSchema,
+  matchFeedQuerySchema,
   matchInputSchema,
+  regionCodeSchema,
+  regionInputSchema,
+  setHomeRegionInputSchema,
   paginationSchema,
   paymentInstructionInputSchema,
   paymentStatusFilterSchema,
@@ -44,7 +48,8 @@ import {
   rejectPayment,
   uploadReceipt,
 } from '../services/registrations';
-import { listUsersForAdmin, toMeDto, updateUserLanguage } from '../services/users';
+import { createRegion, listRegionTree, setHomeRegion, setRegionEnabled } from '../services/regions';
+import { buildMe, findUserById, listUsersForAdmin, updateUserLanguage } from '../services/users';
 
 const idParams = z.object({ id: uuidSchema });
 const legalParams = z.object({ type: z.enum(LEGAL_DOCUMENT_TYPES) });
@@ -60,8 +65,9 @@ export function registerRoutes(
   app: FastifyInstance,
   db: Db,
   storage: ReceiptStorage,
-  uploadsPerMinute: number,
+  options: { uploadsPerMinute: number; matchFeeKrw: number },
 ): void {
+  const { uploadsPerMinute, matchFeeKrw } = options;
   // Receipts are sent as the raw file body (not multipart), with a larger limit than JSON.
   app.addContentTypeParser(
     ['image/jpeg', 'image/png', 'application/pdf'],
@@ -72,22 +78,52 @@ export function registerRoutes(
   // ---- Languages & the current user ------------------------------------------------------
   app.get('/v1/languages', async () => ({ items: await listEnabledLanguages(db) }));
 
-  app.get('/v1/me', async (request) => toMeDto(requireUser(request), request.ctx.locale));
+  app.get('/v1/me', async (request) => buildMe(db, requireUser(request), request.ctx.locale));
 
   app.patch('/v1/me/language', async (request) => {
     const user = requireUser(request);
     const input = updateLanguageInputSchema.parse(request.body);
     const updated = await updateUserLanguage(db, user.id, input);
-    return toMeDto(updated, updated.preferredLanguage ?? request.ctx.locale);
+    return buildMe(db, updated, updated.preferredLanguage ?? request.ctx.locale);
+  });
+
+  app.patch('/v1/me/region', async (request) => {
+    const user = requireUser(request);
+    const { regionCode } = setHomeRegionInputSchema.parse(request.body);
+    await setHomeRegion(db, user.id, regionCode);
+    return buildMe(db, (await findUserById(db, user.id)) ?? user, request.ctx.locale);
+  });
+
+  // ---- Regions -----------------------------------------------------------------------------
+  app.get('/v1/regions', async (request) => ({
+    items: await listRegionTree(db, request.ctx.locale),
+  }));
+
+  app.post('/v1/admin/regions', async (request, reply) => {
+    requireRole(request, 'ADMIN');
+    const id = await createRegion(db, regionInputSchema.parse(request.body));
+    return reply.status(201).send({ id });
+  });
+
+  app.patch('/v1/admin/regions/:code', async (request) => {
+    requireRole(request, 'ADMIN');
+    const { code } = z.object({ code: regionCodeSchema }).parse(request.params);
+    const { enabled } = z.strictObject({ enabled: z.boolean() }).parse(request.body);
+    await setRegionEnabled(db, code, enabled);
+    return { code, enabled };
   });
 
   // ---- Matches -----------------------------------------------------------------------------
   app.get('/v1/matches', async (request) =>
-    listUpcomingMatches(db, request.ctx.locale, paginationSchema.parse(request.query)),
+    listUpcomingMatches(db, request.ctx.locale, matchFeedQuerySchema.parse(request.query), {
+      viewerId: request.ctx.user?.id,
+    }),
   );
 
   app.get('/v1/matches/:id', async (request) =>
-    getMatch(db, idParams.parse(request.params).id, request.ctx.locale),
+    getMatch(db, idParams.parse(request.params).id, request.ctx.locale, {
+      viewerId: request.ctx.user?.id,
+    }),
   );
 
   app.get('/v1/matches/:id/translations', async (request) =>
@@ -100,18 +136,18 @@ export function registerRoutes(
 
   app.post('/v1/matches', async (request, reply) => {
     const user = requireRole(request, 'ORGANIZER', 'ADMIN');
-    const id = await createMatch(db, user.id, matchInputSchema.parse(request.body));
+    const id = await createMatch(db, user.id, matchInputSchema.parse(request.body), matchFeeKrw);
     return reply
       .status(201)
       .header('Location', `/v1/matches/${id}`)
-      .send(await getMatch(db, id, request.ctx.locale));
+      .send(await getMatch(db, id, request.ctx.locale, { viewerId: user.id }));
   });
 
   app.put('/v1/matches/:id', async (request) => {
     const user = requireRole(request, 'ORGANIZER', 'ADMIN');
     const { id } = idParams.parse(request.params);
     await replaceMatch(db, user, id, matchInputSchema.parse(request.body));
-    return getMatch(db, id, request.ctx.locale);
+    return getMatch(db, id, request.ctx.locale, { viewerId: user.id });
   });
 
   // ---- Registration & payment ---------------------------------------------------------------

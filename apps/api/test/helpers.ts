@@ -22,6 +22,7 @@ export const TEST_CONFIG = (databaseUrl: string): AppConfig => ({
   jwtAudience: 'foodboll-api',
   corsOrigins: ['http://localhost:5173'],
   receiptDir: mkdtempSync(path.join(os.tmpdir(), 'foodboll-receipts-')),
+  matchFeeKrw: 10_000,
   rateLimitPerMinute: 10_000,
   uploadRateLimitPerMinute: 10_000,
   trustProxy: false,
@@ -105,14 +106,25 @@ export async function insertMatch(
     maxPlayers?: number;
     startsAt?: Date;
     title?: string;
+    region?: string;
+    venueName?: string;
   } = {},
 ): Promise<string> {
+  const startsAt = options.startsAt ?? new Date(Date.now() + 7 * 24 * 3600 * 1000);
+  const region = (
+    await ctx.handle.pool.query('select id from regions where code = $1', [
+      options.region ?? 'seoul',
+    ])
+  ).rows[0] as { id: string };
   const [row] = await ctx.handle.db
     .insert(matches)
     .values({
       organizerId,
+      regionId: region.id,
       sourceLanguage: 'ko',
-      startsAt: options.startsAt ?? new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      startsAt,
+      endsAt: new Date(startsAt.getTime() + 2 * 3600 * 1000),
+      venueName: options.venueName ?? '테스트 풋살장',
       playersPerSide: 5,
       maxPlayers: options.maxPlayers ?? 10,
       feeKrw: options.feeKrw ?? 10000,

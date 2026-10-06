@@ -173,6 +173,8 @@ export const uz: typeof ko = {
     MATCH_STARTED: 'Match allaqachon boshlangan.',
     INVALID_STATE: 'Hozirgi holatda bu amalni bajarib bo‘lmaydi.',
     INVALID_RECEIPT: 'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',
+    REGION_NOT_FOUND: 'Hudud topilmadi.',
+    REGION_FORBIDDEN: 'Bu hududda match e’lon qilishga ruxsatingiz yo‘q.',
     CAPACITY_BELOW_REGISTRATIONS:
       'Ishtirokchilar sonini hozirgi arizalar sonidan kamaytirib bo‘lmaydi.',
   },

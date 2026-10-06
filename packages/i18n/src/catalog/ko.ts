@@ -171,6 +171,8 @@ export const ko = {
     MATCH_STARTED: '이미 시작된 매치입니다.',
     INVALID_STATE: '현재 상태에서는 이 작업을 할 수 없습니다.',
     INVALID_RECEIPT: 'JPG, PNG, PDF 파일만 올릴 수 있습니다.',
+    REGION_NOT_FOUND: '지역을 찾을 수 없습니다.',
+    REGION_FORBIDDEN: '이 지역에서는 매치를 등록할 수 없습니다.',
     CAPACITY_BELOW_REGISTRATIONS: '현재 신청 인원보다 적게 모집 인원을 줄일 수 없습니다.',
   },
   glossary: glossaryMessages('ko'),
