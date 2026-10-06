@@ -78,6 +78,9 @@ export const PAYMENT_REJECT_REASON_LABEL_KEY = {
 export const IDENTITY_PROVIDERS = ['TELEGRAM', 'DEV'] as const;
 export type IdentityProvider = (typeof IDENTITY_PROVIDERS)[number];
 
+export const ORGANIZER_APPLICATION_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type OrganizerApplicationStatus = (typeof ORGANIZER_APPLICATION_STATUSES)[number];
+
 export const BANK_DEPOSIT_SOURCES = ['WEBHOOK', 'TELEGRAM'] as const;
 export type BankDepositSource = (typeof BANK_DEPOSIT_SOURCES)[number];
 
@@ -105,6 +108,8 @@ export const NOTIFICATION_TYPES = [
   'PAYMENT_REJECTED',
   'PAYMENT_REFUNDED',
   'PARTICIPATION_CONFIRMED',
+  'ORGANIZER_APPROVED',
+  'ORGANIZER_REJECTED',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -120,6 +125,14 @@ export const NOTIFICATION_MESSAGE_KEYS = {
   PAYMENT_REFUNDED: {
     title: 'notification.paymentRefunded.title',
     body: 'notification.paymentRefunded.body',
+  },
+  ORGANIZER_APPROVED: {
+    title: 'notification.organizerApproved.title',
+    body: 'notification.organizerApproved.body',
+  },
+  ORGANIZER_REJECTED: {
+    title: 'notification.organizerRejected.title',
+    body: 'notification.organizerRejected.body',
   },
   PARTICIPATION_CONFIRMED: {
     title: 'notification.participationConfirmed.title',

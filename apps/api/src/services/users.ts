@@ -4,6 +4,7 @@ import { desc, eq, isNull, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
 import { users } from '../db/schema';
+import { listOrganizerRegionCodes } from './organizers';
 import { loadRegions } from './regions';
 import { assertLanguagesEnabled } from './translations';
 
@@ -83,8 +84,13 @@ export async function listUsersForAdmin(
     .orderBy(desc(users.createdAt), desc(users.id))
     .limit(params.limit)
     .offset(params.offset);
+  const organizerRegions = await listOrganizerRegionCodes(
+    db,
+    rows.map((r) => r.id),
+  );
   return {
     items: rows.map((row) => ({
+      organizerRegions: organizerRegions.get(row.id) ?? [],
       id: row.id,
       displayName: row.displayName,
       role: row.role as UserRole,

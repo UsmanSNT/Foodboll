@@ -23,6 +23,7 @@ import {
   BANK_MATCH_METHODS,
   IDENTITY_PROVIDERS,
   NOTIFICATION_CHANNELS,
+  ORGANIZER_APPLICATION_STATUSES,
   PAYMENT_EVENT_TYPES,
   PAYMENT_REJECT_REASONS,
   PAYMENT_STATUSES,
@@ -534,5 +535,54 @@ export const bankDeposits = pgTable(
       sql`(${t.status} = 'MATCHED') = (${t.matchMethod} is not null)`,
     ),
     index('bank_deposits_status_idx').on(t.status, t.receivedAt),
+  ],
+);
+
+/**
+ * Regions an organizer may publish matches in. A province grant covers all of its districts; a
+ * district grant covers only that district. Admins are not restricted.
+ */
+export const organizerRegions = pgTable(
+  'organizer_regions',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    regionId: uuid('region_id')
+      .notNull()
+      .references(() => regions.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.regionId] }),
+    index('organizer_regions_region_idx').on(t.regionId),
+  ],
+);
+
+/** A player's request to become an organizer in a region, reviewed by an admin. */
+export const organizerApplications = pgTable(
+  'organizer_applications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    regionId: uuid('region_id')
+      .notNull()
+      .references(() => regions.id, { onDelete: 'cascade' }),
+    message: text('message'),
+    status: text('status').notNull().default('PENDING'),
+    reviewedBy: uuid('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check('organizer_applications_status_valid', oneOf(t.status, ORGANIZER_APPLICATION_STATUSES)),
+    check('organizer_applications_message_length', sql`char_length(${t.message}) <= 500`),
+    // One open application per person and region.
+    uniqueIndex('organizer_applications_open_idx')
+      .on(t.userId, t.regionId)
+      .where(sql`${t.status} = 'PENDING'`),
+    index('organizer_applications_status_idx').on(t.status, t.createdAt),
   ],
 );

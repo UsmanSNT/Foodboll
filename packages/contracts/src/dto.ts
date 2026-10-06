@@ -6,6 +6,7 @@ import type {
   BankDepositStatus,
   BankMatchMethod,
   NotificationType,
+  OrganizerApplicationStatus,
   PaymentRejectReason,
   PaymentStatus,
   RegistrationStatus,
@@ -163,6 +164,8 @@ export interface AdminUserDto {
   readonly role: UserRole;
   /** Explicit choice (null = never chose). */
   readonly preferredLanguage: LocaleCode | null;
+  /** Region codes the user may publish matches in (organizers only). */
+  readonly organizerRegions: readonly string[];
   /** Raw language reported by the user's device, for support context. */
   readonly deviceLocale: string | null;
   readonly createdAt: string;
@@ -260,4 +263,14 @@ export interface RosterEntryDto {
   readonly player: PlayerCardDto;
   /** Null until the organizer marks attendance. */
   readonly attended: boolean | null;
+}
+
+export interface OrganizerApplicationDto {
+  readonly id: string;
+  readonly status: OrganizerApplicationStatus;
+  readonly region: RegionDto;
+  readonly message: string | null;
+  readonly createdAt: string;
+  readonly reviewedAt: string | null;
+  readonly applicant: { readonly id: string; readonly displayName: string };
 }

@@ -76,8 +76,11 @@ export async function startTestApp(
     // `languages` is seed data owned by migrations, so it is kept.
     reset: async () => {
       await handle.pool.query(
-        'truncate table bank_deposits, telegram_login_replays, auth_sessions, user_identities, notifications, registration_payments, match_registrations, legal_document_translations, legal_documents, payment_instruction_translations, payment_instructions, match_translations, matches, users cascade',
+        'truncate table organizer_applications, organizer_regions, bank_deposits, telegram_login_replays, auth_sessions, user_identities, notifications, registration_payments, match_registrations, legal_document_translations, legal_documents, payment_instruction_translations, payment_instructions, match_translations, matches, users cascade',
       );
+      // Reference data that individual tests may toggle.
+      await handle.pool.query('update regions set enabled = true');
+      await handle.pool.query('update languages set enabled = true');
     },
     close: async () => {
       await app.close();
@@ -97,6 +100,8 @@ export async function createUser(
     telegramId?: string;
     /** The user pressed Start in the bot. */
     telegramStarted?: boolean;
+    /** Region codes an ORGANIZER may publish in. Default: every province. */
+    organizerRegions?: string[];
   } = {},
 ): Promise<{ id: string; token: string; sessionId: string }> {
   const [row] = await ctx.handle.db
@@ -110,6 +115,14 @@ export async function createUser(
     })
     .returning({ id: users.id });
   if (!row) throw new Error('user insert failed');
+  if ((data.role ?? 'PLAYER') === 'ORGANIZER') {
+    const codes = data.organizerRegions;
+    await ctx.handle.pool.query(
+      `insert into organizer_regions (user_id, region_id)
+       select $1, id from regions where ${codes ? 'code = any($2)' : 'level = 1 and $2::text[] is null'}`,
+      [row.id, codes ?? null],
+    );
+  }
   if (data.telegramId) {
     await ctx.handle.db
       .insert(userIdentities)

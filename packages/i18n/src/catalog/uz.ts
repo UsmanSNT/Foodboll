@@ -131,6 +131,14 @@ export const uz: typeof ko = {
       title: 'To‘lov qaytarildi',
       body: 'To‘lagan summangiz qaytarildi.',
     },
+    organizerApproved: {
+      title: 'Tashkilotchi sifatida tasdiqlandi',
+      body: 'Tashkilotchilik arizangiz tasdiqlandi. Endi tasdiqlangan hududda match e’lon qilishingiz mumkin.',
+    },
+    organizerRejected: {
+      title: 'Tashkilotchilik arizasi natijasi',
+      body: 'Bu safar tashkilotchilik arizangiz tasdiqlanmadi.',
+    },
     participationConfirmed: {
       title: 'Ishtirok tasdiqlandi',
       body: 'Matchdagi ishtirokingiz tasdiqlandi.',
@@ -214,6 +222,7 @@ export const uz: typeof ko = {
     TELEGRAM_LOGIN_INVALID: 'Telegram orqali kirishni tasdiqlab bo‘lmadi. Qayta urinib ko‘ring.',
     MATCH_NOT_STARTED: 'Match hali boshlanmagan.',
     PLAYER_NOT_FOUND: 'Futbolchi topilmadi.',
+    APPLICATION_NOT_FOUND: 'Ariza topilmadi.',
     REGION_NOT_FOUND: 'Hudud topilmadi.',
     REGION_FORBIDDEN: 'Bu hududda match e’lon qilishga ruxsatingiz yo‘q.',
     CAPACITY_BELOW_REGISTRATIONS:

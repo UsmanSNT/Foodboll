@@ -17,6 +17,7 @@ import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
 import { matches, matchRegistrations, matchTranslations } from '../db/schema';
 import { AppError, forbidden, notFound } from '../errors';
+import { assertCanPublishIn } from './organizers';
 import { findRegionByCode, loadRegions, regionScopeIds } from './regions';
 import { loadSeatCounts, loadViewerRegistrations } from './seats';
 import { assertLanguagesEnabled, assertSourceTranslation } from './translations';
@@ -48,7 +49,7 @@ const invalidField = (path: string, issue: string) =>
  */
 export async function createMatch(
   db: Db,
-  organizerId: string,
+  actor: AuthUser,
   input: MatchInput,
   feeKrw: number,
   now: Date = new Date(),
@@ -57,10 +58,11 @@ export async function createMatch(
   if (new Date(input.startsAt) <= now) throw invalidField('startsAt', 'too_small');
   return db.transaction(async (tx) => {
     const region = await findRegionByCode(tx, input.regionCode);
+    await assertCanPublishIn(tx, actor, region.id);
     const [row] = await tx
       .insert(matches)
       .values({
-        organizerId,
+        organizerId: actor.id,
         regionId: region.id,
         sourceLanguage: input.sourceLanguage,
         startsAt: new Date(input.startsAt),
@@ -93,6 +95,8 @@ export async function replaceMatch(
     if (actor.role !== 'ADMIN' && existing.organizerId !== actor.id) throw forbidden();
     if (existing.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
     const region = await findRegionByCode(tx, input.regionCode);
+    // An organizer may not move a match into a region they are not responsible for.
+    await assertCanPublishIn(tx, actor, region.id);
 
     // Omitting maxPlayers keeps the current capacity; lowering it below the people already
     // holding a seat would silently over-book the match.

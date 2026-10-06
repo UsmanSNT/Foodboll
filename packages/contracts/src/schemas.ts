@@ -2,6 +2,7 @@ import { LOCALE_CODES } from '@foodboll/i18n';
 import { z } from 'zod';
 import {
   BANK_DEPOSIT_STATUSES,
+  ORGANIZER_APPLICATION_STATUSES,
   PAYMENT_REJECT_REASONS,
   PAYMENT_STATUSES,
   USER_ROLES,
@@ -130,6 +131,20 @@ export type UpdateLanguageInput = z.output<typeof updateLanguageInputSchema>;
 
 export const uuidSchema = z.uuid();
 
+/** A player asks to organize matches in a region. */
+export const organizerApplicationInputSchema = z.strictObject({
+  regionCode: regionCodeSchema,
+  /** Who they are and where they play; helps the reviewer. */
+  message: optionalText(500),
+});
+
+export const decideApplicationInputSchema = z.strictObject({});
+
+/** Replaces the regions an organizer may publish matches in (empty = no longer an organizer). */
+export const setOrganizerRegionsInputSchema = z.strictObject({
+  regionCodes: z.array(regionCodeSchema).max(50),
+});
+
 /** Organizer's attendance sheet: who actually showed up. Idempotent; can be corrected later. */
 export const attendanceInputSchema = z.strictObject({
   marks: z
@@ -231,3 +246,5 @@ export const playerSearchQuerySchema = paginationSchema.extend({
     .optional(),
   region: regionCodeSchema.optional(),
 });
+
+export const applicationStatusFilterSchema = z.enum(ORGANIZER_APPLICATION_STATUSES);

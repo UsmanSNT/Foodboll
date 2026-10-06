@@ -1,7 +1,10 @@
 import {
   LEGAL_DOCUMENT_TYPES,
   legalDocumentInputSchema,
+  applicationStatusFilterSchema,
   attendanceInputSchema,
+  organizerApplicationInputSchema,
+  setOrganizerRegionsInputSchema,
   localeCodeSchema,
   playerSearchQuerySchema,
   matchFeedQuerySchema,
@@ -51,6 +54,14 @@ import {
   uploadReceipt,
 } from '../services/registrations';
 import {
+  applyToOrganize,
+  decideApplication,
+  listApplicationsForAdmin,
+  listMyApplications,
+  listMyOrganizerRegions,
+  setOrganizerRegions,
+} from '../services/organizers';
+import {
   getPlayerProfile,
   getRoster,
   listMatchPlayers,
@@ -61,6 +72,9 @@ import { createRegion, listRegionTree, setHomeRegion, setRegionEnabled } from '.
 import { buildMe, findUserById, listUsersForAdmin, updateUserLanguage } from '../services/users';
 
 const idParams = z.object({ id: uuidSchema });
+const adminApplicationsQuery = paginationSchema.extend({
+  status: applicationStatusFilterSchema.default('PENDING'),
+});
 const legalParams = z.object({ type: z.enum(LEGAL_DOCUMENT_TYPES) });
 const adminUsersQuery = paginationSchema.extend({
   language: z.union([localeCodeSchema, z.literal('none')]).optional(),
@@ -145,7 +159,7 @@ export function registerRoutes(
 
   app.post('/v1/matches', async (request, reply) => {
     const user = requireRole(request, 'ORGANIZER', 'ADMIN');
-    const id = await createMatch(db, user.id, matchInputSchema.parse(request.body), matchFeeKrw);
+    const id = await createMatch(db, user, matchInputSchema.parse(request.body), matchFeeKrw);
     return reply
       .status(201)
       .header('Location', `/v1/matches/${id}`)
@@ -157,6 +171,48 @@ export function registerRoutes(
     const { id } = idParams.parse(request.params);
     await replaceMatch(db, user, id, matchInputSchema.parse(request.body));
     return getMatch(db, id, request.ctx.locale, { viewerId: user.id });
+  });
+
+  // ---- Organizers ------------------------------------------------------------------------
+  app.get('/v1/me/organizer-regions', async (request) => ({
+    items: await listMyOrganizerRegions(db, requireUser(request), request.ctx.locale),
+  }));
+
+  app.get('/v1/me/organizer-applications', async (request) => ({
+    items: await listMyApplications(db, requireUser(request), request.ctx.locale),
+  }));
+
+  app.post('/v1/organizer-applications', async (request, reply) => {
+    const user = requireUser(request);
+    const input = organizerApplicationInputSchema.parse(request.body);
+    return reply.status(201).send(await applyToOrganize(db, user, input, request.ctx.locale));
+  });
+
+  app.get('/v1/admin/organizer-applications', async (request) => {
+    requireRole(request, 'ADMIN');
+    return listApplicationsForAdmin(
+      db,
+      request.ctx.locale,
+      adminApplicationsQuery.parse(request.query),
+    );
+  });
+
+  for (const [action, decision] of [
+    ['approve', 'APPROVED'],
+    ['reject', 'REJECTED'],
+  ] as const) {
+    app.post(`/v1/admin/organizer-applications/:id/${action}`, async (request) => {
+      const admin = requireRole(request, 'ADMIN');
+      const { id } = idParams.parse(request.params);
+      return decideApplication(db, admin, id, decision, request.ctx.locale);
+    });
+  }
+
+  app.put('/v1/admin/users/:id/organizer-regions', async (request) => {
+    requireRole(request, 'ADMIN');
+    const { id } = idParams.parse(request.params);
+    const { regionCodes } = setOrganizerRegionsInputSchema.parse(request.body);
+    return { organizerRegions: await setOrganizerRegions(db, id, regionCodes) };
   });
 
   // ---- Players ---------------------------------------------------------------------------

@@ -27,6 +27,7 @@ export const ERROR_CODES = [
   'TELEGRAM_LOGIN_INVALID',
   'REGION_NOT_FOUND',
   'REGION_FORBIDDEN',
+  'APPLICATION_NOT_FOUND',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

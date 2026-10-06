@@ -127,6 +127,14 @@ export const ko = {
       title: '환불 완료',
       body: '입금하신 금액이 환불되었습니다.',
     },
+    organizerApproved: {
+      title: '주최자 승인',
+      body: '주최자 신청이 승인되었습니다. 이제 승인된 지역에서 매치를 등록할 수 있습니다.',
+    },
+    organizerRejected: {
+      title: '주최자 신청 결과',
+      body: '이번에는 주최자 신청이 승인되지 않았습니다.',
+    },
     participationConfirmed: {
       title: '참가 확정',
       body: '매치 참가가 확정되었습니다.',
@@ -211,6 +219,7 @@ export const ko = {
     TELEGRAM_LOGIN_INVALID: '텔레그램 로그인을 확인하지 못했습니다. 다시 시도해주세요.',
     MATCH_NOT_STARTED: '아직 시작하지 않은 매치입니다.',
     PLAYER_NOT_FOUND: '선수를 찾을 수 없습니다.',
+    APPLICATION_NOT_FOUND: '신청을 찾을 수 없습니다.',
     REGION_NOT_FOUND: '지역을 찾을 수 없습니다.',
     REGION_FORBIDDEN: '이 지역에서는 매치를 등록할 수 없습니다.',
     CAPACITY_BELOW_REGISTRATIONS: '현재 신청 인원보다 적게 모집 인원을 줄일 수 없습니다.',
