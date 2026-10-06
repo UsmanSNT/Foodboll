@@ -1,4 +1,4 @@
-import { createServer, type IncomingMessage } from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTelegramClient, TelegramApiError } from '../src/integrations/telegram';
@@ -298,7 +298,7 @@ describe('Telegram Bot API client', () => {
   let server: ReturnType<typeof createServer>;
   let base = '';
   let seen: { url: string; body: string }[] = [];
-  let respond: (res: import('node:http').ServerResponse) => void = (res) => res.end('{"ok":true}');
+  let respond: (res: ServerResponse) => void = (res) => res.end('{"ok":true}');
 
   beforeAll(async () => {
     server = createServer((req: IncomingMessage, res) => {
