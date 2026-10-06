@@ -1,4 +1,199 @@
-/** Strings for one area of the app. Korean defines the shape; uz and en must match it exactly. */
-export const adminPaymentsKo = {};
-export const adminPaymentsUz: typeof adminPaymentsKo = {};
-export const adminPaymentsEn: typeof adminPaymentsKo = {};
+/** Admin payment review: receipts that players uploaded, refunds, and every other payment queue. */
+export const adminPaymentsKo = {
+  title: '결제 확인',
+  autoNote:
+    '대부분의 입금은 은행 입금 문자로 자동 확인됩니다. 이 화면에는 사람이 직접 확인해야 하는 예외 건만 표시됩니다.',
+  toDeposits: '입금 내역 보기',
+  filterLabel: '결제 상태',
+  tab: {
+    PAYMENT_REVIEW: '확인 대기',
+    REFUND_PENDING: '환불 처리',
+    AWAITING_PAYMENT: '입금 대기',
+    PAYMENT_REJECTED: '반려',
+    REFUNDED: '환불 완료',
+    PAYMENT_CONFIRMED: '확인 완료',
+  },
+  hint: {
+    PAYMENT_REVIEW:
+      '입금이 자동으로 확인되지 않아 선수가 영수증을 올린 건입니다. 영수증을 보고 확인하거나 반려해 주세요.',
+    REFUND_PENDING:
+      '입금 후 신청을 취소한 선수입니다. 은행에서 돈을 돌려준 뒤 환불 완료로 기록하세요. 입금이 없었다면 환불 없이 종료할 수 있습니다.',
+    AWAITING_PAYMENT:
+      '아직 입금하지 않은 선수입니다. 입금되면 자동으로 확인되므로 여기서 할 일은 없습니다.',
+    PAYMENT_REJECTED:
+      '반려한 건입니다. 선수가 영수증을 다시 올리면 확인 대기로 돌아옵니다.',
+    REFUNDED: '선수에게 환불을 마친 건입니다.',
+    PAYMENT_CONFIRMED: '자동 또는 관리자가 입금을 확인한 건입니다.',
+  },
+  emptyTitle: {
+    PAYMENT_REVIEW: '확인할 영수증이 없어요',
+    REFUND_PENDING: '처리할 환불이 없어요',
+    AWAITING_PAYMENT: '입금을 기다리는 선수가 없어요',
+    PAYMENT_REJECTED: '반려한 건이 없어요',
+    REFUNDED: '환불 완료 내역이 아직 없어요',
+    PAYMENT_CONFIRMED: '확인 완료 내역이 아직 없어요',
+  },
+  languageLabel: '선수 언어: {language}',
+  languageNotSet: '언어 미설정',
+  reference: '입금 코드',
+  receiptUploaded: '영수증 업로드',
+  due: '입금 기한',
+  actionLabel: '{action}: {name}',
+  viewReceipt: '영수증 보기',
+  confirm: '확인',
+  reject: '반려',
+  refund: '환불 완료 처리',
+  closeWithoutRefund: '환불 없이 종료',
+  confirmed: '입금을 확인했어요: {name}',
+  rejected: '입금을 반려했어요: {name}',
+  refunded: '환불 완료로 기록했어요: {name}',
+  receiptTitle: '영수증',
+  receiptAlt: '{name} 님이 올린 입금 영수증',
+  receiptSensitive: '영수증에는 계좌 정보가 포함되어 있습니다. 공유하거나 저장하지 마세요.',
+  openInNewTab: '새 탭에서 열기',
+  openPdf: 'PDF 열기',
+  pdfNote: 'PDF 영수증은 새 탭에서 열립니다.',
+  rejectTitle: '입금 반려',
+  rejectHint: '선수에게 사유가 안내되고, 영수증을 다시 올릴 수 있습니다.',
+  closeTitle: '환불 없이 종료',
+  closeHint: '선수가 취소했고 입금이 확인되지 않은 경우에 사용하세요. 선수에게 알림은 가지 않습니다.',
+  rejectSubmit: '반려하기',
+  refundTitle: '환불 완료로 처리할까요?',
+  refundHint:
+    '환불 사실을 기록할 뿐입니다. 먼저 은행에서 선수에게 돈을 돌려준 뒤 여기서 확인해 주세요. 선수에게 알림이 갑니다.',
+  refundAmount: '환불 금액',
+  refundSubmit: '환불 완료 처리',
+};
+
+export const adminPaymentsUz: typeof adminPaymentsKo = {
+  title: 'To‘lovlarni tekshirish',
+  autoNote:
+    'To‘lovlarning ko‘pi bank xabarlari orqali avtomatik tasdiqlanadi. Bu yerda faqat odam ko‘rib chiqishi kerak bo‘lgan holatlar chiqadi.',
+  toDeposits: 'Kelgan pul o‘tkazmalarini ko‘rish',
+  filterLabel: 'To‘lov holati',
+  tab: {
+    PAYMENT_REVIEW: 'Tekshirish kerak',
+    REFUND_PENDING: 'Qaytarish kerak',
+    AWAITING_PAYMENT: 'To‘lov kutilmoqda',
+    PAYMENT_REJECTED: 'Rad etilgan',
+    REFUNDED: 'Qaytarilgan',
+    PAYMENT_CONFIRMED: 'Tasdiqlangan',
+  },
+  hint: {
+    PAYMENT_REVIEW:
+      'To‘lov avtomatik tasdiqlanmagani uchun futbolchilar chek yuklagan. Har bir chekni ko‘rib, tasdiqlang yoki rad eting.',
+    REFUND_PENDING:
+      'Bu futbolchilar to‘lagandan keyin arizasini bekor qilgan. Pulni bankdan qaytaring, so‘ng “qaytarildi” deb belgilang. Agar pul umuman kelmagan bo‘lsa, qaytarishsiz yoping.',
+    AWAITING_PAYMENT:
+      'Bu futbolchilar hali to‘lamagan. Pul kelishi bilan to‘lov avtomatik tasdiqlanadi, shuning uchun bu yerda qiladigan ish yo‘q.',
+    PAYMENT_REJECTED:
+      'Bu to‘lovlarni rad etgansiz. Futbolchi yangi chek yuklasa, ular yana tekshiruvga qaytadi.',
+    REFUNDED: 'Futbolchiga pul qaytarib berilgan to‘lovlar.',
+    PAYMENT_CONFIRMED: 'Avtomatik yoki administrator tasdiqlagan to‘lovlar.',
+  },
+  emptyTitle: {
+    PAYMENT_REVIEW: 'Tekshiradigan chek yo‘q',
+    REFUND_PENDING: 'Qaytariladigan to‘lov yo‘q',
+    AWAITING_PAYMENT: 'To‘lov kutayotgan futbolchi yo‘q',
+    PAYMENT_REJECTED: 'Rad etilgan to‘lov yo‘q',
+    REFUNDED: 'Qaytarilgan to‘lov hali yo‘q',
+    PAYMENT_CONFIRMED: 'Tasdiqlangan to‘lov hali yo‘q',
+  },
+  languageLabel: 'Futbolchi tili: {language}',
+  languageNotSet: 'Til tanlanmagan',
+  reference: 'To‘lov kodi',
+  receiptUploaded: 'Chek yuklangan',
+  due: 'Muddati',
+  actionLabel: '{action}: {name}',
+  viewReceipt: 'Chekni ko‘rish',
+  confirm: 'Tasdiqlash',
+  reject: 'Rad etish',
+  refund: 'Qaytarildi deb belgilash',
+  closeWithoutRefund: 'Qaytarishsiz yopish',
+  confirmed: 'To‘lov tasdiqlandi: {name}',
+  rejected: 'To‘lov rad etildi: {name}',
+  refunded: 'Pul qaytarilgani belgilandi: {name}',
+  receiptTitle: 'To‘lov cheki',
+  receiptAlt: '{name} yuklagan to‘lov cheki',
+  receiptSensitive: 'Chekda bank ma’lumotlari bor. Uni boshqalarga yubormang va saqlab qo‘ymang.',
+  openInNewTab: 'Yangi oynada ochish',
+  openPdf: 'PDF ni ochish',
+  pdfNote: 'Bu chek PDF fayl. U yangi oynada ochiladi.',
+  rejectTitle: 'To‘lovni rad etish',
+  rejectHint: 'Futbolchi sababni ko‘radi va yangi chek yuklashi mumkin.',
+  closeTitle: 'Qaytarishsiz yopish',
+  closeHint:
+    'Futbolchi arizasini bekor qilgan va pul kelmagan bo‘lsa, shuni tanlang. Futbolchiga xabar yuborilmaydi.',
+  rejectSubmit: 'To‘lovni rad etish',
+  refundTitle: 'Pul qaytarildi deb belgilansinmi?',
+  refundHint:
+    'Bu faqat qaytarilganini qayd etadi. Avval pulni bankdan futbolchiga qaytaring, keyin shu yerda tasdiqlang. Futbolchiga xabar yuboriladi.',
+  refundAmount: 'Qaytariladigan summa',
+  refundSubmit: 'Qaytarildi deb belgilash',
+};
+
+export const adminPaymentsEn: typeof adminPaymentsKo = {
+  title: 'Payment review',
+  autoNote:
+    'Most payments are confirmed automatically from bank deposit messages. This screen only shows the exceptions that need a person.',
+  toDeposits: 'See bank deposits',
+  filterLabel: 'Payment status',
+  tab: {
+    PAYMENT_REVIEW: 'Waiting for review',
+    REFUND_PENDING: 'Refunds to process',
+    AWAITING_PAYMENT: 'Awaiting payment',
+    PAYMENT_REJECTED: 'Rejected',
+    REFUNDED: 'Refunded',
+    PAYMENT_CONFIRMED: 'Confirmed',
+  },
+  hint: {
+    PAYMENT_REVIEW:
+      'Players uploaded these receipts because their payment wasn’t confirmed automatically. Check each receipt, then confirm or reject it.',
+    REFUND_PENDING:
+      'These players cancelled after paying. Return the money from your bank, then mark it as refunded. If no money ever arrived, close it without a refund.',
+    AWAITING_PAYMENT:
+      'These players haven’t paid yet. Payments are confirmed automatically when the deposit arrives, so there is nothing to do here.',
+    PAYMENT_REJECTED:
+      'You rejected these payments. They return to review if the player uploads a new receipt.',
+    REFUNDED: 'Payments that have been returned to the player.',
+    PAYMENT_CONFIRMED: 'Payments confirmed automatically or by an admin.',
+  },
+  emptyTitle: {
+    PAYMENT_REVIEW: 'Nothing to review',
+    REFUND_PENDING: 'No refunds to process',
+    AWAITING_PAYMENT: 'Nobody is waiting to pay',
+    PAYMENT_REJECTED: 'No rejected payments',
+    REFUNDED: 'No refunds yet',
+    PAYMENT_CONFIRMED: 'No confirmed payments yet',
+  },
+  languageLabel: 'Player language: {language}',
+  languageNotSet: 'Language not set',
+  reference: 'Payment code',
+  receiptUploaded: 'Receipt uploaded',
+  due: 'Due',
+  actionLabel: '{action}: {name}',
+  viewReceipt: 'View receipt',
+  confirm: 'Confirm',
+  reject: 'Reject',
+  refund: 'Mark as refunded',
+  closeWithoutRefund: 'Close without refund',
+  confirmed: 'Payment confirmed: {name}',
+  rejected: 'Payment rejected: {name}',
+  refunded: 'Refund recorded: {name}',
+  receiptTitle: 'Receipt',
+  receiptAlt: 'Payment receipt from {name}',
+  receiptSensitive: 'Receipts show bank details. Don’t share or save them.',
+  openInNewTab: 'Open in new tab',
+  openPdf: 'Open PDF',
+  pdfNote: 'This receipt is a PDF. It opens in a new tab.',
+  rejectTitle: 'Reject payment',
+  rejectHint: 'The player will see the reason and can upload a new receipt.',
+  closeTitle: 'Close without refund',
+  closeHint: 'Use this when the player cancelled and no money arrived. The player isn’t notified.',
+  rejectSubmit: 'Reject payment',
+  refundTitle: 'Mark as refunded?',
+  refundHint:
+    'This only records the refund. Return the money to the player from your bank first, then confirm here. The player will be notified.',
+  refundAmount: 'Amount to refund',
+  refundSubmit: 'Mark as refunded',
+};

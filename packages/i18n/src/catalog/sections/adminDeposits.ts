@@ -1,4 +1,231 @@
-/** Strings for one area of the app. Korean defines the shape; uz and en must match it exactly. */
-export const adminDepositsKo = {};
-export const adminDepositsUz: typeof adminDepositsKo = {};
-export const adminDepositsEn: typeof adminDepositsKo = {};
+/** Admin bank-deposit queue: deposits the automatic matcher could not place, and what happened to the rest. */
+export const adminDepositsKo = {
+  title: '입금 내역',
+  autoNote:
+    '입금은 은행 입금 문자로 자동 확인됩니다. 시스템이 어느 신청의 입금인지 판단하지 못한 건만 여기에 표시됩니다.',
+  toPayments: '결제 확인 보기',
+  tabsLabel: '입금 상태',
+  tabs: {
+    needs: '확인 필요',
+    matched: '매칭 완료',
+    ignored: '무시함',
+  },
+  hint: {
+    needs:
+      '시스템이 어느 신청의 입금인지 판단하지 못한 건입니다. 신청에 연결하거나, 선수 입금이 아니면 무시해 주세요.',
+    matched: '결제를 확인 처리한 입금입니다.',
+    ignored: '건너뛴 입금입니다. 알고 보니 선수 입금이라면 지금도 연결할 수 있어요.',
+  },
+  emptyTitle: {
+    needs: '확인할 입금이 없어요',
+    matched: '매칭된 입금이 아직 없어요',
+    ignored: '무시한 입금이 없어요',
+  },
+  status: {
+    UNMATCHED: '일치 없음',
+    AMBIGUOUS: '후보 여러 개',
+    MATCHED: '매칭 완료',
+    IGNORED: '무시함',
+  },
+  source: {
+    WEBHOOK: '휴대폰 문자 전달',
+    TELEGRAM: '텔레그램',
+  },
+  sourceLabel: '수신 경로',
+  receivedAt: '수신 시각',
+  amountUnknown: '금액을 알 수 없음',
+  reason: {
+    AMOUNT_MISMATCH: '입금 코드나 이름은 일치하지만 금액이 입금해야 할 금액과 다릅니다.',
+    NO_CANDIDATE: '일치하는 입금 대기 건이 없습니다. 입금 코드나 등록된 입금자명을 찾지 못했어요.',
+    MULTIPLE_CANDIDATES: '이 입금과 일치할 수 있는 입금 대기 건이 여러 개입니다.',
+    STALE_MESSAGE: '문자가 너무 오래되어 자동으로 처리하지 않았습니다.',
+    RATE_GUARD: '짧은 시간에 자동 확인이 많아 이 건은 사람이 확인하도록 남겨두었습니다.',
+    STATE_CHANGED:
+      '확인하는 사이 결제 상태가 바뀌었습니다. 예를 들어 취소되었거나 이미 확인되었을 수 있어요.',
+    NOT_PARSED: '입금 알림으로 보이지 않는 문자입니다.',
+    MANUAL: '관리자가 무시한 입금입니다.',
+  },
+  method: {
+    REFERENCE: '입금 코드로 확인',
+    NAME: '입금자명으로 확인',
+    MANUAL: '관리자가 직접 지정',
+  },
+  rawLabel: '문자 원문',
+  actionLabel: '{action}: {summary}',
+  assign: '신청에 연결',
+  ignore: '무시',
+  assignTitle: '입금 연결',
+  assignIntro: '이 입금이 어느 신청의 것인지 선택해 주세요.',
+  searchLabel: '이름 또는 입금 코드로 검색',
+  sameAmountOnly: '같은 금액만 ({amount})',
+  showAllAmounts: '모든 금액 보기',
+  noWaiting: '입금을 기다리는 신청이 없어요',
+  noResults: '검색 결과가 없어요',
+  noSameAmount: '{amount} 입금을 기다리는 신청이 없어요',
+  candidateDifferent: '입금 금액과 달라서 연결할 수 없습니다.',
+  candidatesShown: '{total}건 중 {shown}건 표시 중. 검색으로 좁혀 보세요.',
+  candidatesTruncated: '목록이 너무 길어 일부 신청이 보이지 않을 수 있습니다.',
+  confirmTitle: '이 입금을 연결할까요?',
+  confirmText: '{name} 님의 입금이 확인 처리되고 알림이 전송됩니다.',
+  confirmSubmit: '연결하고 입금 확인',
+  assigned: '입금을 연결했어요: {name}',
+  ignoreTitle: '이 입금을 무시할까요?',
+  ignoreText:
+    '다시 자동으로 매칭되지 않고 무시함 탭으로 이동합니다. 개인 송금처럼 선수 입금이 아닌 경우에만 무시하세요. 나중에 무시함 탭에서 연결할 수도 있어요.',
+  ignoreSubmit: '입금 무시',
+  ignored: '입금을 무시했어요',
+};
+
+export const adminDepositsUz: typeof adminDepositsKo = {
+  title: 'Kelgan pul o‘tkazmalari',
+  autoNote:
+    'O‘tkazmalar bank xabarlari orqali avtomatik tasdiqlanadi. Bu yerda faqat tizim qaysi arizaga tegishli ekanini aniqlay olmagan o‘tkazmalar chiqadi.',
+  toPayments: 'To‘lovlarni tekshirishga o‘tish',
+  tabsLabel: 'O‘tkazma holati',
+  tabs: {
+    needs: 'Qaror kerak',
+    matched: 'Biriktirilgan',
+    ignored: 'E’tiborsiz',
+  },
+  hint: {
+    needs:
+      'Tizim bu o‘tkazmalar qaysi arizaga tegishli ekanini aniqlay olmadi. Har birini arizaga biriktiring yoki futbolchi to‘lovi bo‘lmasa, e’tiborsiz qoldiring.',
+    matched: 'To‘lovni tasdiqlagan o‘tkazmalar.',
+    ignored: 'O‘tkazib yuborilgan o‘tkazmalar. Agar biri aslida to‘lov bo‘lsa, uni hozir ham biriktirish mumkin.',
+  },
+  emptyTitle: {
+    needs: 'Hal qilinadigan o‘tkazma yo‘q',
+    matched: 'Biriktirilgan o‘tkazma hali yo‘q',
+    ignored: 'E’tiborsiz qoldirilgan o‘tkazma yo‘q',
+  },
+  status: {
+    UNMATCHED: 'Mos topilmadi',
+    AMBIGUOUS: 'Bir nechta variant',
+    MATCHED: 'Biriktirilgan',
+    IGNORED: 'E’tiborsiz',
+  },
+  source: {
+    WEBHOOK: 'Telefondan yo‘naltirilgan xabar',
+    TELEGRAM: 'Telegram',
+  },
+  sourceLabel: 'Manba',
+  receivedAt: 'Kelgan vaqti',
+  amountUnknown: 'Summa noma’lum',
+  reason: {
+    AMOUNT_MISMATCH: 'To‘lov kodi yoki ism mos keldi, lekin summa to‘lanishi kerak bo‘lgan summadan farq qiladi.',
+    NO_CANDIDATE: 'Bu o‘tkazmaga mos kutilayotgan to‘lov topilmadi: to‘lov kodi ham, ma’lum ism ham yo‘q.',
+    MULTIPLE_CANDIDATES: 'Bu o‘tkazmaga bir nechta kutilayotgan to‘lov mos kelishi mumkin.',
+    STALE_MESSAGE: 'Xabar juda eski, shuning uchun avtomatik qayta ishlanmadi.',
+    RATE_GUARD: 'Qisqa vaqtda juda ko‘p to‘lov avtomatik tasdiqlandi, shuning uchun buni odam ko‘rib chiqadi.',
+    STATE_CHANGED:
+      'To‘lov tekshirilayotganda o‘zgarib qoldi, masalan, bekor qilingan yoki allaqachon tasdiqlangan.',
+    NOT_PARSED: 'Bu xabar pul kelgani haqidagi xabarga o‘xshamaydi.',
+    MANUAL: 'Administrator e’tiborsiz qoldirgan.',
+  },
+  method: {
+    REFERENCE: 'To‘lov kodi bo‘yicha topilgan',
+    NAME: 'Ism bo‘yicha topilgan',
+    MANUAL: 'Administrator biriktirgan',
+  },
+  rawLabel: 'Xabar matni',
+  actionLabel: '{action}: {summary}',
+  assign: 'Arizaga biriktirish',
+  ignore: 'E’tiborsiz qoldirish',
+  assignTitle: 'O‘tkazmani biriktirish',
+  assignIntro: 'Bu o‘tkazma qaysi arizaga tegishli ekanini tanlang.',
+  searchLabel: 'Ism yoki to‘lov kodi bo‘yicha qidirish',
+  sameAmountOnly: 'Faqat shu summa ({amount})',
+  showAllAmounts: 'Barcha summalarni ko‘rsatish',
+  noWaiting: 'To‘lov kutayotgan ariza yo‘q',
+  noResults: 'Hech narsa topilmadi',
+  noSameAmount: '{amount} to‘lashi kutilayotgan ariza yo‘q',
+  candidateDifferent: 'Summa o‘tkazma summasiga mos kelmaydi, shuning uchun biriktirib bo‘lmaydi.',
+  candidatesShown: '{total} tadan {shown} tasi ko‘rsatilmoqda. Qidiruv bilan toraytiring.',
+  candidatesTruncated: 'Ro‘yxat juda uzun, shuning uchun ba’zi arizalar ko‘rinmasligi mumkin.',
+  confirmTitle: 'Bu o‘tkazma biriktirilsinmi?',
+  confirmText: '{name} to‘lovi tasdiqlanadi va unga xabar yuboriladi.',
+  confirmSubmit: 'Biriktirish va to‘lovni tasdiqlash',
+  assigned: 'O‘tkazma biriktirildi: {name}',
+  ignoreTitle: 'Bu o‘tkazma e’tiborsiz qoldirilsinmi?',
+  ignoreText:
+    'U boshqa avtomatik moslanmaydi va “E’tiborsiz” bo‘limiga o‘tadi. Faqat futbolchi to‘lovi bo‘lmasa, masalan, shaxsiy o‘tkazma bo‘lsa, e’tiborsiz qoldiring. Keyin uni “E’tiborsiz” bo‘limidan biriktirish ham mumkin.',
+  ignoreSubmit: 'E’tiborsiz qoldirish',
+  ignored: 'O‘tkazma e’tiborsiz qoldirildi',
+};
+
+export const adminDepositsEn: typeof adminDepositsKo = {
+  title: 'Bank deposits',
+  autoNote:
+    'Deposits are confirmed automatically from bank deposit messages. Only deposits the system couldn’t place appear here.',
+  toPayments: 'Go to payment review',
+  tabsLabel: 'Deposit status',
+  tabs: {
+    needs: 'Needs a decision',
+    matched: 'Matched',
+    ignored: 'Ignored',
+  },
+  hint: {
+    needs:
+      'The system couldn’t tell which registration these deposits belong to. Assign each one to a registration, or ignore it if it isn’t a player payment.',
+    matched: 'Deposits that confirmed a payment.',
+    ignored: 'Deposits that were skipped. If one was a payment after all, you can still assign it.',
+  },
+  emptyTitle: {
+    needs: 'Nothing needs a decision',
+    matched: 'No matched deposits yet',
+    ignored: 'No ignored deposits',
+  },
+  status: {
+    UNMATCHED: 'No match',
+    AMBIGUOUS: 'Several matches',
+    MATCHED: 'Matched',
+    IGNORED: 'Ignored',
+  },
+  source: {
+    WEBHOOK: 'Forwarded from phone',
+    TELEGRAM: 'Telegram',
+  },
+  sourceLabel: 'Source',
+  receivedAt: 'Received',
+  amountUnknown: 'Unknown amount',
+  reason: {
+    AMOUNT_MISMATCH: 'A payment code or name matched, but the amount is different from what is due.',
+    NO_CANDIDATE: 'No waiting payment matches this deposit: no payment code or known name was found.',
+    MULTIPLE_CANDIDATES: 'More than one waiting payment could match this deposit.',
+    STALE_MESSAGE: 'The message is too old to trust automatically.',
+    RATE_GUARD: 'Many payments were confirmed automatically in a short time, so this one waits for a person.',
+    STATE_CHANGED:
+      'The payment changed while it was being matched, for example it was cancelled or already confirmed.',
+    NOT_PARSED: 'This message doesn’t look like a deposit notice.',
+    MANUAL: 'Ignored by an admin.',
+  },
+  method: {
+    REFERENCE: 'Matched by payment code',
+    NAME: 'Matched by sender name',
+    MANUAL: 'Assigned by an admin',
+  },
+  rawLabel: 'Original message',
+  actionLabel: '{action}: {summary}',
+  assign: 'Assign to a registration',
+  ignore: 'Ignore',
+  assignTitle: 'Assign deposit',
+  assignIntro: 'Choose the registration this deposit belongs to.',
+  searchLabel: 'Search by name or payment code',
+  sameAmountOnly: 'Same amount only ({amount})',
+  showAllAmounts: 'Show all amounts',
+  noWaiting: 'No registrations are waiting for payment',
+  noResults: 'No registrations match your search',
+  noSameAmount: 'No registration is waiting to pay {amount}',
+  candidateDifferent: 'The amount differs from the deposit, so it can’t be assigned.',
+  candidatesShown: 'Showing {shown} of {total}. Search to narrow the list.',
+  candidatesTruncated: 'This list is very long, so some registrations may be missing.',
+  confirmTitle: 'Assign this deposit?',
+  confirmText: 'This confirms {name}’s payment and notifies them.',
+  confirmSubmit: 'Assign and confirm payment',
+  assigned: 'Deposit assigned to {name}',
+  ignoreTitle: 'Ignore this deposit?',
+  ignoreText:
+    'It won’t be matched again and moves to the Ignored tab. Only ignore deposits that aren’t player payments, such as personal transfers. You can still assign it later from the Ignored tab.',
+  ignoreSubmit: 'Ignore deposit',
+  ignored: 'Deposit ignored',
+};

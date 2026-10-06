@@ -1,1 +1,199 @@
-/* organizer-home screens */
+/* organizer-home screens: organizer home, attendance roster, organizer application */
+
+/* ---------- Organizer home ---------- */
+.organizer-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-color: color-mix(in srgb, var(--info) 35%, transparent);
+  background: var(--info-soft);
+}
+.organizer-note__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--info);
+}
+.organizer-note__text {
+  gap: 4px;
+  min-width: 0;
+}
+.organizer-note__text p {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.organizer-regions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.organizer-region {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-soft-fg);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+.organizer-apply-more {
+  justify-self: start;
+}
+.organizer-match {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+.organizer-match__main {
+  display: flex;
+  gap: 14px;
+}
+.organizer-match__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+}
+.organizer-match__actions .btn {
+  padding-inline: 10px;
+}
+
+/* ---------- Roster ---------- */
+.roster-match h2 {
+  overflow-wrap: anywhere;
+}
+.roster-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.roster-summary__tile {
+  justify-items: center;
+  padding: 12px 8px;
+  text-align: center;
+}
+.roster-summary__tile--present .tile__value {
+  color: var(--success);
+}
+.roster-summary__tile--absent .tile__value {
+  color: var(--danger);
+}
+.roster-row {
+  display: grid;
+  gap: 4px;
+  padding: 6px 12px 12px;
+}
+.roster-row__player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 6px 0;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+.roster-row__name {
+  overflow-wrap: anywhere;
+}
+.attendance {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.attendance__option {
+  min-height: 44px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  line-height: 1.2;
+  transition: background 0.15s, border-color 0.15s;
+}
+.attendance__option:hover:not(:disabled):not([aria-pressed='true']) {
+  background: var(--surface-3);
+}
+.attendance__option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.attendance__option[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+.attendance__option--present[aria-pressed='true'] {
+  border-color: var(--success);
+  background: var(--success-soft);
+  color: var(--success);
+}
+.attendance__option--absent[aria-pressed='true'] {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.roster-status {
+  text-align: center;
+}
+
+/* ---------- Organizer application ---------- */
+.apply-points {
+  gap: 14px;
+}
+.apply-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.apply-point__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-soft-fg);
+}
+.apply-region {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-weight: 600;
+  text-align: start;
+}
+.apply-region:hover {
+  background: var(--surface-2);
+}
+.apply-region--invalid {
+  border-color: var(--danger);
+}
+.apply-error {
+  color: var(--danger);
+}
+.apply-counter {
+  margin-top: -6px;
+  text-align: end;
+}
+.application h3 {
+  overflow-wrap: anywhere;
+}

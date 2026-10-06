@@ -1,1 +1,183 @@
-/* admin-people screens */
+/* admin-people screens: organizer applications and the users list with organizer regions */
+
+/* ---------- Applications ---------- */
+.people-app__head {
+  align-items: flex-start;
+  gap: 12px;
+}
+.people-app__name {
+  overflow-wrap: anywhere;
+}
+.people-app__region {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 2px;
+}
+.people-app__region svg {
+  flex: none;
+  margin-top: 3px;
+}
+.people-app__message {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.people-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ---------- Users ---------- */
+.people-users {
+  overflow: hidden;
+}
+.people-user {
+  align-items: flex-start;
+  padding-block: 12px;
+}
+.people-user:hover {
+  background: var(--surface-2);
+}
+.people-user > svg {
+  align-self: center;
+  flex: none;
+  color: var(--text-faint);
+}
+.people-user__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.people-user__name {
+  font-size: var(--text-md);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.people-user__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.people-summary {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+/* ---------- Organizer regions ---------- */
+.people-editor {
+  gap: 16px;
+}
+.people-selected__title {
+  margin: 0;
+}
+.people-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.people-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 44px;
+  padding-inline-start: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-soft-fg);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+.people-chip__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.people-chip__remove {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+}
+.people-chip__remove:hover {
+  background: color-mix(in srgb, var(--primary-soft-fg) 14%, transparent);
+}
+
+.people-provinces {
+  display: grid;
+}
+.people-province {
+  border-bottom: 1px solid var(--border);
+}
+.people-province:last-child {
+  border-bottom: 0;
+}
+.people-province__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.people-province__toggle svg {
+  transition: transform 0.15s;
+}
+.people-province__toggle[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.people-check {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 4px;
+  cursor: pointer;
+}
+.people-check input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: inherit;
+}
+.people-check:has(input:disabled) {
+  cursor: not-allowed;
+}
+.people-check input:disabled + .people-check__text {
+  color: var(--text-muted);
+}
+.people-check__text {
+  display: grid;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.people-check__text small {
+  font-weight: 500;
+}
+.people-districts {
+  display: grid;
+  margin-bottom: 8px;
+  padding-inline-start: 34px;
+}
+.people-districts .people-check__text {
+  font-weight: 500;
+}
+
+/* Stays in reach while a long region list scrolls (the sheet body has 20px side padding). */
+.people-save {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: 0 -20px calc(-20px - env(safe-area-inset-bottom));
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}

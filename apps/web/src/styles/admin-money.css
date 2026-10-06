@@ -1,1 +1,295 @@
-/* admin-money screens */
+/* admin-money screens: payment review and the bank-deposit queue */
+
+.money-link {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Touch targets: the shared chip and segment are 40px and 36px tall. */
+.money-chip,
+.money-segmented .segmented button {
+  min-height: 44px;
+}
+
+/* ---------- Queue list ---------- */
+
+/*
+ * A resolved card folds away instead of vanishing: the row collapses (grid track 1fr -> 0fr) while
+ * it fades, so the cards below slide up without a jump. The spacing lives inside the clip, as the
+ * card's bottom margin, so it collapses with the card. Keep EXIT_MS (resolution.ts) in step.
+ */
+.money-list {
+  display: grid;
+}
+.money-item {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 0.24s ease,
+    opacity 0.24s ease;
+}
+.money-item__clip {
+  display: flow-root;
+  min-height: 0;
+}
+.money-item--leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.money-item--leaving .money-item__clip {
+  overflow: hidden;
+}
+
+/* ---------- Card ---------- */
+.money-card {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 16px;
+}
+.money-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.money-card__name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.money-card__amount {
+  flex: none;
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+.money-lang {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+.money-match {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.money-match__title {
+  min-height: 24px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+.money-match__title:hover {
+  text-decoration: underline;
+}
+.money-match p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.money-match svg {
+  flex: none;
+  margin-top: 3px;
+}
+.money-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- Actions ---------- */
+.money-actions {
+  display: grid;
+  gap: 8px;
+}
+.money-actions__row {
+  display: flex;
+  gap: 8px;
+}
+.money-actions__row > * {
+  flex: 1;
+}
+.money-actions .btn {
+  padding-block: 8px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+}
+
+/* ---------- Deposit card ---------- */
+.money-deposit__amount {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.money-deposit__amount--unknown {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.money-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.money-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+.money-note--ok {
+  color: var(--success);
+  font-weight: 600;
+}
+.money-raw {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.money-raw pre {
+  margin: 0;
+  padding: 12px;
+  max-height: 14em;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Sheets ---------- */
+.money-summary {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.money-choices {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.money-choices legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+.money-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+}
+.money-choice input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.money-choice:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-soft-fg);
+  font-weight: 650;
+}
+.money-choice:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.money-refund {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-soft);
+}
+.money-refund__amount {
+  color: var(--warning);
+  font-size: var(--text-3xl);
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+.money-receipt {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  padding: 8px;
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.money-receipt__image {
+  max-width: 100%;
+  max-height: min(60dvh, 520px);
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* ---------- Assign picker ---------- */
+.money-candidates {
+  display: grid;
+  gap: 8px;
+}
+.money-candidate {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: start;
+  transition: border-color 0.15s, background 0.15s;
+}
+.money-candidate:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.money-candidate:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.money-candidate__top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+.money-candidate__warn {
+  color: var(--warning);
+  font-weight: 600;
+}

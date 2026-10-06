@@ -1,1 +1,198 @@
 /* match-form screens */
+
+/* ---------- Groups ---------- */
+.mf-group,
+.mf-subgroup {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.mf-group > legend {
+  padding: 0;
+}
+.mf-subgroup > legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+.mf-subgroup__body {
+  display: grid;
+  gap: 8px;
+}
+.mf-error {
+  color: var(--danger);
+}
+.textarea[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+/* ---------- Region picker button (looks like an input) ---------- */
+.mf-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  text-align: start;
+}
+.mf-select[data-invalid='true'] {
+  border-color: var(--danger);
+}
+.mf-select__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mf-select__value--empty {
+  color: var(--text-faint);
+}
+
+/* ---------- When ---------- */
+.mf-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.mf-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary-soft-fg);
+}
+.mf-summary svg {
+  flex: none;
+  margin-top: 2px;
+}
+.mf-summary__main {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Number stepper ---------- */
+.mf-stepper {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+}
+.mf-stepper .input {
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+}
+.mf-stepper .input::-webkit-outer-spin-button,
+.mf-stepper .input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* ---------- Content: language choice and tabs ---------- */
+.mf-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mf-choice {
+  position: relative;
+}
+.mf-choice span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  cursor: pointer;
+}
+.mf-choice input:checked + span {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+.mf-choice input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.mf-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.mf-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+.mf-tab > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mf-tab[aria-selected='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+.mf-status {
+  flex: none;
+}
+.mf-status--ok {
+  color: var(--success);
+}
+.mf-status--problem {
+  color: var(--danger);
+}
+.mf-status--empty {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--text-faint);
+  border-radius: 50%;
+}
+
+/* ---------- Character counter ---------- */
+.mf-counter {
+  justify-self: end;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mf-counter--over {
+  color: var(--danger);
+  font-weight: 650;
+}
+
+/* ---------- Bottom bar ---------- */
+.mf-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+}

@@ -1,4 +1,261 @@
-/** Strings for one area of the app. Korean defines the shape; uz and en must match it exactly. */
-export const adminPeopleKo = {};
-export const adminPeopleUz: typeof adminPeopleKo = {};
-export const adminPeopleEn: typeof adminPeopleKo = {};
+/** Admin people screens: organizer applications, and the users list with organizer regions. */
+export const adminPeopleKo = {
+  loadMore: '더 보기',
+  applications: {
+    title: '주최자 신청',
+    tabsLabel: '신청 상태',
+    tab: {
+      PENDING: '심사 대기',
+      APPROVED: '승인됨',
+      REJECTED: '거절됨',
+    },
+    appliedOn: '신청일 {date}',
+    reviewedOn: '심사일 {date}',
+    noMessage: '남긴 메시지가 없어요.',
+    approve: '승인',
+    reject: '거절',
+    actionFor: '{action}: {name}',
+    empty: {
+      PENDING: {
+        title: '모두 처리했어요',
+        text: '심사를 기다리는 신청이 없습니다. 새 신청이 들어오면 여기에 표시돼요.',
+      },
+      APPROVED: {
+        title: '승인한 신청이 없어요',
+        text: '승인한 신청이 여기에 표시됩니다.',
+      },
+      REJECTED: {
+        title: '거절한 신청이 없어요',
+        text: '거절한 신청이 여기에 표시됩니다.',
+      },
+    },
+    approveTitle: '이 신청을 승인할까요?',
+    approveText:
+      '{name}님이 {region}에서 매치를 등록할 수 있게 됩니다. 선수 계정이라면 주최자로 바뀌어요.',
+    approveProvince: '시·도 단위 지역이라 안에 있는 모든 구·군이 포함돼요.',
+    approveNotify:
+      '신청자에게 본인 언어로 알림이 가요. 담당 지역은 나중에 사용자 메뉴에서 바꿀 수 있어요.',
+    rejectTitle: '이 신청을 거절할까요?',
+    rejectText: '{name}님의 {region} 신청이 거절됩니다. 역할은 바뀌지 않아요.',
+    rejectNotify:
+      '신청자에게 본인 언어로 알림이 가요. 되돌릴 수는 없지만, 신청자는 다시 신청할 수 있어요.',
+    approved: '신청을 승인했어요.',
+    rejected: '신청을 거절했어요.',
+    alreadyDecided: '다른 관리자가 이미 처리한 신청이에요. 목록을 새로 불러왔습니다.',
+  },
+  users: {
+    title: '사용자',
+    filterLabel: '언어별 보기',
+    filterAll: '전체',
+    languageNone: '선택 안 함',
+    languageLabel: '언어',
+    device: '기기 언어: {tag}',
+    deviceUnknown: '기기 언어 정보 없음',
+    regionCount: '담당 지역 {count}곳',
+    joinedOn: '가입일 {date}',
+    emptyTitle: '사용자가 없어요',
+    emptyText: '가입한 사용자가 여기에 표시됩니다.',
+    emptyFilteredText: '이 언어를 쓰는 사용자가 없습니다. 다른 언어를 선택해보세요.',
+    role: {
+      PLAYER: '선수',
+      ORGANIZER: '주최자',
+      ADMIN: '관리자',
+    },
+  },
+  regions: {
+    title: '주최자 지역',
+    intro:
+      '{name}님이 매치를 등록할 수 있는 지역을 선택하세요. 시·도를 선택하면 안에 있는 모든 구·군이 포함돼요.',
+    playerHint: '지역을 하나 이상 선택하면 {name}님이 주최자가 됩니다.',
+    playerPromote: '저장하면 {name}님이 주최자가 됩니다.',
+    organizerHint: '지역을 모두 해제하면 {name}님은 다시 선수가 됩니다.',
+    organizerDemote: '{name}님은 다시 선수가 되어 매치를 등록할 수 없게 됩니다.',
+    adminLocked: '관리자는 모든 지역에서 매치를 등록할 수 있어서 따로 지정할 필요가 없어요.',
+    selectedTitle: '선택한 지역',
+    selectedCount: '{count}/{max}곳 선택',
+    selectedNone: '선택한 지역이 없어요.',
+    remove: '{name} 해제',
+    unknown: '사용할 수 없는 지역',
+    listLabel: '지역 목록',
+    districtsOf: '{name}의 구·군',
+    covered: '모든 구·군 포함',
+    selectedIn: '{count}곳 선택됨',
+    limit: '지역은 최대 {max}곳까지 선택할 수 있어요.',
+    saved: '주최자 지역을 저장했어요.',
+  },
+};
+
+export const adminPeopleUz: typeof adminPeopleKo = {
+  loadMore: 'Yana ko‘rsatish',
+  applications: {
+    title: 'Tashkilotchi arizalari',
+    tabsLabel: 'Ariza holati',
+    tab: {
+      PENDING: 'Kutilmoqda',
+      APPROVED: 'Tasdiqlangan',
+      REJECTED: 'Rad etilgan',
+    },
+    appliedOn: 'Ariza sanasi: {date}',
+    reviewedOn: 'Ko‘rib chiqilgan sana: {date}',
+    noMessage: 'Xabar qoldirilmagan.',
+    approve: 'Tasdiqlash',
+    reject: 'Rad etish',
+    actionFor: '{action}: {name}',
+    empty: {
+      PENDING: {
+        title: 'Hammasi ko‘rib chiqildi',
+        text: 'Ko‘rib chiqilishi kerak bo‘lgan ariza yo‘q. Yangi ariza kelsa, shu yerda ko‘rinadi.',
+      },
+      APPROVED: {
+        title: 'Tasdiqlangan arizalar yo‘q',
+        text: 'Siz tasdiqlagan arizalar shu yerda ko‘rinadi.',
+      },
+      REJECTED: {
+        title: 'Rad etilgan arizalar yo‘q',
+        text: 'Siz rad etgan arizalar shu yerda ko‘rinadi.',
+      },
+    },
+    approveTitle: 'Arizani tasdiqlaysizmi?',
+    approveText:
+      '{name} {region} hududida match e’lon qila oladi. Agar u hozircha futbolchi bo‘lsa, tashkilotchiga aylanadi.',
+    approveProvince: 'Bu butun viloyat, shuning uchun uning barcha tumanlari ham kiradi.',
+    approveNotify:
+      'Ariza egasiga o‘z tilida bildirishnoma yuboriladi. Hududlarni keyinroq Foydalanuvchilar bo‘limida o‘zgartirishingiz mumkin.',
+    rejectTitle: 'Arizani rad etasizmi?',
+    rejectText:
+      '{name} tomonidan {region} uchun berilgan ariza rad etiladi. Uning roli o‘zgarmaydi.',
+    rejectNotify:
+      'Ariza egasiga o‘z tilida bildirishnoma yuboriladi. Buni bekor qilib bo‘lmaydi, lekin u qayta ariza berishi mumkin.',
+    approved: 'Ariza tasdiqlandi.',
+    rejected: 'Ariza rad etildi.',
+    alreadyDecided: 'Bu arizani boshqa administrator allaqachon ko‘rib chiqqan. Ro‘yxat yangilandi.',
+  },
+  users: {
+    title: 'Foydalanuvchilar',
+    filterLabel: 'Til bo‘yicha saralash',
+    filterAll: 'Hammasi',
+    languageNone: 'Tanlanmagan',
+    languageLabel: 'Til',
+    device: 'Qurilma tili: {tag}',
+    deviceUnknown: 'Qurilma tili noma’lum',
+    regionCount: '{count} ta hudud',
+    joinedOn: 'Qo‘shilgan sana: {date}',
+    emptyTitle: 'Foydalanuvchilar yo‘q',
+    emptyText: 'Ro‘yxatdan o‘tgan foydalanuvchilar shu yerda ko‘rinadi.',
+    emptyFilteredText: 'Bu tilni tanlagan foydalanuvchi yo‘q. Boshqa tilni sinab ko‘ring.',
+    role: {
+      PLAYER: 'Futbolchi',
+      ORGANIZER: 'Tashkilotchi',
+      ADMIN: 'Administrator',
+    },
+  },
+  regions: {
+    title: 'Tashkilotchi hududlari',
+    intro:
+      '{name} qaysi hududlarda match e’lon qila olishini tanlang. Viloyat tanlansa, uning barcha tumanlari ham kiradi.',
+    playerHint: 'Kamida bitta hudud tanlang: shunda {name} tashkilotchi bo‘ladi.',
+    playerPromote: 'Saqlaganingizda {name} tashkilotchi bo‘ladi.',
+    organizerHint: 'Barcha hududlar olib tashlansa, {name} yana oddiy futbolchi bo‘ladi.',
+    organizerDemote: '{name} yana futbolchi bo‘lib qoladi va match e’lon qila olmaydi.',
+    adminLocked:
+      'Administratorlar barcha hududlarda match e’lon qila oladi, shuning uchun bu yerda hech narsa sozlash shart emas.',
+    selectedTitle: 'Tanlangan hududlar',
+    selectedCount: '{count}/{max} ta tanlandi',
+    selectedNone: 'Hech qanday hudud tanlanmagan.',
+    remove: 'Olib tashlash: {name}',
+    unknown: 'Mavjud bo‘lmagan hudud',
+    listLabel: 'Hududlar ro‘yxati',
+    districtsOf: '{name} tumanlari',
+    covered: 'Barcha tumanlar kiritilgan',
+    selectedIn: '{count} ta tanlandi',
+    limit: 'Eng ko‘pi bilan {max} ta hudud tanlash mumkin.',
+    saved: 'Tashkilotchi hududlari saqlandi.',
+  },
+};
+
+export const adminPeopleEn: typeof adminPeopleKo = {
+  loadMore: 'Show more',
+  applications: {
+    title: 'Organizer applications',
+    tabsLabel: 'Application status',
+    tab: {
+      PENDING: 'Pending',
+      APPROVED: 'Approved',
+      REJECTED: 'Rejected',
+    },
+    appliedOn: 'Applied {date}',
+    reviewedOn: 'Reviewed {date}',
+    noMessage: 'No message was left.',
+    approve: 'Approve',
+    reject: 'Reject',
+    actionFor: '{action}: {name}',
+    empty: {
+      PENDING: {
+        title: 'All caught up',
+        text: 'No applications are waiting for review. New ones will show up here.',
+      },
+      APPROVED: {
+        title: 'No approved applications',
+        text: 'Applications you approve will show up here.',
+      },
+      REJECTED: {
+        title: 'No rejected applications',
+        text: 'Applications you reject will show up here.',
+      },
+    },
+    approveTitle: 'Approve this application?',
+    approveText:
+      '{name} will be able to announce matches in {region}. If they are still a player, they become an organizer.',
+    approveProvince: 'This is a whole province, so every district in it is included.',
+    approveNotify:
+      'They get a notification in their own language. You can change their regions later under Users.',
+    rejectTitle: 'Reject this application?',
+    rejectText:
+      'The application from {name} for {region} will be declined. Their role stays the same.',
+    rejectNotify:
+      'They get a notification in their own language. This can’t be undone, but they can apply again.',
+    approved: 'Application approved.',
+    rejected: 'Application rejected.',
+    alreadyDecided: 'Another admin has already decided on this application. The list was refreshed.',
+  },
+  users: {
+    title: 'Users',
+    filterLabel: 'Filter by language',
+    filterAll: 'All',
+    languageNone: 'Not chosen',
+    languageLabel: 'Language',
+    device: 'Device language: {tag}',
+    deviceUnknown: 'Device language unknown',
+    regionCount: '{count, plural, one {# region} other {# regions}}',
+    joinedOn: 'Joined {date}',
+    emptyTitle: 'No users yet',
+    emptyText: 'People who sign up will show up here.',
+    emptyFilteredText: 'Nobody uses this language. Try another one.',
+    role: {
+      PLAYER: 'Player',
+      ORGANIZER: 'Organizer',
+      ADMIN: 'Admin',
+    },
+  },
+  regions: {
+    title: 'Organizer regions',
+    intro:
+      'Choose where {name} can announce matches. Selecting a province includes every district in it.',
+    playerHint: 'Select at least one region to make {name} an organizer.',
+    playerPromote: '{name} will become an organizer when you save.',
+    organizerHint: 'Removing every region turns {name} back into a player.',
+    organizerDemote: '{name} will become a player again and can no longer announce matches.',
+    adminLocked: 'Admins can announce matches in every region, so there is nothing to set here.',
+    selectedTitle: 'Selected regions',
+    selectedCount: '{count} of {max} selected',
+    selectedNone: 'No regions selected.',
+    remove: 'Remove {name}',
+    unknown: 'Unavailable region',
+    listLabel: 'Region list',
+    districtsOf: 'Districts of {name}',
+    covered: 'All districts included',
+    selectedIn: '{count} selected',
+    limit: 'You can select up to {max} regions.',
+    saved: 'Organizer regions saved.',
+  },
+};
