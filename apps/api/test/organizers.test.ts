@@ -111,6 +111,29 @@ describe('publishing is limited to the regions an organizer was granted', () => 
   });
 });
 
+describe('listing my announced matches', () => {
+  it('shows an organizer only their own matches, newest first, and nobody else anything', async () => {
+    const mine = await createUser(ctx, { role: 'ORGANIZER', organizerRegions: ['seoul'] });
+    const other = await createUser(ctx, { role: 'ORGANIZER', organizerRegions: ['seoul'] });
+    const player = await createUser(ctx);
+    const soon = new Date(Date.now() + 2 * 24 * hours(1)).toISOString();
+    const later = new Date(Date.now() + 6 * 24 * hours(1)).toISOString();
+    const end = (iso: string) => new Date(Date.parse(iso) + hours(2)).toISOString();
+    const post = (token: string, startsAt: string, title: string) =>
+      send('POST', '/v1/matches', token, matchBody('seoul', { startsAt, endsAt: end(startsAt), translations: { ko: { title } } }));
+    expect((await post(mine.token, soon, '먼저')).statusCode).toBe(201);
+    expect((await post(mine.token, later, '나중')).statusCode).toBe(201);
+    expect((await post(other.token, soon, '남의 매치')).statusCode).toBe(201);
+
+    const res = await send('GET', '/v1/me/organized-matches', mine.token);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().items.map((m: { title: { text: string } }) => m.title.text)).toEqual(['나중', '먼저']);
+
+    expect((await send('GET', '/v1/me/organized-matches', player.token)).statusCode).toBe(403);
+    expect((await send('GET', '/v1/me/organized-matches', null)).statusCode).toBe(401);
+  });
+});
+
 describe('becoming an organizer', () => {
   it('a player applies, an admin approves, and they can then publish there', async () => {
     const player = await createUser(ctx, { displayName: 'Aziz', preferredLanguage: 'uz' });

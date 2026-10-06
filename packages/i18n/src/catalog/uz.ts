@@ -1,4 +1,11 @@
 import { glossaryMessages } from '../glossary';
+import { organizerUz } from './sections/organizer';
+import { matchFormUz } from './sections/matchForm';
+import { adminPaymentsUz } from './sections/adminPayments';
+import { adminDepositsUz } from './sections/adminDeposits';
+import { adminPeopleUz } from './sections/adminPeople';
+import { adminSettingsUz } from './sections/adminSettings';
+import { adminHomeUz } from './sections/adminHome';
 import type { ko } from './ko';
 
 /**
@@ -340,5 +347,12 @@ export const uz: typeof ko = {
     CAPACITY_BELOW_REGISTRATIONS:
       'Ishtirokchilar sonini hozirgi arizalar sonidan kamaytirib bo‘lmaydi.',
   },
+  organizer: organizerUz,
+  matchForm: matchFormUz,
+  adminPayments: adminPaymentsUz,
+  adminDeposits: adminDepositsUz,
+  adminPeople: adminPeopleUz,
+  adminSettings: adminSettingsUz,
+  adminHome: adminHomeUz,
   glossary: glossaryMessages('uz'),
 };

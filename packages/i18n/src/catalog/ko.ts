@@ -1,4 +1,11 @@
 import { glossaryMessages } from '../glossary';
+import { organizerKo } from './sections/organizer';
+import { matchFormKo } from './sections/matchForm';
+import { adminPaymentsKo } from './sections/adminPayments';
+import { adminDepositsKo } from './sections/adminDeposits';
+import { adminPeopleKo } from './sections/adminPeople';
+import { adminSettingsKo } from './sections/adminSettings';
+import { adminHomeKo } from './sections/adminHome';
 
 /**
  * Korean catalog. This file defines the shape of every catalog: other locales are typed as
@@ -332,5 +339,12 @@ export const ko = {
     REGION_FORBIDDEN: '이 지역에서는 매치를 등록할 수 없습니다.',
     CAPACITY_BELOW_REGISTRATIONS: '현재 신청 인원보다 적게 모집 인원을 줄일 수 없습니다.',
   },
+  organizer: organizerKo,
+  matchForm: matchFormKo,
+  adminPayments: adminPaymentsKo,
+  adminDeposits: adminDepositsKo,
+  adminPeople: adminPeopleKo,
+  adminSettings: adminSettingsKo,
+  adminHome: adminHomeKo,
   glossary: glossaryMessages('ko'),
 };

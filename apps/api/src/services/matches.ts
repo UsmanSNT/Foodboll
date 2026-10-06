@@ -12,7 +12,7 @@ import {
   type LocaleCode,
   type LocalizedText,
 } from '@foodboll/i18n';
-import { and, asc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
 import { matches, matchRegistrations, matchTranslations } from '../db/schema';
@@ -308,6 +308,30 @@ export async function listUpcomingMatches(
     items: rows.map((row) => summaryOf(row, h, locale)),
     limit: query.limit,
     offset: query.offset,
+  };
+}
+
+/** Matches the user announced, newest first (past ones stay so attendance can be marked). */
+export async function listOrganizedMatches(
+  db: Db,
+  actor: AuthUser,
+  locale: LocaleCode,
+  page: { limit: number; offset: number },
+  options: ViewOptions = {},
+): Promise<Page<MatchSummaryDto>> {
+  const now = options.now ?? new Date();
+  const rows = await db
+    .select()
+    .from(matches)
+    .where(eq(matches.organizerId, actor.id))
+    .orderBy(desc(matches.startsAt), asc(matches.id))
+    .limit(page.limit)
+    .offset(page.offset);
+  const h = await hydrate(db, rows, { locale, now });
+  return {
+    items: rows.map((row) => summaryOf(row, h, locale)),
+    limit: page.limit,
+    offset: page.offset,
   };
 }
 

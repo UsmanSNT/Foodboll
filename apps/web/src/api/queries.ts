@@ -29,7 +29,7 @@ import { apiRequest } from './client';
  * Typed data hooks. Every read is keyed by the UI language, because the server renders content
  * (titles, region names, notifications) in the reader's language.
  */
-function useApiQuery<T>(
+export function useApiQuery<T>(
   key: readonly unknown[],
   path: string,
   options: Partial<Pick<UseQueryOptions<T>, 'enabled' | 'staleTime' | 'placeholderData' | 'refetchInterval'>> = {},

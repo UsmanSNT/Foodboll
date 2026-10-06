@@ -31,6 +31,7 @@ import {
   createMatch,
   getMatch,
   getMatchTranslations,
+  listOrganizedMatches,
   listUpcomingMatches,
   replaceMatch,
 } from '../services/matches';
@@ -175,6 +176,15 @@ export function registerRoutes(
   });
 
   // ---- Organizers ------------------------------------------------------------------------
+  app.get('/v1/me/organized-matches', async (request) =>
+    listOrganizedMatches(
+      db,
+      requireRole(request, 'ORGANIZER', 'ADMIN'),
+      request.ctx.locale,
+      paginationSchema.parse(request.query),
+    ),
+  );
+
   app.get('/v1/me/organizer-regions', async (request) => ({
     items: await listMyOrganizerRegions(db, requireUser(request), request.ctx.locale),
   }));

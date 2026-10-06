@@ -12,6 +12,11 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/ui.css';
 import './styles/pages.css';
+import './styles/organizer-home.css';
+import './styles/match-form.css';
+import './styles/admin-money.css';
+import './styles/admin-people.css';
+import './styles/admin-settings.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');

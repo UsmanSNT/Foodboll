@@ -1,4 +1,11 @@
 import { glossaryMessages } from '../glossary';
+import { organizerEn } from './sections/organizer';
+import { matchFormEn } from './sections/matchForm';
+import { adminPaymentsEn } from './sections/adminPayments';
+import { adminDepositsEn } from './sections/adminDeposits';
+import { adminPeopleEn } from './sections/adminPeople';
+import { adminSettingsEn } from './sections/adminSettings';
+import { adminHomeEn } from './sections/adminHome';
 import type { ko } from './ko';
 
 /**
@@ -339,5 +346,12 @@ export const en: typeof ko = {
     CAPACITY_BELOW_REGISTRATIONS:
       'Max players can’t be lower than the number of current registrations.',
   },
+  organizer: organizerEn,
+  matchForm: matchFormEn,
+  adminPayments: adminPaymentsEn,
+  adminDeposits: adminDepositsEn,
+  adminPeople: adminPeopleEn,
+  adminSettings: adminSettingsEn,
+  adminHome: adminHomeEn,
   glossary: glossaryMessages('en'),
 };
