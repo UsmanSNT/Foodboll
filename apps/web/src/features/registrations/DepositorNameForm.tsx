@@ -16,7 +16,11 @@ export function DepositorNameForm() {
   const name = draft ?? me.data?.depositorName ?? '';
 
   const save = useApiMutation<string>(
-    (depositorName) => ({ path: '/v1/me/depositor-name', method: 'PATCH', body: { depositorName } }),
+    (depositorName) => ({
+      path: '/v1/me/depositor-name',
+      method: 'PATCH',
+      body: { depositorName },
+    }),
     [['me']],
   );
   const trimmed = name.trim();
@@ -35,10 +39,21 @@ export function DepositorNameForm() {
       </div>
       <Field label={t('payment.nameLabel')}>
         {(props) => (
-          <TextInput {...props} value={name} maxLength={60} onChange={(event) => setDraft(event.target.value)} autoComplete="off" />
+          <TextInput
+            {...props}
+            value={name}
+            maxLength={60}
+            onChange={(event) => setDraft(event.target.value)}
+            autoComplete="off"
+          />
         )}
       </Field>
-      <Button type="submit" size="sm" loading={save.isPending} disabled={trimmed.length === 0 || trimmed === me.data?.depositorName}>
+      <Button
+        type="submit"
+        size="sm"
+        loading={save.isPending}
+        disabled={trimmed.length === 0 || trimmed === me.data?.depositorName}
+      >
         {t('common.save')}
       </Button>
       {save.isError && <ErrorState error={save.error} />}

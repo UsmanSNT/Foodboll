@@ -13,7 +13,10 @@ export const ATTENDANCE_WINDOW_DAYS = 14;
 
 export type MarkingState = 'before' | 'open' | 'closed';
 
-export function markingState(match: Pick<MatchSummaryDto, 'startsAt' | 'endsAt'>, now: Date): MarkingState {
+export function markingState(
+  match: Pick<MatchSummaryDto, 'startsAt' | 'endsAt'>,
+  now: Date,
+): MarkingState {
   if (new Date(match.startsAt).getTime() > now.getTime()) return 'before';
   const closesAt = new Date(match.endsAt).getTime() + ATTENDANCE_WINDOW_DAYS * DAY_MS;
   return now.getTime() > closesAt ? 'closed' : 'open';
@@ -29,7 +32,9 @@ export function markOf(entry: RosterEntryDto, drafts: Drafts): Mark {
  */
 export function withMark(drafts: Drafts, entry: RosterEntryDto, value: Mark): Drafts {
   const { [entry.registrationId]: _previous, ...rest } = drafts;
-  return value === null || value === entry.attended ? rest : { ...rest, [entry.registrationId]: value };
+  return value === null || value === entry.attended
+    ? rest
+    : { ...rest, [entry.registrationId]: value };
 }
 
 /** Everyone not decided yet becomes present; marks that are already decided stay as they are. */
@@ -43,7 +48,9 @@ export function withRestPresent(drafts: Drafts, roster: readonly RosterEntryDto[
 export function pendingMarks(roster: readonly RosterEntryDto[], drafts: Drafts): AttendanceMark[] {
   return roster.flatMap((entry) => {
     const draft = drafts[entry.registrationId];
-    return draft === undefined || draft === entry.attended ? [] : [{ registrationId: entry.registrationId, attended: draft }];
+    return draft === undefined || draft === entry.attended
+      ? []
+      : [{ registrationId: entry.registrationId, attended: draft }];
   });
 }
 

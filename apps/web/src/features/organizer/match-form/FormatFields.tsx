@@ -11,7 +11,13 @@ interface FormatFieldsProps {
 }
 
 /** Team size and capacity; capacity can never be smaller than two full sides. */
-export function FormatFields({ playersPerSide, maxPlayers, errors, onPlayersPerSideChange, onMaxPlayersChange }: FormatFieldsProps) {
+export function FormatFields({
+  playersPerSide,
+  maxPlayers,
+  errors,
+  onPlayersPerSideChange,
+  onMaxPlayersChange,
+}: FormatFieldsProps) {
   const { t } = useI18n();
   const minCapacity = playersPerSide * 2;
 

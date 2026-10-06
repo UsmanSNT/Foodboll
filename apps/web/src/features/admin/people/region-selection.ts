@@ -14,7 +14,8 @@ export function indexRegions(tree: readonly RegionNodeDto[]): ReadonlyMap<string
   const index = new Map<string, RegionEntry>();
   for (const province of tree) {
     index.set(province.code, { node: province, parent: null });
-    for (const district of province.children) index.set(district.code, { node: district, parent: province });
+    for (const district of province.children)
+      index.set(district.code, { node: district, parent: province });
   }
   return index;
 }
@@ -23,7 +24,10 @@ export function indexRegions(tree: readonly RegionNodeDto[]): ReadonlyMap<string
  * A province grant covers all of its districts, so choosing one replaces any districts already
  * chosen inside it. Clearing it leaves them unselected rather than guessing which to keep.
  */
-export function toggleProvince(selected: ReadonlySet<string>, province: RegionNodeDto): Set<string> {
+export function toggleProvince(
+  selected: ReadonlySet<string>,
+  province: RegionNodeDto,
+): Set<string> {
   const next = new Set(selected);
   if (next.delete(province.code)) return next;
   next.add(province.code);

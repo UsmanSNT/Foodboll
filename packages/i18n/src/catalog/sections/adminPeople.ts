@@ -128,7 +128,8 @@ export const adminPeopleUz: typeof adminPeopleKo = {
       'Ariza egasiga o‘z tilida bildirishnoma yuboriladi. Buni bekor qilib bo‘lmaydi, lekin u qayta ariza berishi mumkin.',
     approved: 'Ariza tasdiqlandi.',
     rejected: 'Ariza rad etildi.',
-    alreadyDecided: 'Bu arizani boshqa administrator allaqachon ko‘rib chiqqan. Ro‘yxat yangilandi.',
+    alreadyDecided:
+      'Bu arizani boshqa administrator allaqachon ko‘rib chiqqan. Ro‘yxat yangilandi.',
   },
   users: {
     title: 'Foydalanuvchilar',
@@ -216,7 +217,8 @@ export const adminPeopleEn: typeof adminPeopleKo = {
       'They get a notification in their own language. This can’t be undone, but they can apply again.',
     approved: 'Application approved.',
     rejected: 'Application rejected.',
-    alreadyDecided: 'Another admin has already decided on this application. The list was refreshed.',
+    alreadyDecided:
+      'Another admin has already decided on this application. The list was refreshed.',
   },
   users: {
     title: 'Users',

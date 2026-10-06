@@ -26,18 +26,34 @@ export function WhenFields({ value, errors, onChange }: WhenFieldsProps) {
       <p className="small muted">{t('matchForm.when.note')}</p>
       <Field label={t('matchForm.when.date')} error={errors.date}>
         {(props) => (
-          <TextInput {...props} type="date" min={today} value={value.date} onChange={(event) => onChange({ date: event.target.value })} />
+          <TextInput
+            {...props}
+            type="date"
+            min={today}
+            value={value.date}
+            onChange={(event) => onChange({ date: event.target.value })}
+          />
         )}
       </Field>
       <div className="mf-times">
         <Field label={t('matchForm.when.start')} error={errors.startTime}>
           {(props) => (
-            <TextInput {...props} type="time" value={value.startTime} onChange={(event) => onChange({ startTime: event.target.value })} />
+            <TextInput
+              {...props}
+              type="time"
+              value={value.startTime}
+              onChange={(event) => onChange({ startTime: event.target.value })}
+            />
           )}
         </Field>
         <Field label={t('matchForm.when.end')} error={errors.endTime}>
           {(props) => (
-            <TextInput {...props} type="time" value={value.endTime} onChange={(event) => onChange({ endTime: event.target.value })} />
+            <TextInput
+              {...props}
+              type="time"
+              value={value.endTime}
+              onChange={(event) => onChange({ endTime: event.target.value })}
+            />
           )}
         </Field>
       </div>
@@ -46,7 +62,15 @@ export function WhenFields({ value, errors, onChange }: WhenFieldsProps) {
   );
 }
 
-function Summary({ schedule, startTime, endTime }: { readonly schedule: MatchWindow | null; readonly startTime: string; readonly endTime: string }) {
+function Summary({
+  schedule,
+  startTime,
+  endTime,
+}: {
+  readonly schedule: MatchWindow | null;
+  readonly startTime: string;
+  readonly endTime: string;
+}) {
   const { t, formatDate } = useI18n();
 
   return (
@@ -60,7 +84,9 @@ function Summary({ schedule, startTime, endTime }: { readonly schedule: MatchWin
           <p className="small">
             {[
               durationLabel(schedule.minutes, t),
-              ...(schedule.endsNextDay ? [t('matchForm.when.endsNextDay', { date: formatDate(schedule.endsAt) })] : []),
+              ...(schedule.endsNextDay
+                ? [t('matchForm.when.endsNextDay', { date: formatDate(schedule.endsAt) })]
+                : []),
             ].join(' · ')}
           </p>
         </div>

@@ -1,7 +1,17 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseLanguageAndRegion, json, matchSummary, mockApi, registration, renderApp, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  chooseLanguageAndRegion,
+  json,
+  matchSummary,
+  mockApi,
+  registration,
+  renderApp,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 let api: Api;
 beforeEach(() => {
@@ -25,13 +35,25 @@ const card = (id: string, name: string, overrides: Record<string, unknown> = {})
 describe('my matches', () => {
   it('splits upcoming from past and cancelled, with the payment state on each', async () => {
     signIn(api);
-    const past = matchSummary({ id: 'old', startsAt: '2020-01-01T10:00:00.000Z', endsAt: '2020-01-01T12:00:00.000Z', title: { text: 'Old match', locale: 'en', isFallback: false } });
+    const past = matchSummary({
+      id: 'old',
+      startsAt: '2020-01-01T10:00:00.000Z',
+      endsAt: '2020-01-01T12:00:00.000Z',
+      title: { text: 'Old match', locale: 'en', isFallback: false },
+    });
     api.handlers['/v1/me/registrations'] = () =>
       json({
         items: [
           registration({ id: 'r1' }),
           registration({ id: 'r2', status: 'CONFIRMED', match: past, payment: null }),
-          registration({ id: 'r3', status: 'CANCELLED', match: matchSummary({ id: 'm3', title: { text: 'Cancelled one', locale: 'en', isFallback: false } }) }),
+          registration({
+            id: 'r3',
+            status: 'CANCELLED',
+            match: matchSummary({
+              id: 'm3',
+              title: { text: 'Cancelled one', locale: 'en', isFallback: false },
+            }),
+          }),
         ],
         limit: 100,
         offset: 0,
@@ -47,12 +69,16 @@ describe('my matches', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Past (2)' }));
     expect(screen.getByRole('link', { name: /Old match/ })).toBeInTheDocument();
-    expect(within(screen.getByRole('link', { name: /Cancelled one/ })).getByText('Cancelled')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('link', { name: /Cancelled one/ })).getByText('Cancelled'),
+    ).toBeInTheDocument();
   });
 
   it('asks a visitor to log in', async () => {
     renderApp('/my-matches');
-    expect(await screen.findByRole('heading', { name: 'Log in to see your matches' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Log in to see your matches' }),
+    ).toBeInTheDocument();
   });
 
   it('points to the feed when there is nothing yet', async () => {
@@ -67,23 +93,43 @@ describe('my matches', () => {
 describe('players', () => {
   it('requires an account', async () => {
     renderApp('/players');
-    expect(await screen.findByRole('heading', { name: 'Log in to find players' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Log in to find players' }),
+    ).toBeInTheDocument();
     expect(api.calls.some((c) => c.url.pathname === '/api/v1/players')).toBe(false);
   });
 
   it('lists players and searches by name once the player stops typing', async () => {
     signIn(api);
     api.handlers['/v1/players'] = (url) =>
-      json({ items: url.searchParams.get('q') ? [card('p2', 'Aziz Karimov')] : [card('p1', 'Dilnoza'), card('p2', 'Aziz Karimov')], limit: 30, offset: 0 });
+      json({
+        items: url.searchParams.get('q')
+          ? [card('p2', 'Aziz Karimov')]
+          : [card('p1', 'Dilnoza'), card('p2', 'Aziz Karimov')],
+        limit: 30,
+        offset: 0,
+      });
     const user = userEvent.setup();
     renderApp('/players');
 
-    expect(await screen.findByRole('link', { name: /Dilnoza/ })).toHaveAttribute('href', '/players/p1');
+    expect(await screen.findByRole('link', { name: /Dilnoza/ })).toHaveAttribute(
+      'href',
+      '/players/p1',
+    );
     await user.type(screen.getByRole('searchbox', { name: 'Search by name' }), 'aziz');
-    await waitFor(() => expect(screen.queryByRole('link', { name: /Dilnoza/ })).not.toBeInTheDocument());
-    expect(api.calls.filter((c) => c.url.pathname === '/api/v1/players').at(-1)?.url.searchParams.get('q')).toBe('aziz');
+    await waitFor(() =>
+      expect(screen.queryByRole('link', { name: /Dilnoza/ })).not.toBeInTheDocument(),
+    );
+    expect(
+      api.calls
+        .filter((c) => c.url.pathname === '/api/v1/players')
+        .at(-1)
+        ?.url.searchParams.get('q'),
+    ).toBe('aziz');
     // Typing is debounced: one request per pause, not one per keystroke.
-    expect(api.calls.filter((c) => c.url.pathname === '/api/v1/players').length).toBeLessThanOrEqual(3);
+    expect(
+      api.calls.filter((c) => c.url.pathname === '/api/v1/players').length,
+    ).toBeLessThanOrEqual(3);
   });
 
   it('shows a message when nobody matches', async () => {
@@ -96,11 +142,23 @@ describe('players', () => {
 
 describe('player profile', () => {
   const profile = {
-    ...card('p1', 'Dilnoza', { homeRegion: matchSummary().region, level: { level: 4, xp: 190, xpIntoLevel: 10, xpForNextLevel: 120 } }),
+    ...card('p1', 'Dilnoza', {
+      homeRegion: matchSummary().region,
+      level: { level: 4, xp: 190, xpIntoLevel: 10, xpForNextLevel: 120 },
+    }),
     role: 'PLAYER',
     memberSince: '2030-01-15T00:00:00.000Z',
     xp: 190,
-    stats: { matchesPlayed: 12, matchesOrganized: 1, noShows: 0, attendanceRate: 1, last90Days: 5, firstMatchAt: null, lastMatchAt: null, provincesPlayed: 1 },
+    stats: {
+      matchesPlayed: 12,
+      matchesOrganized: 1,
+      noShows: 0,
+      attendanceRate: 1,
+      last90Days: 5,
+      firstMatchAt: null,
+      lastMatchAt: null,
+      provincesPlayed: 1,
+    },
     activity: 'REGULAR',
     achievements: ['FIRST_MATCH', 'MATCHES_10'],
     recentMatches: [matchSummary()],
@@ -140,8 +198,22 @@ describe('notifications', () => {
         ? json({ ok: true })
         : json({
             items: [
-              { id: 'n1', type: 'PAYMENT_CONFIRMED', title: 'Payment confirmed', body: 'Your payment has been confirmed.', createdAt: '2030-05-01T00:00:00.000Z', readAt: null },
-              { id: 'n2', type: 'PAYMENT_REFUNDED', title: 'Refund completed', body: 'Your payment has been refunded.', createdAt: '2030-04-01T00:00:00.000Z', readAt: '2030-04-02T00:00:00.000Z' },
+              {
+                id: 'n1',
+                type: 'PAYMENT_CONFIRMED',
+                title: 'Payment confirmed',
+                body: 'Your payment has been confirmed.',
+                createdAt: '2030-05-01T00:00:00.000Z',
+                readAt: null,
+              },
+              {
+                id: 'n2',
+                type: 'PAYMENT_REFUNDED',
+                title: 'Refund completed',
+                body: 'Your payment has been refunded.',
+                createdAt: '2030-04-01T00:00:00.000Z',
+                readAt: '2030-04-02T00:00:00.000Z',
+              },
             ],
             limit: 50,
             offset: 0,
@@ -154,12 +226,18 @@ describe('notifications', () => {
     expect(await screen.findByRole('heading', { name: 'Payment confirmed' })).toBeInTheDocument();
     expect(screen.getByText('Your payment has been refunded.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Mark all as read' }));
-    await waitFor(() => expect(api.find('POST', '/v1/me/notifications/read')?.init?.body).toBe(JSON.stringify({ all: true })));
+    await waitFor(() =>
+      expect(api.find('POST', '/v1/me/notifications/read')?.init?.body).toBe(
+        JSON.stringify({ all: true }),
+      ),
+    );
   });
 
   it('shows an empty state', async () => {
     signIn(api);
     renderApp('/notifications');
-    expect(await screen.findByRole('heading', { name: 'No notifications yet' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'No notifications yet' }),
+    ).toBeInTheDocument();
   });
 });

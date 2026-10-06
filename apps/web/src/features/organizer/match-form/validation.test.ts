@@ -7,7 +7,12 @@ import {
   withTranslationField,
   type FormState,
 } from './form-state';
-import { firstInvalidField, localeOfField, validateMatchForm, type FieldErrors } from './validation';
+import {
+  firstInvalidField,
+  localeOfField,
+  validateMatchForm,
+  type FieldErrors,
+} from './validation';
 
 // 09:00 on 1 May 2030 in Seoul.
 const NOW = new Date('2030-05-01T00:00:00Z');
@@ -60,7 +65,12 @@ describe('a valid form', () => {
 
   it('trims and normalizes text, and sends blank optional fields as null', () => {
     const state = filledForm((s) =>
-      withTranslationField({ ...s, venueName: '  한  ', venueAddress: '   ' }, 'ko', 'description', '  Open to all levels  '),
+      withTranslationField(
+        { ...s, venueName: '  한  ', venueAddress: '   ' },
+        'ko',
+        'description',
+        '  Open to all levels  ',
+      ),
     );
     const result = validateMatchForm(state, NOW);
     expect(result.ok && result.input.venueName).toBe('한');
@@ -70,7 +80,12 @@ describe('a valid form', () => {
 
   it('sends every language that has text and leaves completely empty ones out', () => {
     const state = filledForm((s) =>
-      withTranslationField(withTranslationField(s, 'en', 'title', 'Gangnam Friday futsal'), 'uz', 'rules', ''),
+      withTranslationField(
+        withTranslationField(s, 'en', 'title', 'Gangnam Friday futsal'),
+        'uz',
+        'rules',
+        '',
+      ),
     );
     const result = validateMatchForm(state, NOW);
     expect(result.ok && Object.keys(result.input.translations).sort()).toEqual(['en', 'ko']);
@@ -79,7 +94,13 @@ describe('a valid form', () => {
   it('accepts the source language being a different one than Korean', () => {
     const state = createInitialState({ language: 'uz', regionCode: 'gyeonggi-ansan' });
     const uzbek = withTranslationField(
-      { ...state, date: '2030-05-04', startTime: '19:00', endTime: '21:00', venueName: '안산 풋살장' },
+      {
+        ...state,
+        date: '2030-05-04',
+        startTime: '19:00',
+        endTime: '21:00',
+        venueName: '안산 풋살장',
+      },
       'uz',
       'title',
       'Ansar futzal',
@@ -101,25 +122,42 @@ describe('required fields', () => {
   });
 
   it('requires the title of the source language even if another language is filled', () => {
-    const state = withTranslationField(filledForm((s) => withTranslationField(s, 'ko', 'title', '')), 'en', 'title', 'Friday futsal');
-    expect(errorsOf(state)).toEqual({ 'translations.ko.title': { key: 'matchForm.errors.sourceTitle' } });
+    const state = withTranslationField(
+      filledForm((s) => withTranslationField(s, 'ko', 'title', '')),
+      'en',
+      'title',
+      'Friday futsal',
+    );
+    expect(errorsOf(state)).toEqual({
+      'translations.ko.title': { key: 'matchForm.errors.sourceTitle' },
+    });
   });
 
   it('asks for a title when a language has text but no title, and for nothing when it is empty', () => {
-    const state = filledForm((s) => withTranslationField(s, 'uz', 'description', 'Barcha darajalar uchun'));
-    expect(errorsOf(state)).toEqual({ 'translations.uz.title': { key: 'matchForm.errors.languageTitle' } });
+    const state = filledForm((s) =>
+      withTranslationField(s, 'uz', 'description', 'Barcha darajalar uchun'),
+    );
+    expect(errorsOf(state)).toEqual({
+      'translations.uz.title': { key: 'matchForm.errors.languageTitle' },
+    });
     expect(validateMatchForm(filledForm(), NOW).ok).toBe(true);
   });
 
   it('treats a title of only spaces as missing', () => {
-    expect(errorsOf(filledForm((s) => withTranslationField(s, 'ko', 'title', '   ')))['translations.ko.title']).toEqual({
+    expect(
+      errorsOf(filledForm((s) => withTranslationField(s, 'ko', 'title', '   ')))[
+        'translations.ko.title'
+      ],
+    ).toEqual({
       key: 'matchForm.errors.sourceTitle',
     });
   });
 
   it('flags one missing time at a time', () => {
     expect(Object.keys(errorsOf(filledForm((s) => ({ ...s, endTime: '' }))))).toEqual(['endTime']);
-    expect(Object.keys(errorsOf(filledForm((s) => ({ ...s, startTime: '' }))))).toEqual(['startTime']);
+    expect(Object.keys(errorsOf(filledForm((s) => ({ ...s, startTime: '' }))))).toEqual([
+      'startTime',
+    ]);
     expect(Object.keys(errorsOf(filledForm((s) => ({ ...s, date: '' }))))).toEqual(['date']);
   });
 });
@@ -129,23 +167,53 @@ describe('limits', () => {
   const cases: readonly [string, (value: string) => (s: FormState) => FormState, number][] = [
     ['venueName', (v) => (s) => ({ ...s, venueName: v }), LIMITS.venueName],
     ['venueAddress', (v) => (s) => ({ ...s, venueAddress: v }), LIMITS.venueAddress],
-    ['translations.ko.title', (v) => (s) => withTranslationField(s, 'ko', 'title', v), LIMITS.title],
-    ['translations.ko.description', (v) => (s) => withTranslationField(s, 'ko', 'description', v), LIMITS.text],
+    [
+      'translations.ko.title',
+      (v) => (s) => withTranslationField(s, 'ko', 'title', v),
+      LIMITS.title,
+    ],
+    [
+      'translations.ko.description',
+      (v) => (s) => withTranslationField(s, 'ko', 'description', v),
+      LIMITS.text,
+    ],
     ['translations.ko.rules', (v) => (s) => withTranslationField(s, 'ko', 'rules', v), LIMITS.text],
-    ['translations.ko.locationInstructions', (v) => (s) => withTranslationField(s, 'ko', 'locationInstructions', v), LIMITS.text],
-    ['translations.ko.equipmentRequirements', (v) => (s) => withTranslationField(s, 'ko', 'equipmentRequirements', v), LIMITS.text],
-    ['translations.ko.cancellationPolicy', (v) => (s) => withTranslationField(s, 'ko', 'cancellationPolicy', v), LIMITS.text],
+    [
+      'translations.ko.locationInstructions',
+      (v) => (s) => withTranslationField(s, 'ko', 'locationInstructions', v),
+      LIMITS.text,
+    ],
+    [
+      'translations.ko.equipmentRequirements',
+      (v) => (s) => withTranslationField(s, 'ko', 'equipmentRequirements', v),
+      LIMITS.text,
+    ],
+    [
+      'translations.ko.cancellationPolicy',
+      (v) => (s) => withTranslationField(s, 'ko', 'cancellationPolicy', v),
+      LIMITS.text,
+    ],
   ];
 
-  it.each(cases)('%s: the limit used by the form is the limit of the shared schema', (id, set, max) => {
-    expect(validateMatchForm(filledForm(set(text(max))), NOW).ok).toBe(true);
-    expect(errorsOf(filledForm(set(text(max + 1))))[id]).toEqual({ key: 'form.tooLong', params: { max } });
-  });
+  it.each(cases)(
+    '%s: the limit used by the form is the limit of the shared schema',
+    (id, set, max) => {
+      expect(validateMatchForm(filledForm(set(text(max))), NOW).ok).toBe(true);
+      expect(errorsOf(filledForm(set(text(max + 1))))[id]).toEqual({
+        key: 'form.tooLong',
+        params: { max },
+      });
+    },
+  );
 });
 
 describe('when', () => {
   it('refuses a start that is not in the future, on the field that caused it', () => {
-    expect(errorsOf(filledForm((s) => ({ ...s, date: '2030-05-01', startTime: '08:00', endTime: '10:00' })))).toEqual({
+    expect(
+      errorsOf(
+        filledForm((s) => ({ ...s, date: '2030-05-01', startTime: '08:00', endTime: '10:00' })),
+      ),
+    ).toEqual({
       startTime: { key: 'matchForm.errors.startPast' },
     });
     expect(errorsOf(filledForm((s) => ({ ...s, date: '2030-04-30' })))).toEqual({
@@ -157,8 +225,15 @@ describe('when', () => {
     expect(errorsOf(filledForm((s) => ({ ...s, startTime: '08:00', endTime: '20:01' })))).toEqual({
       endTime: { key: 'matchForm.errors.tooLong', params: { hours: 12 } },
     });
-    expect(errorsOf(filledForm((s) => ({ ...s, startTime: '08:00', endTime: '08:00' }))).endTime).toBeDefined();
-    expect(validateMatchForm(filledForm((s) => ({ ...s, startTime: '08:00', endTime: '20:00' })), NOW).ok).toBe(true);
+    expect(
+      errorsOf(filledForm((s) => ({ ...s, startTime: '08:00', endTime: '08:00' }))).endTime,
+    ).toBeDefined();
+    expect(
+      validateMatchForm(
+        filledForm((s) => ({ ...s, startTime: '08:00', endTime: '20:00' })),
+        NOW,
+      ).ok,
+    ).toBe(true);
   });
 });
 
@@ -173,9 +248,17 @@ describe('format', () => {
 
   it('refuses a capacity that does not fit two full sides or exceeds 60', () => {
     const tooSmall = filledForm((s) => ({ ...withPlayersPerSide(s, 8), maxPlayers: 14 }));
-    expect(errorsOf(tooSmall).maxPlayers).toEqual({ key: 'matchForm.errors.maxPlayers', params: { min: 16, max: 60 } });
+    expect(errorsOf(tooSmall).maxPlayers).toEqual({
+      key: 'matchForm.errors.maxPlayers',
+      params: { min: 16, max: 60 },
+    });
     expect(errorsOf(filledForm((s) => withMaxPlayers(s, 61))).maxPlayers).toBeDefined();
-    expect(validateMatchForm(filledForm((s) => withMaxPlayers(s, 60)), NOW).ok).toBe(true);
+    expect(
+      validateMatchForm(
+        filledForm((s) => withMaxPlayers(s, 60)),
+        NOW,
+      ).ok,
+    ).toBe(true);
   });
 });
 
@@ -207,8 +290,15 @@ describe('firstInvalidField', () => {
   const error = { key: 'form.required' } as const;
 
   it('follows the order of the screen: where, when, format, then content', () => {
-    expect(firstInvalidField({ maxPlayers: error, date: error, 'translations.ko.title': error }, 'ko')).toBe('date');
-    expect(firstInvalidField({ 'translations.ko.title': error, venueName: error, regionCode: error }, 'ko')).toBe('regionCode');
+    expect(
+      firstInvalidField({ maxPlayers: error, date: error, 'translations.ko.title': error }, 'ko'),
+    ).toBe('date');
+    expect(
+      firstInvalidField(
+        { 'translations.ko.title': error, venueName: error, regionCode: error },
+        'ko',
+      ),
+    ).toBe('regionCode');
   });
 
   it('reads the source language first', () => {

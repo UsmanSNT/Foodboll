@@ -20,8 +20,7 @@ export const adminPaymentsKo = {
       '입금 후 신청을 취소한 선수입니다. 은행에서 돈을 돌려준 뒤 환불 완료로 기록하세요. 입금이 없었다면 환불 없이 종료할 수 있습니다.',
     AWAITING_PAYMENT:
       '아직 입금하지 않은 선수입니다. 입금되면 자동으로 확인되므로 여기서 할 일은 없습니다.',
-    PAYMENT_REJECTED:
-      '반려한 건입니다. 선수가 영수증을 다시 올리면 확인 대기로 돌아옵니다.',
+    PAYMENT_REJECTED: '반려한 건입니다. 선수가 영수증을 다시 올리면 확인 대기로 돌아옵니다.',
     REFUNDED: '선수에게 환불을 마친 건입니다.',
     PAYMENT_CONFIRMED: '자동 또는 관리자가 입금을 확인한 건입니다.',
   },
@@ -56,7 +55,8 @@ export const adminPaymentsKo = {
   rejectTitle: '입금 반려',
   rejectHint: '선수에게 사유가 안내되고, 영수증을 다시 올릴 수 있습니다.',
   closeTitle: '환불 없이 종료',
-  closeHint: '선수가 취소했고 입금이 확인되지 않은 경우에 사용하세요. 선수에게 알림은 가지 않습니다.',
+  closeHint:
+    '선수가 취소했고 입금이 확인되지 않은 경우에 사용하세요. 선수에게 알림은 가지 않습니다.',
   rejectSubmit: '반려하기',
   refundTitle: '환불 완료로 처리할까요?',
   refundHint:

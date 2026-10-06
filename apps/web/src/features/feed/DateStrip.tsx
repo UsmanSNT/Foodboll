@@ -6,7 +6,13 @@ import { Chip } from '../../ui/Chip';
 const DAYS_AHEAD = 14;
 
 /** Horizontal day picker: "All" plus the next two weeks, in Korean dates. */
-export function DateStrip({ value, onChange }: { readonly value: string | null; readonly onChange: (date: string | null) => void }) {
+export function DateStrip({
+  value,
+  onChange,
+}: {
+  readonly value: string | null;
+  readonly onChange: (date: string | null) => void;
+}) {
   const { t, formatDate } = useI18n();
   const days = useMemo(() => upcomingDays(DAYS_AHEAD), []);
   return (
@@ -25,7 +31,9 @@ export function DateStrip({ value, onChange }: { readonly value: string | null; 
           onClick={() => onChange(day.key)}
           aria-label={formatDate(`${day.key}T12:00:00+09:00`)}
         >
-          <span className="chip__dow">{index === 0 ? t('feed.today') : t('format.weekdayShort', { weekday: day.weekday })}</span>
+          <span className="chip__dow">
+            {index === 0 ? t('feed.today') : t('format.weekdayShort', { weekday: day.weekday })}
+          </span>
           <span className="chip__day num">{day.day}</span>
         </Chip>
       ))}

@@ -37,8 +37,12 @@ describe('translations', () => {
 
   it('counts a language as provided once any field has text', () => {
     expect(hasText(start().translations.ko)).toBe(false);
-    expect(hasText(withTranslationField(start(), 'ko', 'rules', ' no sliding ').translations.ko)).toBe(true);
-    expect(hasText(withTranslationField(start(), 'ko', 'rules', '   ').translations.ko)).toBe(false);
+    expect(
+      hasText(withTranslationField(start(), 'ko', 'rules', ' no sliding ').translations.ko),
+    ).toBe(true);
+    expect(hasText(withTranslationField(start(), 'ko', 'rules', '   ').translations.ko)).toBe(
+      false,
+    );
   });
 
   it('counts characters the way the API does: normalized and trimmed', () => {
@@ -60,7 +64,14 @@ describe('stateFromMatch', () => {
     playersPerSide: 6,
     maxPlayers: 14,
     translations: {
-      ko: { title: '강남 금요 풋살', description: '소개', rules: null, locationInstructions: null, equipmentRequirements: null, cancellationPolicy: null },
+      ko: {
+        title: '강남 금요 풋살',
+        description: '소개',
+        rules: null,
+        locationInstructions: null,
+        equipmentRequirements: null,
+        cancellationPolicy: null,
+      },
     },
   };
 
@@ -78,7 +89,11 @@ describe('stateFromMatch', () => {
       maxPlayersTouched: true,
     });
     const { translations } = stateFromMatch(saved);
-    expect(translations.ko).toMatchObject({ title: '강남 금요 풋살', description: '소개', rules: '' });
+    expect(translations.ko).toMatchObject({
+      title: '강남 금요 풋살',
+      description: '소개',
+      rules: '',
+    });
     expect(hasText(translations.uz)).toBe(false);
   });
 

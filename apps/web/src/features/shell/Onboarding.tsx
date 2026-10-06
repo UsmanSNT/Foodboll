@@ -56,7 +56,11 @@ export function RegionOnboarding() {
         <p className="muted">{t('region.pickHint')}</p>
       </div>
       <div className="gate__panel">
-        <RegionPicker current={null} allowAll={false} onSelect={(code) => void choose(code, { asHome: true })} />
+        <RegionPicker
+          current={null}
+          allowAll={false}
+          onSelect={(code) => void choose(code, { asHome: true })}
+        />
       </div>
       <Button variant="ghost" block onClick={() => void choose(null)}>
         {t('region.skip')}

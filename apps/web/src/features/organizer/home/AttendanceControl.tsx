@@ -21,7 +21,11 @@ interface Props {
 export function AttendanceControl({ name, value, saved, disabled, onChange }: Props) {
   const { t } = useI18n();
   return (
-    <div className="attendance" role="group" aria-label={t('organizer.roster.groupLabel', { name })}>
+    <div
+      className="attendance"
+      role="group"
+      aria-label={t('organizer.roster.groupLabel', { name })}
+    >
       {OPTIONS.map((option) => (
         <button
           key={option.tone}

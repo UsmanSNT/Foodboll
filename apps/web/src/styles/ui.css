@@ -18,7 +18,10 @@
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s, transform 0.05s, box-shadow 0.15s;
+  transition:
+    background 0.15s,
+    transform 0.05s,
+    box-shadow 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .btn:active:not(:disabled) {
@@ -151,7 +154,9 @@
   font-weight: 600;
   font-size: var(--text-sm);
   scroll-snap-align: start;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 .chip[aria-pressed='true'] {
   background: var(--primary);
@@ -190,7 +195,10 @@ a.card,
 .card--interactive {
   display: block;
   text-decoration: none;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.05s;
 }
 a.card:hover,
 .card--interactive:hover {
@@ -722,7 +730,9 @@ a.list__item:hover {
   background: var(--surface);
   font-size: var(--text-lg);
   font-weight: 700;
-  transition: border-color 0.15s, transform 0.05s;
+  transition:
+    border-color 0.15s,
+    transform 0.05s;
 }
 .gate__option:hover {
   border-color: var(--primary);

@@ -7,7 +7,13 @@ import { PaymentActions, type PaymentHandlers } from './PaymentActions';
 import { PaymentSummary } from './PaymentSummary';
 import { useReceipt } from './useReceipt';
 
-function ReceiptViewer({ registrationId, name }: { readonly registrationId: string; readonly name: string }) {
+function ReceiptViewer({
+  registrationId,
+  name,
+}: {
+  readonly registrationId: string;
+  readonly name: string;
+}) {
   const { t } = useI18n();
   const receipt = useReceipt(registrationId);
 
@@ -17,7 +23,12 @@ function ReceiptViewer({ registrationId, name }: { readonly registrationId: stri
     return (
       <div className="stack">
         <p className="small muted">{t('adminPayments.pdfNote')}</p>
-        <a className="btn btn--primary btn--block" href={receipt.url} target="_blank" rel="noopener noreferrer">
+        <a
+          className="btn btn--primary btn--block"
+          href={receipt.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {t('adminPayments.openPdf')}
         </a>
       </div>
@@ -26,7 +37,11 @@ function ReceiptViewer({ registrationId, name }: { readonly registrationId: stri
   return (
     <div className="stack">
       <div className="money-receipt">
-        <img className="money-receipt__image" src={receipt.url} alt={t('adminPayments.receiptAlt', { name })} />
+        <img
+          className="money-receipt__image"
+          src={receipt.url}
+          alt={t('adminPayments.receiptAlt', { name })}
+        />
       </div>
       <a className="btn btn--block" href={receipt.url} target="_blank" rel="noopener noreferrer">
         {t('adminPayments.openInNewTab')}
@@ -49,7 +64,11 @@ export function ReceiptSheet({ item, onClose, handlers }: ReceiptSheetProps) {
       {item && (
         <div className="stack">
           <PaymentSummary item={item} />
-          <ReceiptViewer key={item.registrationId} registrationId={item.registrationId} name={item.user.displayName} />
+          <ReceiptViewer
+            key={item.registrationId}
+            registrationId={item.registrationId}
+            name={item.user.displayName}
+          />
           <p className="small muted">{t('adminPayments.receiptSensitive')}</p>
           <PaymentActions item={item} withReceipt={false} handlers={handlers} />
         </div>

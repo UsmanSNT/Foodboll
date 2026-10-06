@@ -1,4 +1,7 @@
-import { ORGANIZER_APPLICATION_STATUSES, type OrganizerApplicationStatus } from '@foodboll/contracts';
+import {
+  ORGANIZER_APPLICATION_STATUSES,
+  type OrganizerApplicationStatus,
+} from '@foodboll/contracts';
 import { useState } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { CheckCircle2, ClipboardCheck } from '../../ui/icons';
@@ -27,7 +30,10 @@ export function AdminApplicationsPage() {
           label={t('adminPeople.applications.tabsLabel')}
           value={status}
           onChange={setStatus}
-          options={ORGANIZER_APPLICATION_STATUSES.map((value) => ({ value, label: t(APPLICATION_STATUS_LABEL_KEY[value]) }))}
+          options={ORGANIZER_APPLICATION_STATUSES.map((value) => ({
+            value,
+            label: t(APPLICATION_STATUS_LABEL_KEY[value]),
+          }))}
         />
         <div className="stack" role="tabpanel" aria-label={t(APPLICATION_STATUS_LABEL_KEY[status])}>
           <InfiniteList
@@ -35,7 +41,9 @@ export function AdminApplicationsPage() {
             skeleton={<ListSkeleton rows={3} height={168} />}
             empty={
               <EmptyState
-                icon={status === 'PENDING' ? <CheckCircle2 size={32} /> : <ClipboardCheck size={32} />}
+                icon={
+                  status === 'PENDING' ? <CheckCircle2 size={32} /> : <ClipboardCheck size={32} />
+                }
                 title={t(APPLICATION_EMPTY_KEY[status].title)}
                 text={t(APPLICATION_EMPTY_KEY[status].text)}
               />
@@ -45,7 +53,10 @@ export function AdminApplicationsPage() {
               <ul className="stack">
                 {applications.map((application) => (
                   <li key={application.id}>
-                    <ApplicationCard application={application} onDecide={(decision) => setTarget({ application, decision })} />
+                    <ApplicationCard
+                      application={application}
+                      onDecide={(decision) => setTarget({ application, decision })}
+                    />
                   </li>
                 ))}
               </ul>

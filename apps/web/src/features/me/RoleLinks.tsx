@@ -13,7 +13,11 @@ export function RoleLinks() {
     me.data.role === 'PLAYER'
       ? [{ to: '/organizer/apply', icon: <Flag size={18} />, label: t('myPage.becomeOrganizer') }]
       : [
-          { to: '/organizer', icon: <ClipboardCheck size={18} />, label: t('myPage.organizerTools') },
+          {
+            to: '/organizer',
+            icon: <ClipboardCheck size={18} />,
+            label: t('myPage.organizerTools'),
+          },
           ...(me.data.role === 'ADMIN'
             ? [{ to: '/admin', icon: <ShieldCheck size={18} />, label: t('myPage.adminTools') }]
             : []),

@@ -19,7 +19,10 @@ export function ProgressBar({
       aria-valuemax={max}
       aria-valuenow={Math.min(value, max)}
     >
-      <div className={tone ? `progress__bar progress__bar--${tone}` : 'progress__bar'} style={{ width: `${percent}%` }} />
+      <div
+        className={tone ? `progress__bar progress__bar--${tone}` : 'progress__bar'}
+        style={{ width: `${percent}%` }}
+      />
     </div>
   );
 }

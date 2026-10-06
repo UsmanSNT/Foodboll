@@ -2,7 +2,13 @@ import type { AdminPaymentDto } from '@foodboll/contracts';
 import { useI18n } from '../../../i18n/I18nProvider';
 
 /** Who and what a sheet is about, so the admin never acts on the wrong payment. */
-export function PaymentSummary({ item, withAmount = true }: { readonly item: AdminPaymentDto; readonly withAmount?: boolean }) {
+export function PaymentSummary({
+  item,
+  withAmount = true,
+}: {
+  readonly item: AdminPaymentDto;
+  readonly withAmount?: boolean;
+}) {
   const { t, formatKrw } = useI18n();
   return (
     <dl className="kv money-summary">

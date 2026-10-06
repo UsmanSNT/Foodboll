@@ -13,7 +13,10 @@ export interface CandidateFilter {
  * The registrations an admin can pick for a deposit. Live registrations come first, then the most
  * recently due: the player who just paid is almost always the one who registered last.
  */
-export function filterCandidates(items: readonly AdminPaymentDto[], filter: CandidateFilter): AdminPaymentDto[] {
+export function filterCandidates(
+  items: readonly AdminPaymentDto[],
+  filter: CandidateFilter,
+): AdminPaymentDto[] {
   const query = fold(filter.query);
   return items
     .filter((item) => !filter.sameAmountOnly || item.payment.amountKrw === filter.amountKrw)
@@ -25,7 +28,8 @@ export function filterCandidates(items: readonly AdminPaymentDto[], filter: Cand
     )
     .sort(
       (a, b) =>
-        Number(a.registrationStatus === 'CANCELLED') - Number(b.registrationStatus === 'CANCELLED') ||
+        Number(a.registrationStatus === 'CANCELLED') -
+          Number(b.registrationStatus === 'CANCELLED') ||
         b.payment.dueAt.localeCompare(a.payment.dueAt),
     );
 }

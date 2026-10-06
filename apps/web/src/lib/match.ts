@@ -20,7 +20,10 @@ export function isPast(iso: string, now: Date = new Date()): boolean {
   return new Date(iso).getTime() <= now.getTime();
 }
 
-export function hasStarted(match: Pick<MatchSummaryDto, 'startsAt'>, now: Date = new Date()): boolean {
+export function hasStarted(
+  match: Pick<MatchSummaryDto, 'startsAt'>,
+  now: Date = new Date(),
+): boolean {
   return new Date(match.startsAt).getTime() <= now.getTime();
 }
 

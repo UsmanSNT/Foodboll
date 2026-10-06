@@ -41,10 +41,15 @@ export function useAdminPayments(status: PaymentStatus) {
     queryKey: [...PAYMENTS_KEY, 'list', status, locale],
     initialPageParam: 0,
     queryFn: ({ pageParam, signal }) => {
-      const params = new URLSearchParams({ status, limit: String(PAGE_SIZE), offset: String(pageParam) });
+      const params = new URLSearchParams({
+        status,
+        limit: String(PAGE_SIZE),
+        offset: String(pageParam),
+      });
       return apiRequest<Page<AdminPaymentDto>>(`/v1/admin/payments?${params}`, { locale, signal });
     },
-    getNextPageParam: (last) => (last.items.length < PAGE_SIZE ? undefined : last.offset + last.limit),
+    getNextPageParam: (last) =>
+      last.items.length < PAGE_SIZE ? undefined : last.offset + last.limit,
   });
 }
 
@@ -52,7 +57,10 @@ const paymentPath = (registrationId: string, action: 'confirm' | 'reject' | 'ref
   `/v1/admin/registrations/${encodeURIComponent(registrationId)}/payment/${action}`;
 
 export const useConfirmPayment = () =>
-  useApiMutation<string, AdminPaymentDto>((registrationId) => ({ path: paymentPath(registrationId, 'confirm'), method: 'POST' }));
+  useApiMutation<string, AdminPaymentDto>((registrationId) => ({
+    path: paymentPath(registrationId, 'confirm'),
+    method: 'POST',
+  }));
 
 export const useRejectPayment = (registrationId: string) =>
   useApiMutation<PaymentRejectReason, AdminPaymentDto>((reason) => ({
@@ -62,7 +70,10 @@ export const useRejectPayment = (registrationId: string) =>
   }));
 
 export const useRefundPayment = (registrationId: string) =>
-  useApiMutation<void, AdminPaymentDto>(() => ({ path: paymentPath(registrationId, 'refund'), method: 'POST' }));
+  useApiMutation<void, AdminPaymentDto>(() => ({
+    path: paymentPath(registrationId, 'refund'),
+    method: 'POST',
+  }));
 
 // ---- Receipts ----------------------------------------------------------------------------
 
@@ -76,7 +87,10 @@ const RECEIPT_TYPES: readonly string[] = ['image/jpeg', 'image/png', 'applicatio
  */
 export async function fetchReceipt(registrationId: string, signal: AbortSignal): Promise<Blob> {
   const token = readAccessToken();
-  const url = new URL(`${BASE_URL}/v1/registrations/${encodeURIComponent(registrationId)}/receipt`, window.location.origin);
+  const url = new URL(
+    `${BASE_URL}/v1/registrations/${encodeURIComponent(registrationId)}/receipt`,
+    window.location.origin,
+  );
   let response: Response;
   try {
     response = await fetch(url, {
@@ -102,7 +116,10 @@ export async function fetchReceipt(registrationId: string, signal: AbortSignal):
 // ---- Assignment candidates ---------------------------------------------------------------
 
 /** Payments a deposit can settle by hand: still waiting, or waiting for a person to review. */
-const CANDIDATE_STATUSES = ['AWAITING_PAYMENT', 'PAYMENT_REVIEW'] as const satisfies readonly PaymentStatus[];
+const CANDIDATE_STATUSES = [
+  'AWAITING_PAYMENT',
+  'PAYMENT_REVIEW',
+] as const satisfies readonly PaymentStatus[];
 const CANDIDATE_PAGE = 100;
 const CANDIDATE_PAGES_MAX = 10;
 
@@ -119,8 +136,15 @@ async function loadCandidates(
 ): Promise<CandidatePool> {
   const items: AdminPaymentDto[] = [];
   for (let page = 0; page < CANDIDATE_PAGES_MAX; page += 1) {
-    const params = new URLSearchParams({ status, limit: String(CANDIDATE_PAGE), offset: String(page * CANDIDATE_PAGE) });
-    const result = await apiRequest<Page<AdminPaymentDto>>(`/v1/admin/payments?${params}`, { locale, signal });
+    const params = new URLSearchParams({
+      status,
+      limit: String(CANDIDATE_PAGE),
+      offset: String(page * CANDIDATE_PAGE),
+    });
+    const result = await apiRequest<Page<AdminPaymentDto>>(`/v1/admin/payments?${params}`, {
+      locale,
+      signal,
+    });
     items.push(...result.items);
     if (result.items.length < CANDIDATE_PAGE) return { items, truncated: false };
   }
@@ -136,7 +160,9 @@ export function useAssignCandidates(enabled: boolean) {
   return useQuery<CandidatePool>({
     queryKey: [...PAYMENTS_KEY, 'candidates', locale],
     queryFn: async ({ signal }) => {
-      const pools = await Promise.all(CANDIDATE_STATUSES.map((status) => loadCandidates(status, locale, signal)));
+      const pools = await Promise.all(
+        CANDIDATE_STATUSES.map((status) => loadCandidates(status, locale, signal)),
+      );
       return {
         items: uniqueBy(
           pools.flatMap((pool) => pool.items),
@@ -161,8 +187,15 @@ export function useAdminDeposits(tab: DepositTab) {
     queryFn: async ({ pageParam, signal }) => {
       const pages = await Promise.all(
         statuses.map((status, index) => {
-          const params = new URLSearchParams({ status, limit: String(PAGE_SIZE), offset: String(pageParam[index] ?? 0) });
-          return apiRequest<Page<BankDepositDto>>(`/v1/admin/bank-deposits?${params}`, { locale, signal });
+          const params = new URLSearchParams({
+            status,
+            limit: String(PAGE_SIZE),
+            offset: String(pageParam[index] ?? 0),
+          });
+          return apiRequest<Page<BankDepositDto>>(`/v1/admin/bank-deposits?${params}`, {
+            locale,
+            signal,
+          });
         }),
       );
       return mergeDepositPages(pages, pageParam, PAGE_SIZE);
@@ -182,4 +215,7 @@ export const useAssignDeposit = (depositId: string) =>
   }));
 
 export const useIgnoreDeposit = (depositId: string) =>
-  useApiMutation<void, BankDepositDto>(() => ({ path: depositPath(depositId, 'ignore'), method: 'POST' }));
+  useApiMutation<void, BankDepositDto>(() => ({
+    path: depositPath(depositId, 'ignore'),
+    method: 'POST',
+  }));

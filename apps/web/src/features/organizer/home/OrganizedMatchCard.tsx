@@ -7,11 +7,18 @@ import { ClipboardCheck, MapPin } from '../../../ui/icons';
 import { SpotsMeter } from '../../match/MatchCard';
 
 /** One announced match with the three things an organizer does with it: roster, edit, view. */
-export function OrganizedMatchCard({ match, now }: { readonly match: MatchSummaryDto; readonly now: Date }) {
+export function OrganizedMatchCard({
+  match,
+  now,
+}: {
+  readonly match: MatchSummaryDto;
+  readonly now: Date;
+}) {
   const { t, formatDate } = useI18n();
   const started = hasStarted(match, now);
   const live = started && !hasEnded(match, now);
-  const label = (action: string) => t('organizer.home.actionLabel', { action, title: match.title.text });
+  const label = (action: string) =>
+    t('organizer.home.actionLabel', { action, title: match.title.text });
 
   return (
     <article className="card organizer-match">
@@ -51,11 +58,18 @@ export function OrganizedMatchCard({ match, now }: { readonly match: MatchSummar
           {t('organizer.home.roster')}
         </ButtonLink>
         {!started && (
-          <ButtonLink to={`/organizer/matches/${match.id}/edit`} aria-label={label(t('organizer.home.edit'))}>
+          <ButtonLink
+            to={`/organizer/matches/${match.id}/edit`}
+            aria-label={label(t('organizer.home.edit'))}
+          >
             {t('organizer.home.edit')}
           </ButtonLink>
         )}
-        <ButtonLink variant="ghost" to={`/matches/${match.id}`} aria-label={label(t('organizer.home.view'))}>
+        <ButtonLink
+          variant="ghost"
+          to={`/matches/${match.id}`}
+          aria-label={label(t('organizer.home.view'))}
+        >
           {t('organizer.home.view')}
         </ButtonLink>
       </div>

@@ -29,7 +29,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Look {
   readonly children: ReactNode;
 }
 
-export function Button({ variant, size, block, icon, loading, className, disabled, children, ...rest }: ButtonProps) {
+export function Button({
+  variant,
+  size,
+  block,
+  icon,
+  loading,
+  className,
+  disabled,
+  children,
+  ...rest
+}: ButtonProps) {
   return (
     <button
       type="button"
@@ -47,5 +57,10 @@ export function Button({ variant, size, block, icon, loading, className, disable
 interface ButtonLinkProps extends LinkProps, Look {}
 
 export function ButtonLink({ variant, size, block, icon, className, ...rest }: ButtonLinkProps) {
-  return <Link {...rest} className={[classes({ variant, size, block, icon }), className].filter(Boolean).join(' ')} />;
+  return (
+    <Link
+      {...rest}
+      className={[classes({ variant, size, block, icon }), className].filter(Boolean).join(' ')}
+    />
+  );
 }

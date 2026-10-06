@@ -16,12 +16,24 @@ interface Props {
 }
 
 /** A province with its own checkbox and, once opened, one per district. A selected province covers them all. */
-export function ProvinceItem({ province, districts, selected, onChange, expanded, onToggleExpanded }: Props) {
+export function ProvinceItem({
+  province,
+  districts,
+  selected,
+  onChange,
+  expanded,
+  onToggleExpanded,
+}: Props) {
   const { t } = useI18n();
   const listId = useId();
   const whole = selected.has(province.code);
-  const pickedDistricts = province.children.filter((district) => selected.has(district.code)).length;
+  const pickedDistricts = province.children.filter((district) =>
+    selected.has(district.code),
+  ).length;
   const hasDistricts = province.children.length > 0;
+  const hint = whole
+    ? hasDistricts && t('adminPeople.regions.covered')
+    : pickedDistricts > 0 && t('adminPeople.regions.selectedIn', { count: pickedDistricts });
 
   return (
     <li className="people-province">
@@ -35,8 +47,12 @@ export function ProvinceItem({ province, districts, selected, onChange, expanded
           />
           <span className="people-check__text">
             <span lang={province.name.locale}>{province.name.text}</span>
-            {whole && hasDistricts && <small className="muted">{t('adminPeople.regions.covered')}</small>}
-            {!whole && pickedDistricts > 0 && <small className="muted">{t('adminPeople.regions.selectedIn', { count: pickedDistricts })}</small>}
+            {hint && (
+              <>
+                {/* A real space keeps the checkbox's accessible name readable: "Seoul 2 selected". */}{' '}
+                <small className="muted">{hint}</small>
+              </>
+            )}
           </span>
         </label>
         {hasDistricts && onToggleExpanded && (
@@ -53,7 +69,11 @@ export function ProvinceItem({ province, districts, selected, onChange, expanded
         )}
       </div>
       {expanded && districts.length > 0 && (
-        <ul id={listId} className="people-districts" aria-label={t('adminPeople.regions.districtsOf', { name: province.name.text })}>
+        <ul
+          id={listId}
+          className="people-districts"
+          aria-label={t('adminPeople.regions.districtsOf', { name: province.name.text })}
+        >
           {districts.map((district) => {
             const picked = selected.has(district.code);
             return (
@@ -62,7 +82,10 @@ export function ProvinceItem({ province, districts, selected, onChange, expanded
                   <input
                     type="checkbox"
                     checked={whole || picked}
-                    disabled={whole || (!picked && exceedsLimit(toggleCode(selected, district.code), selected))}
+                    disabled={
+                      whole ||
+                      (!picked && exceedsLimit(toggleCode(selected, district.code), selected))
+                    }
                     onChange={() => onChange(toggleCode(selected, district.code))}
                   />
                   <span className="people-check__text">

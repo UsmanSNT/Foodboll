@@ -24,7 +24,8 @@ function RegionName({ code }: { readonly code: string }) {
 /** A duplicate, an existing grant and the open-application limit all answer 409; say which kinds of cause exist. */
 function ApplyError({ error }: { readonly error: unknown }) {
   const { t } = useI18n();
-  if (error instanceof ApiError && error.code === 'INVALID_STATE') return <Alert>{t('organizer.apply.conflict')}</Alert>;
+  if (error instanceof ApiError && error.code === 'INVALID_STATE')
+    return <Alert>{t('organizer.apply.conflict')}</Alert>;
   return <ErrorState error={error} />;
 }
 
@@ -49,7 +50,10 @@ export function ApplyForm() {
     event.preventDefault();
     if (!regionCode) return setProblem('region');
     const parsed = organizerApplicationInputSchema.safeParse({ regionCode, message });
-    if (!parsed.success) return setProblem(parsed.error.issues.some((issue) => issue.path[0] === 'message') ? 'message' : 'region');
+    if (!parsed.success)
+      return setProblem(
+        parsed.error.issues.some((issue) => issue.path[0] === 'message') ? 'message' : 'region',
+      );
     setProblem(null);
     apply.mutate(parsed.data, {
       onSuccess: () => {
@@ -76,7 +80,11 @@ export function ApplyForm() {
           >
             <MapPin size={18} aria-hidden="true" />
             <span id={valueId} className={regionCode ? 'grow' : 'grow muted'}>
-              {regionCode ? <RegionName code={regionCode} /> : t('organizer.apply.regionPlaceholder')}
+              {regionCode ? (
+                <RegionName code={regionCode} />
+              ) : (
+                t('organizer.apply.regionPlaceholder')
+              )}
             </span>
             <ChevronRight size={16} aria-hidden="true" />
           </button>
@@ -90,7 +98,9 @@ export function ApplyForm() {
         <Field
           label={t('organizer.apply.message')}
           hint={t('organizer.apply.messageHint')}
-          error={problem === 'message' ? t('form.tooLong', { max: APPLICATION_MESSAGE_MAX }) : undefined}
+          error={
+            problem === 'message' ? t('form.tooLong', { max: APPLICATION_MESSAGE_MAX }) : undefined
+          }
         >
           {(props) => (
             <TextArea

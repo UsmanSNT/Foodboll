@@ -48,27 +48,44 @@ export function PaymentList({ status }: { readonly status: PaymentStatus }) {
     [leave, refresh, toast, t],
   );
   // A sheet that closes itself must not close the one that replaced it (receipt -> reject).
-  const closer = (kind: SheetKind) => () => setActive((current) => (current?.kind === kind ? null : current));
+  const closer = (kind: SheetKind) => () =>
+    setActive((current) => (current?.kind === kind ? null : current));
   const itemOf = (kind: SheetKind) => (active?.kind === kind ? active.item : null);
 
   const items = useMemo(
-    () => uniqueBy(query.data?.pages.flatMap((page) => page.items) ?? [], (item) => item.registrationId),
+    () =>
+      uniqueBy(
+        query.data?.pages.flatMap((page) => page.items) ?? [],
+        (item) => item.registrationId,
+      ),
     [query.data],
   );
   const loadMore = useCallback(() => void query.fetchNextPage(), [query]);
 
   if (query.isPending) return <ListSkeleton rows={3} height={220} />;
-  if (query.isError && !query.data) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
-  if (items.length === 0) return <EmptyState icon={<Wallet size={32} />} title={t(PAYMENT_EMPTY_KEY[status])} />;
+  if (query.isError && !query.data)
+    return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
+  if (items.length === 0)
+    return <EmptyState icon={<Wallet size={32} />} title={t(PAYMENT_EMPTY_KEY[status])} />;
 
   return (
     <>
       <ul className="money-list">
         {items.map((item) => (
-          <PaymentCard key={item.registrationId} item={item} leaving={resolution.isLeaving(item.registrationId)} handlers={handlers} />
+          <PaymentCard
+            key={item.registrationId}
+            item={item}
+            leaving={resolution.isLeaving(item.registrationId)}
+            handlers={handlers}
+          />
         ))}
       </ul>
-      {query.isError && <ErrorState error={query.error} onRetry={query.isFetchNextPageError ? loadMore : () => void query.refetch()} />}
+      {query.isError && (
+        <ErrorState
+          error={query.error}
+          onRetry={query.isFetchNextPageError ? loadMore : () => void query.refetch()}
+        />
+      )}
       {query.hasNextPage && !query.isFetchNextPageError && (
         <Button block loading={query.isFetchingNextPage} onClick={loadMore}>
           {t('feed.loadMore')}

@@ -3,7 +3,10 @@ import { useRegionTree } from '../api/queries';
 import { useI18n } from '../i18n/I18nProvider';
 import { useRegion } from './RegionProvider';
 
-function find(nodes: readonly RegionNodeDto[], code: string): { node: RegionNodeDto; parent: RegionNodeDto | null } | null {
+function find(
+  nodes: readonly RegionNodeDto[],
+  code: string,
+): { node: RegionNodeDto; parent: RegionNodeDto | null } | null {
   for (const node of nodes) {
     if (node.code === code) return { node, parent: null };
     const child = node.children.find((c) => c.code === code);
@@ -20,10 +23,14 @@ export function useRegionLabel(code: string | null): string {
   if (code === null) return t('region.all');
   const found = tree.data ? find(tree.data.items, code) : null;
   if (found) {
-    return found.parent ? `${found.parent.name.text} ${found.node.name.text}` : found.node.name.text;
+    return found.parent
+      ? `${found.parent.name.text} ${found.node.name.text}`
+      : found.node.name.text;
   }
   if (homeRegion?.code === code) {
-    return homeRegion.parent ? `${homeRegion.parent.name.text} ${homeRegion.name.text}` : homeRegion.name.text;
+    return homeRegion.parent
+      ? `${homeRegion.parent.name.text} ${homeRegion.name.text}`
+      : homeRegion.name.text;
   }
   return tree.isPending ? t('common.loading') : t('region.all');
 }

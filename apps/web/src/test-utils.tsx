@@ -14,7 +14,8 @@ type Handler = (url: URL, init: RequestInit | undefined) => Response | Promise<R
 export const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
-export const apiError = (code: string, status: number) => json({ error: { code, message: 'ignored' } }, status);
+export const apiError = (code: string, status: number) =>
+  json({ error: { code, message: 'ignored' } }, status);
 
 export interface Call {
   readonly url: URL;
@@ -44,7 +45,8 @@ export function mockApi(): Api {
   return {
     handlers,
     calls,
-    find: (method, path) => calls.find((c) => (c.init?.method ?? 'GET') === method && c.url.pathname === `/api${path}`),
+    find: (method, path) =>
+      calls.find((c) => (c.init?.method ?? 'GET') === method && c.url.pathname === `/api${path}`),
   };
 }
 
@@ -54,7 +56,9 @@ export function setDeviceLanguages(languages: string[]) {
 }
 
 export function renderApp(path = '/') {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[path]}>
@@ -76,9 +80,19 @@ export function renderApp(path = '/') {
 
 // ---- Fixtures ---------------------------------------------------------------------------------
 
-const localized = (text: string, locale = 'en', isFallback = false) => ({ text, locale, isFallback });
+const localized = (text: string, locale = 'en', isFallback = false) => ({
+  text,
+  locale,
+  isFallback,
+});
 
-export const seoul = { id: 'r-seoul', code: 'seoul', name: localized('Seoul'), level: 1, parent: null };
+export const seoul = {
+  id: 'r-seoul',
+  code: 'seoul',
+  name: localized('Seoul'),
+  level: 1,
+  parent: null,
+};
 export const gangnam = {
   id: 'r-gangnam',
   code: 'seoul-gangnam',

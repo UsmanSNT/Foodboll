@@ -13,7 +13,15 @@ import { ProfileView } from '../players/ProfileView';
 import { LanguageSwitch } from './LanguageSwitch';
 import { RoleLinks } from './RoleLinks';
 
-function MenuLink({ to, icon, label }: { readonly to: string; readonly icon: React.ReactNode; readonly label: string }) {
+function MenuLink({
+  to,
+  icon,
+  label,
+}: {
+  readonly to: string;
+  readonly icon: React.ReactNode;
+  readonly label: string;
+}) {
   return (
     <li>
       <Link to={to} className="list__item">
@@ -85,7 +93,9 @@ export function MePage() {
           {menu}
         </div>
       )}
-      {profile.isSuccess && <ProfileView profile={profile.data} extra={<div className="stack">{menu}</div>} />}
+      {profile.isSuccess && (
+        <ProfileView profile={profile.data} extra={<div className="stack">{menu}</div>} />
+      )}
     </>
   );
 }

@@ -1,4 +1,8 @@
-import { PAYMENT_STATUS_LABEL_KEY, type AdminPaymentDto, type BankDepositDto } from '@foodboll/contracts';
+import {
+  PAYMENT_STATUS_LABEL_KEY,
+  type AdminPaymentDto,
+  type BankDepositDto,
+} from '@foodboll/contracts';
 import { useState } from 'react';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { Alert } from '../../../ui/Alert';
@@ -36,20 +40,35 @@ export function AssignSheet({ deposit, onClose, handlers }: AssignSheetProps) {
   const { t } = useI18n();
   return (
     <Sheet open={deposit !== null} title={t('adminDeposits.assignTitle')} onClose={onClose}>
-      {deposit && isAssignable(deposit) && <AssignFlow key={deposit.id} deposit={deposit} handlers={handlers} />}
+      {deposit && isAssignable(deposit) && (
+        <AssignFlow key={deposit.id} deposit={deposit} handlers={handlers} />
+      )}
     </Sheet>
   );
 }
 
 /** Pick a registration, then confirm. The filters survive a step back, so a wrong pick costs one tap. */
-function AssignFlow({ deposit, handlers }: { readonly deposit: AssignableDeposit; readonly handlers: DepositHandlers }) {
+function AssignFlow({
+  deposit,
+  handlers,
+}: {
+  readonly deposit: AssignableDeposit;
+  readonly handlers: DepositHandlers;
+}) {
   const candidates = useAssignCandidates(true);
   const [sameAmountOnly, setSameAmountOnly] = useState(true);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<AdminPaymentDto | null>(null);
 
   if (selected) {
-    return <AssignConfirm deposit={deposit} candidate={selected} onBack={() => setSelected(null)} handlers={handlers} />;
+    return (
+      <AssignConfirm
+        deposit={deposit}
+        candidate={selected}
+        onBack={() => setSelected(null)}
+        handlers={handlers}
+      />
+    );
   }
   return (
     <div className="stack">
@@ -77,7 +96,15 @@ interface CandidatePickerProps {
   readonly candidates: ReturnType<typeof useAssignCandidates>;
 }
 
-function CandidatePicker({ deposit, sameAmountOnly, onSameAmountOnly, search, onSearch, onSelect, candidates }: CandidatePickerProps) {
+function CandidatePicker({
+  deposit,
+  sameAmountOnly,
+  onSameAmountOnly,
+  search,
+  onSearch,
+  onSelect,
+  candidates,
+}: CandidatePickerProps) {
   const { t, formatKrw } = useI18n();
   return (
     <div className="stack">
@@ -86,17 +113,30 @@ function CandidatePicker({ deposit, sameAmountOnly, onSameAmountOnly, search, on
         {(props) => (
           <div className="search">
             <Search size={18} aria-hidden="true" />
-            <TextInput {...props} type="search" value={search} onChange={(event) => onSearch(event.target.value)} autoComplete="off" maxLength={60} />
+            <TextInput
+              {...props}
+              type="search"
+              value={search}
+              onChange={(event) => onSearch(event.target.value)}
+              autoComplete="off"
+              maxLength={60}
+            />
           </div>
         )}
       </Field>
       <div className="row">
-        <Chip className="money-chip" selected={sameAmountOnly} onClick={() => onSameAmountOnly(!sameAmountOnly)}>
+        <Chip
+          className="money-chip"
+          selected={sameAmountOnly}
+          onClick={() => onSameAmountOnly(!sameAmountOnly)}
+        >
           {t('adminDeposits.sameAmountOnly', { amount: formatKrw(deposit.amountKrw) })}
         </Chip>
       </div>
       {candidates.isPending && <ListSkeleton rows={3} height={92} />}
-      {candidates.isError && <ErrorState error={candidates.error} onRetry={() => void candidates.refetch()} />}
+      {candidates.isError && (
+        <ErrorState error={candidates.error} onRetry={() => void candidates.refetch()} />
+      )}
       {candidates.data && (
         <CandidateList
           deposit={deposit}
@@ -120,9 +160,20 @@ interface CandidateListProps {
   readonly onSelect: (candidate: AdminPaymentDto) => void;
 }
 
-function CandidateList({ deposit, pool, sameAmountOnly, search, onShowAll, onSelect }: CandidateListProps) {
+function CandidateList({
+  deposit,
+  pool,
+  sameAmountOnly,
+  search,
+  onShowAll,
+  onSelect,
+}: CandidateListProps) {
   const { t, formatKrw, formatDateTime } = useI18n();
-  const matches = filterCandidates(pool.items, { amountKrw: deposit.amountKrw, sameAmountOnly, query: search });
+  const matches = filterCandidates(pool.items, {
+    amountKrw: deposit.amountKrw,
+    sameAmountOnly,
+    query: search,
+  });
   const visible = matches.slice(0, MAX_VISIBLE);
 
   return (
@@ -147,11 +198,20 @@ function CandidateList({ deposit, pool, sameAmountOnly, search, onShowAll, onSel
             const fits = item.payment.amountKrw === deposit.amountKrw;
             return (
               <li key={item.registrationId}>
-                <button type="button" className="money-candidate" disabled={!fits} onClick={() => onSelect(item)}>
+                <button
+                  type="button"
+                  className="money-candidate"
+                  disabled={!fits}
+                  onClick={() => onSelect(item)}
+                >
                   <span className="money-candidate__top">
                     <strong>{item.user.displayName}</strong>
-                    <Badge tone={paymentTone(item.payment.status)}>{t(PAYMENT_STATUS_LABEL_KEY[item.payment.status])}</Badge>
-                    {item.registrationStatus === 'CANCELLED' && <Badge>{t('match.cancelled')}</Badge>}
+                    <Badge tone={paymentTone(item.payment.status)}>
+                      {t(PAYMENT_STATUS_LABEL_KEY[item.payment.status])}
+                    </Badge>
+                    {item.registrationStatus === 'CANCELLED' && (
+                      <Badge>{t('match.cancelled')}</Badge>
+                    )}
                   </span>
                   <span className="small" lang={item.match.title.locale}>
                     {item.match.title.text}
@@ -166,7 +226,11 @@ function CandidateList({ deposit, pool, sameAmountOnly, search, onShowAll, onSel
                       </>
                     )}
                   </span>
-                  {!fits && <span className="small money-candidate__warn">{t('adminDeposits.candidateDifferent')}</span>}
+                  {!fits && (
+                    <span className="small money-candidate__warn">
+                      {t('adminDeposits.candidateDifferent')}
+                    </span>
+                  )}
                 </button>
               </li>
             );
@@ -174,7 +238,9 @@ function CandidateList({ deposit, pool, sameAmountOnly, search, onShowAll, onSel
         </ul>
       )}
       {matches.length > visible.length && (
-        <p className="small muted">{t('adminDeposits.candidatesShown', { shown: visible.length, total: matches.length })}</p>
+        <p className="small muted">
+          {t('adminDeposits.candidatesShown', { shown: visible.length, total: matches.length })}
+        </p>
       )}
     </>
   );

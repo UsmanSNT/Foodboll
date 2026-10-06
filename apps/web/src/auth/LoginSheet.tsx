@@ -11,7 +11,13 @@ import { useAuth } from './AuthProvider';
 import { TelegramLoginButton } from './TelegramLoginButton';
 
 /** The sign-in sheet. Opened by anything that needs an account (joining, notifications, players). */
-export function LoginSheet({ open, onClose }: { readonly open: boolean; readonly onClose: () => void }) {
+export function LoginSheet({
+  open,
+  onClose,
+}: {
+  readonly open: boolean;
+  readonly onClose: () => void;
+}) {
   const { t } = useI18n();
   const { signIn } = useAuth();
   const config = useAuthConfig();
@@ -29,7 +35,9 @@ export function LoginSheet({ open, onClose }: { readonly open: boolean; readonly
       <div className="stack stack--lg">
         <p className="muted">{t('auth.subtitle')}</p>
 
-        {config.isError && <ErrorState error={config.error} onRetry={() => void config.refetch()} />}
+        {config.isError && (
+          <ErrorState error={config.error} onRetry={() => void config.refetch()} />
+        )}
 
         {config.data?.telegramBotUsername && (
           <div className="stack">
@@ -65,10 +73,21 @@ export function LoginSheet({ open, onClose }: { readonly open: boolean; readonly
             <h3>{t('auth.devTitle')}</h3>
             <Field label={t('auth.devName')}>
               {(props) => (
-                <TextInput {...props} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required />
+                <TextInput
+                  {...props}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={60}
+                  required
+                />
               )}
             </Field>
-            <Button type="submit" variant="primary" loading={dev.isPending} disabled={name.trim().length === 0}>
+            <Button
+              type="submit"
+              variant="primary"
+              loading={dev.isPending}
+              disabled={name.trim().length === 0}
+            >
               {t('auth.login')}
             </Button>
             {dev.isError && <ErrorState error={dev.error} />}

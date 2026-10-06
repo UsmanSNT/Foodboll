@@ -9,10 +9,17 @@ export function Stepper({ current }: { readonly current: 1 | 2 | 3 }) {
     <ol className="stepper">
       {steps.map((label, index) => {
         const number = index + 1;
-        const state = number < current || current === 3 ? 'done' : number === current ? 'current' : 'todo';
+        const state =
+          number < current || current === 3 ? 'done' : number === current ? 'current' : 'todo';
         return (
-          <li key={label} className={`stepper__step stepper__step--${state}`} aria-current={state === 'current' ? 'step' : undefined}>
-            <span className="stepper__dot">{state === 'done' ? <Check size={14} aria-hidden="true" /> : number}</span>
+          <li
+            key={label}
+            className={`stepper__step stepper__step--${state}`}
+            aria-current={state === 'current' ? 'step' : undefined}
+          >
+            <span className="stepper__dot">
+              {state === 'done' ? <Check size={14} aria-hidden="true" /> : number}
+            </span>
             <span className="stepper__label">{label}</span>
           </li>
         );

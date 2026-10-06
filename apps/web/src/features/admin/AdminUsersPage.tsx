@@ -30,7 +30,11 @@ export function AdminUsersPage() {
             <EmptyState
               icon={<Users size={32} />}
               title={t('adminPeople.users.emptyTitle')}
-              text={t(language === 'all' ? 'adminPeople.users.emptyText' : 'adminPeople.users.emptyFilteredText')}
+              text={t(
+                language === 'all'
+                  ? 'adminPeople.users.emptyText'
+                  : 'adminPeople.users.emptyFilteredText',
+              )}
             />
           }
         >

@@ -22,25 +22,57 @@ import { useRegion } from './region/RegionProvider';
 const lazyPage = <K extends string>(load: () => Promise<Record<K, React.ComponentType>>, name: K) =>
   lazy(() => load().then((module) => ({ default: module[name] })));
 
-const OrganizerHomePage = lazyPage(() => import('./features/organizer/OrganizerHomePage'), 'OrganizerHomePage');
+const OrganizerHomePage = lazyPage(
+  () => import('./features/organizer/OrganizerHomePage'),
+  'OrganizerHomePage',
+);
 const RosterPage = lazyPage(() => import('./features/organizer/RosterPage'), 'RosterPage');
-const OrganizerApplyPage = lazyPage(() => import('./features/organizer/OrganizerApplyPage'), 'OrganizerApplyPage');
+const OrganizerApplyPage = lazyPage(
+  () => import('./features/organizer/OrganizerApplyPage'),
+  'OrganizerApplyPage',
+);
 const MatchFormPage = lazyPage(() => import('./features/organizer/MatchFormPage'), 'MatchFormPage');
 const AdminHomePage = lazyPage(() => import('./features/admin/AdminHomePage'), 'AdminHomePage');
-const AdminPaymentsPage = lazyPage(() => import('./features/admin/AdminPaymentsPage'), 'AdminPaymentsPage');
-const AdminDepositsPage = lazyPage(() => import('./features/admin/AdminDepositsPage'), 'AdminDepositsPage');
-const AdminApplicationsPage = lazyPage(() => import('./features/admin/AdminApplicationsPage'), 'AdminApplicationsPage');
+const AdminPaymentsPage = lazyPage(
+  () => import('./features/admin/AdminPaymentsPage'),
+  'AdminPaymentsPage',
+);
+const AdminDepositsPage = lazyPage(
+  () => import('./features/admin/AdminDepositsPage'),
+  'AdminDepositsPage',
+);
+const AdminApplicationsPage = lazyPage(
+  () => import('./features/admin/AdminApplicationsPage'),
+  'AdminApplicationsPage',
+);
 const AdminUsersPage = lazyPage(() => import('./features/admin/AdminUsersPage'), 'AdminUsersPage');
-const AdminPaymentInfoPage = lazyPage(() => import('./features/admin/AdminPaymentInfoPage'), 'AdminPaymentInfoPage');
+const AdminPaymentInfoPage = lazyPage(
+  () => import('./features/admin/AdminPaymentInfoPage'),
+  'AdminPaymentInfoPage',
+);
 const AdminLegalPage = lazyPage(() => import('./features/admin/AdminLegalPage'), 'AdminLegalPage');
 
 const STAFF = ['ORGANIZER', 'ADMIN'] as const;
 const ADMIN = ['ADMIN'] as const;
 
-function Guarded({ roles, children }: { readonly roles?: readonly ('PLAYER' | 'ORGANIZER' | 'ADMIN')[]; readonly children: ReactNode }) {
+function Guarded({
+  roles,
+  children,
+}: {
+  readonly roles?: readonly ('PLAYER' | 'ORGANIZER' | 'ADMIN')[];
+  readonly children: ReactNode;
+}) {
   return (
     <RequireRole {...(roles && { roles })}>
-      <Suspense fallback={<div className="page"><ListSkeleton rows={2} /></div>}>{children}</Suspense>
+      <Suspense
+        fallback={
+          <div className="page">
+            <ListSkeleton rows={2} />
+          </div>
+        }
+      >
+        {children}
+      </Suspense>
     </RequireRole>
   );
 }
@@ -79,19 +111,110 @@ export function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="legal" element={<LegalIndexPage />} />
           <Route path="legal/:type" element={<LegalPage />} />
-          <Route path="organizer" element={<Guarded roles={STAFF}><OrganizerHomePage /></Guarded>} />
-          <Route path="organizer/apply" element={<Guarded><OrganizerApplyPage /></Guarded>} />
-          <Route path="organizer/matches/new" element={<Guarded roles={STAFF}><MatchFormPage /></Guarded>} />
-          <Route path="organizer/matches/:id/edit" element={<Guarded roles={STAFF}><MatchFormPage /></Guarded>} />
-          <Route path="organizer/matches/:id/roster" element={<Guarded roles={STAFF}><RosterPage /></Guarded>} />
-          <Route path="admin" element={<Guarded roles={ADMIN}><AdminHomePage /></Guarded>} />
-          <Route path="admin/payments" element={<Guarded roles={ADMIN}><AdminPaymentsPage /></Guarded>} />
-          <Route path="admin/deposits" element={<Guarded roles={ADMIN}><AdminDepositsPage /></Guarded>} />
-          <Route path="admin/applications" element={<Guarded roles={ADMIN}><AdminApplicationsPage /></Guarded>} />
-          <Route path="admin/users" element={<Guarded roles={ADMIN}><AdminUsersPage /></Guarded>} />
-          <Route path="admin/payment-info" element={<Guarded roles={ADMIN}><AdminPaymentInfoPage /></Guarded>} />
-          <Route path="admin/legal" element={<Guarded roles={ADMIN}><AdminLegalPage /></Guarded>} />
-          <Route path="admin/legal/:type" element={<Guarded roles={ADMIN}><AdminLegalPage /></Guarded>} />
+          <Route
+            path="organizer"
+            element={
+              <Guarded roles={STAFF}>
+                <OrganizerHomePage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="organizer/apply"
+            element={
+              <Guarded>
+                <OrganizerApplyPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="organizer/matches/new"
+            element={
+              <Guarded roles={STAFF}>
+                <MatchFormPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="organizer/matches/:id/edit"
+            element={
+              <Guarded roles={STAFF}>
+                <MatchFormPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="organizer/matches/:id/roster"
+            element={
+              <Guarded roles={STAFF}>
+                <RosterPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminHomePage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/payments"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminPaymentsPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/deposits"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminDepositsPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/applications"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminApplicationsPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/users"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminUsersPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/payment-info"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminPaymentInfoPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/legal"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminLegalPage />
+              </Guarded>
+            }
+          />
+          <Route
+            path="admin/legal/:type"
+            element={
+              <Guarded roles={ADMIN}>
+                <AdminLegalPage />
+              </Guarded>
+            }
+          />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

@@ -1,4 +1,10 @@
-import type { BankDepositReason, BankDepositSource, BankDepositStatus, BankMatchMethod, PaymentStatus } from '@foodboll/contracts';
+import type {
+  BankDepositReason,
+  BankDepositSource,
+  BankDepositStatus,
+  BankMatchMethod,
+  PaymentStatus,
+} from '@foodboll/contracts';
 import type { MessageKey } from '@foodboll/i18n';
 import type { Tone } from '../../../ui/Badge';
 import type { DepositTab } from './api';
@@ -42,7 +48,11 @@ export const PAYMENT_EMPTY_KEY = {
   PAYMENT_CONFIRMED: 'adminPayments.emptyTitle.PAYMENT_CONFIRMED',
 } as const satisfies Record<PaymentStatus, MessageKey>;
 
-export const DEPOSIT_TABS = ['needs', 'matched', 'ignored'] as const satisfies readonly DepositTab[];
+export const DEPOSIT_TABS = [
+  'needs',
+  'matched',
+  'ignored',
+] as const satisfies readonly DepositTab[];
 
 export const DEPOSIT_TAB_LABEL_KEY = {
   needs: 'adminDeposits.tabs.needs',

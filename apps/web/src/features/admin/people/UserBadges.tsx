@@ -10,7 +10,11 @@ export function RoleBadge({ role }: { readonly role: UserRole }) {
 }
 
 /** The language the person chose, or that they never did. The prefix tells screen readers what the badge is. */
-export function LanguageBadge({ language }: { readonly language: AdminUserDto['preferredLanguage'] }) {
+export function LanguageBadge({
+  language,
+}: {
+  readonly language: AdminUserDto['preferredLanguage'];
+}) {
   const { t } = useI18n();
   return (
     <>
@@ -29,5 +33,9 @@ export function LanguageBadge({ language }: { readonly language: AdminUserDto['p
 /** What the device reported, exactly as stored (`uz-Latn-UZ`): support context next to the person's own choice. */
 export function DeviceLocale({ tag }: { readonly tag: string | null }) {
   const { t } = useI18n();
-  return <span className="small muted">{tag ? t('adminPeople.users.device', { tag }) : t('adminPeople.users.deviceUnknown')}</span>;
+  return (
+    <span className="small muted">
+      {tag ? t('adminPeople.users.device', { tag }) : t('adminPeople.users.deviceUnknown')}
+    </span>
+  );
 }

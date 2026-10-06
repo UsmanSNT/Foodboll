@@ -344,8 +344,7 @@ a.match-card {
   gap: 14px;
   text-align: center;
   background:
-    radial-gradient(120% 80% at 50% -30%, var(--primary-soft), transparent 70%),
-    var(--surface);
+    radial-gradient(120% 80% at 50% -30%, var(--primary-soft), transparent 70%), var(--surface);
 }
 .achievements {
   display: flex;

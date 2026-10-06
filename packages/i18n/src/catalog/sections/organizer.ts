@@ -119,7 +119,8 @@ export const organizerUz: typeof organizerKo = {
       'Har bir arizani administrator ko‘rib chiqadi. Natijani bildirishnoma orqali xabar qilamiz.',
     pointPayments:
       'To‘lovlar avtomatik tekshiriladi, shuning uchun siz faqat match e’lon qilasiz va davomatni belgilaysiz.',
-    adminNote: 'Administratorlar barcha hududlarda match e’lon qila oladi, ariza berish shart emas.',
+    adminNote:
+      'Administratorlar barcha hududlarda match e’lon qila oladi, ariza berish shart emas.',
     region: 'Hudud',
     regionPlaceholder: 'Hududni tanlang',
     regionRequired: 'Tashkilotchi bo‘lmoqchi bo‘lgan hududingizni tanlang.',
@@ -148,7 +149,8 @@ export const organizerEn: typeof organizerKo = {
     regionsTitle: 'Your regions',
     regionsAdmin: 'As an admin, you can announce matches in every region.',
     regionsEmptyTitle: 'You don’t have a region yet',
-    regionsEmptyText: 'Apply to become an organizer to announce matches in your own city or district.',
+    regionsEmptyText:
+      'Apply to become an organizer to announce matches in your own city or district.',
     apply: 'Apply to organize',
     applyMore: 'Apply for another region',
     paymentsTitle: 'Payments are checked automatically',

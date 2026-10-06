@@ -7,7 +7,11 @@ export function LanguageTag({ language }: { readonly language: LocaleCode | null
   const { t } = useI18n();
   if (language === null) return <Badge>{t('adminPayments.languageNotSet')}</Badge>;
   return (
-    <span className="money-lang" role="img" aria-label={t('adminPayments.languageLabel', { language: LOCALES[language].nativeName })}>
+    <span
+      className="money-lang"
+      role="img"
+      aria-label={t('adminPayments.languageLabel', { language: LOCALES[language].nativeName })}
+    >
       {language.toUpperCase()}
     </span>
   );

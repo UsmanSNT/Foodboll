@@ -25,15 +25,29 @@ const BODY_FIELDS = TRANSLATION_FIELDS.filter((field): field is BodyField => fie
 const BODY_FIELD_TEXT = {
   description: { label: 'match.description', hint: 'matchForm.content.hints.description' },
   rules: { label: 'match.rules', hint: 'matchForm.content.hints.rules' },
-  locationInstructions: { label: 'match.locationInstructions', hint: 'matchForm.content.hints.locationInstructions' },
-  equipmentRequirements: { label: 'match.equipmentRequirements', hint: 'matchForm.content.hints.equipmentRequirements' },
-  cancellationPolicy: { label: 'match.cancellationPolicy', hint: 'matchForm.content.hints.cancellationPolicy' },
+  locationInstructions: {
+    label: 'match.locationInstructions',
+    hint: 'matchForm.content.hints.locationInstructions',
+  },
+  equipmentRequirements: {
+    label: 'match.equipmentRequirements',
+    hint: 'matchForm.content.hints.equipmentRequirements',
+  },
+  cancellationPolicy: {
+    label: 'match.cancellationPolicy',
+    hint: 'matchForm.content.hints.cancellationPolicy',
+  },
 } as const satisfies Record<BodyField, { label: MessageKey; hint: MessageKey }>;
 
-function statusOf(locale: LocaleCode, draft: TranslationDraft, errors: FieldMessages): LanguageStatus {
+function statusOf(
+  locale: LocaleCode,
+  draft: TranslationDraft,
+  errors: FieldMessages,
+): LanguageStatus {
   const titleMissing = draft.title.trim() === '' && hasText(draft);
   if (titleMissing || translationFieldId(locale, 'title') in errors) return 'needsTitle';
-  if (Object.keys(errors).some((id) => id.startsWith(`translations.${locale}.`))) return 'attention';
+  if (Object.keys(errors).some((id) => id.startsWith(`translations.${locale}.`)))
+    return 'attention';
   return hasText(draft) ? 'filled' : 'empty';
 }
 
@@ -130,7 +144,9 @@ export function ContentFields({
         ))}
       </LanguageTabs>
 
-      <Alert tone="info">{t('matchForm.content.fallback', { language: LOCALES[state.sourceLanguage].nativeName })}</Alert>
+      <Alert tone="info">
+        {t('matchForm.content.fallback', { language: LOCALES[state.sourceLanguage].nativeName })}
+      </Alert>
     </>
   );
 }

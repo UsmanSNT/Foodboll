@@ -44,11 +44,15 @@ function RegistrationCard({ registration }: { readonly registration: Registratio
           {cancelled ? (
             <Badge>{t('match.cancelled')}</Badge>
           ) : payment ? (
-            <Badge tone={paymentTone(payment.status)}>{t(PAYMENT_STATUS_LABEL_KEY[payment.status])}</Badge>
+            <Badge tone={paymentTone(payment.status)}>
+              {t(PAYMENT_STATUS_LABEL_KEY[payment.status])}
+            </Badge>
           ) : (
             <Badge tone="success">{t('match.confirmed')}</Badge>
           )}
-          {payment?.status === 'AWAITING_PAYMENT' && !cancelled && <Badge tone="accent">{t('match.badgePay')}</Badge>}
+          {payment?.status === 'AWAITING_PAYMENT' && !cancelled && (
+            <Badge tone="accent">{t('match.badgePay')}</Badge>
+          )}
         </div>
       </div>
     </Link>
@@ -66,7 +70,8 @@ export function MyMatchesPage() {
     const now = new Date();
     const items = registrations.data?.items ?? [];
     const isPast = (r: RegistrationDto) => r.status === 'CANCELLED' || hasEnded(r.match, now);
-    const byStart = (a: RegistrationDto, b: RegistrationDto) => a.match.startsAt.localeCompare(b.match.startsAt);
+    const byStart = (a: RegistrationDto, b: RegistrationDto) =>
+      a.match.startsAt.localeCompare(b.match.startsAt);
     return {
       upcoming: items.filter((r) => !isPast(r)).sort(byStart),
       past: items.filter(isPast).sort((a, b) => byStart(b, a)),
@@ -107,7 +112,9 @@ export function MyMatchesPage() {
           ]}
         />
         {registrations.isPending && <ListSkeleton rows={2} />}
-        {registrations.isError && <ErrorState error={registrations.error} onRetry={() => void registrations.refetch()} />}
+        {registrations.isError && (
+          <ErrorState error={registrations.error} onRetry={() => void registrations.refetch()} />
+        )}
         {registrations.isSuccess && list.length === 0 && (
           <EmptyState
             icon={<Calendar size={32} />}

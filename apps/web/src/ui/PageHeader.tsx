@@ -25,11 +25,20 @@ export function PageHeader({
   return (
     <header className="page-header">
       {back && (
-        <Button variant="ghost" icon aria-label={t('common.back')} onClick={onBack ?? (() => void navigate(-1))}>
+        <Button
+          variant="ghost"
+          icon
+          aria-label={t('common.back')}
+          onClick={onBack ?? (() => void navigate(-1))}
+        >
           <ArrowLeft size={22} aria-hidden="true" />
         </Button>
       )}
-      {plain ? <span className="page-header__title">{title}</span> : <h1 className="page-header__title">{title}</h1>}
+      {plain ? (
+        <span className="page-header__title">{title}</span>
+      ) : (
+        <h1 className="page-header__title">{title}</h1>
+      )}
       {actions}
     </header>
   );

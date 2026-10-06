@@ -1,4 +1,8 @@
-import { LEGAL_DOCUMENT_LABEL_KEY, LEGAL_DOCUMENT_TYPES, type LegalDocumentType } from '@foodboll/contracts';
+import {
+  LEGAL_DOCUMENT_LABEL_KEY,
+  LEGAL_DOCUMENT_TYPES,
+  type LegalDocumentType,
+} from '@foodboll/contracts';
 import { LOCALES } from '@foodboll/i18n';
 import { Link, useParams } from 'react-router-dom';
 import { useLegalDocument } from '../../api/queries';
@@ -10,7 +14,8 @@ import { PageHeader } from '../../ui/PageHeader';
 import { ListSkeleton } from '../../ui/Skeleton';
 import { ApiError } from '../../api/client';
 
-const isLegalType = (value: string): value is LegalDocumentType => (LEGAL_DOCUMENT_TYPES as readonly string[]).includes(value);
+const isLegalType = (value: string): value is LegalDocumentType =>
+  (LEGAL_DOCUMENT_TYPES as readonly string[]).includes(value);
 
 export function LegalIndexPage() {
   const { t } = useI18n();
@@ -54,7 +59,9 @@ function LegalDocument({ type }: { readonly type: LegalDocumentType }) {
         {body.text}
       </p>
       {body.isFallback && (
-        <p className="small muted">{t('content.fallbackNotice', { language: LOCALES[body.locale].nativeName })}</p>
+        <p className="small muted">
+          {t('content.fallbackNotice', { language: LOCALES[body.locale].nativeName })}
+        </p>
       )}
     </article>
   );
@@ -66,9 +73,16 @@ export function LegalPage() {
   const upper = type.toUpperCase();
   return (
     <>
-      <PageHeader back title={isLegalType(upper) ? t(LEGAL_DOCUMENT_LABEL_KEY[upper]) : t('myPage.legal')} />
+      <PageHeader
+        back
+        title={isLegalType(upper) ? t(LEGAL_DOCUMENT_LABEL_KEY[upper]) : t('myPage.legal')}
+      />
       <div className="page">
-        {isLegalType(upper) ? <LegalDocument type={upper} /> : <EmptyState icon={<ShieldCheck size={32} />} title={t('legal.notAvailable')} />}
+        {isLegalType(upper) ? (
+          <LegalDocument type={upper} />
+        ) : (
+          <EmptyState icon={<ShieldCheck size={32} />} title={t('legal.notAvailable')} />
+        )}
       </div>
     </>
   );

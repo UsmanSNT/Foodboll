@@ -32,8 +32,12 @@ export function RegionPicker({ current, allowAll, onSelect }: RegionPickerProps)
     const q = normalize(query.trim());
     if (!q || !tree.data) return [];
     return tree.data.items.flatMap((p) => [
-      ...(normalize(p.name.text).includes(q) ? [{ node: p, parent: null as RegionNodeDto | null }] : []),
-      ...p.children.filter((c) => normalize(c.name.text).includes(q)).map((c) => ({ node: c, parent: p })),
+      ...(normalize(p.name.text).includes(q)
+        ? [{ node: p, parent: null as RegionNodeDto | null }]
+        : []),
+      ...p.children
+        .filter((c) => normalize(c.name.text).includes(q))
+        .map((c) => ({ node: c, parent: p })),
     ]);
   }, [query, tree.data]);
 
@@ -49,7 +53,11 @@ export function RegionPicker({ current, allowAll, onSelect }: RegionPickerProps)
   }
   if (tree.isError) return <ErrorState error={tree.error} onRetry={() => void tree.refetch()} />;
 
-  const row = (node: RegionNodeDto, label: string, options: { drill?: boolean; sub?: string } = {}) => (
+  const row = (
+    node: RegionNodeDto,
+    label: string,
+    options: { drill?: boolean; sub?: string } = {},
+  ) => (
     <li key={node.code + label}>
       <button
         type="button"
@@ -61,7 +69,9 @@ export function RegionPicker({ current, allowAll, onSelect }: RegionPickerProps)
           <span lang={node.name.locale}>{label}</span>
           {options.sub && <small className="muted">{options.sub}</small>}
         </span>
-        <span className="muted small num">{t('region.matchCount', { count: node.upcomingMatches })}</span>
+        <span className="muted small num">
+          {t('region.matchCount', { count: node.upcomingMatches })}
+        </span>
         {options.drill && <ChevronRight size={18} aria-hidden="true" />}
       </button>
     </li>
@@ -120,9 +130,7 @@ export function RegionPicker({ current, allowAll, onSelect }: RegionPickerProps)
             </li>
           )}
           {tree.data.items.map((p) =>
-            p.children.length > 0
-              ? row(p, p.name.text, { drill: true })
-              : row(p, p.name.text),
+            p.children.length > 0 ? row(p, p.name.text, { drill: true }) : row(p, p.name.text),
           )}
         </ul>
       )}
@@ -131,7 +139,13 @@ export function RegionPicker({ current, allowAll, onSelect }: RegionPickerProps)
 }
 
 /** The small pill showing the active region; opens the picker. */
-export function RegionPill({ label, onClick }: { readonly label: string; readonly onClick: () => void }) {
+export function RegionPill({
+  label,
+  onClick,
+}: {
+  readonly label: string;
+  readonly onClick: () => void;
+}) {
   const { t } = useI18n();
   return (
     <button type="button" className="region-pill" onClick={onClick} aria-label={t('region.change')}>

@@ -3,7 +3,9 @@ import { useApiMutation, useApiQuery } from '../../../api/queries';
 
 /** The regions the signed-in organizer was granted (a province grant covers its districts). */
 export const useOrganizerRegions = (enabled: boolean) =>
-  useApiQuery<{ items: RegionDto[] }>(['organizer-regions'], '/v1/me/organizer-regions', { enabled });
+  useApiQuery<{ items: RegionDto[] }>(['organizer-regions'], '/v1/me/organizer-regions', {
+    enabled,
+  });
 
 /** The raw per-language texts of a match, for the editor. */
 export const useMatchTranslations = (id: string | undefined) =>

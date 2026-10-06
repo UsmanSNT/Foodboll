@@ -17,7 +17,16 @@ interface TextFieldProps {
 }
 
 /** A text input or textarea with a label, a hint and a remaining-characters counter. */
-export function TextField({ label, hint, error, value, max, onChange, multiline, lang }: TextFieldProps) {
+export function TextField({
+  label,
+  hint,
+  error,
+  value,
+  max,
+  onChange,
+  multiline,
+  lang,
+}: TextFieldProps) {
   const { t } = useI18n();
   const counterId = useId();
   const left = max - charCount(value);
@@ -39,7 +48,10 @@ export function TextField({ label, hint, error, value, max, onChange, multiline,
             ) : (
               <TextInput {...shared} onChange={(event) => onChange(event.target.value)} />
             )}
-            <span id={counterId} className={left < 0 ? 'mf-counter mf-counter--over' : 'mf-counter'}>
+            <span
+              id={counterId}
+              className={left < 0 ? 'mf-counter mf-counter--over' : 'mf-counter'}
+            >
               {left < 0
                 ? t('matchForm.content.charsOver', { count: -left })
                 : t('matchForm.content.charsLeft', { count: left })}

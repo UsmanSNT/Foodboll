@@ -3,7 +3,21 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APPLICATION_MESSAGE_MAX } from '../features/organizer/home/ApplyForm';
-import { apiError, chooseLanguageAndRegion, gangnam, json, matchDetail, matchSummary, me, mockApi, renderApp, seoul, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  apiError,
+  chooseLanguageAndRegion,
+  gangnam,
+  json,
+  matchDetail,
+  matchSummary,
+  me,
+  mockApi,
+  renderApp,
+  seoul,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 let api: Api;
 beforeEach(() => {
@@ -21,14 +35,16 @@ const DAY = 24 * HOUR;
 const at = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
 const english = (text: string) => ({ text, locale: 'en', isFallback: false });
 
-const bodyOf = (call: { init: RequestInit | undefined } | undefined): unknown => JSON.parse(String(call?.init?.body));
+const bodyOf = (call: { init: RequestInit | undefined } | undefined): unknown =>
+  JSON.parse(String(call?.init?.body));
 
 // ---- Organizer home ---------------------------------------------------------------------------
 
 const organized = (id: string, title: string, overrides: Record<string, unknown> = {}) =>
   matchSummary({ id, title: english(title), ...overrides });
 
-const servePage = (items: unknown[], extra: Record<string, unknown> = {}) => json({ items, limit: 20, offset: 0, ...extra });
+const servePage = (items: unknown[], extra: Record<string, unknown> = {}) =>
+  json({ items, limit: 20, offset: 0, ...extra });
 
 describe('organizer home', () => {
   beforeEach(() => {
@@ -40,27 +56,51 @@ describe('organizer home', () => {
     api.handlers['/v1/me/organized-matches'] = () => servePage([]);
     renderApp('/organizer');
 
-    expect(await screen.findByRole('link', { name: 'Announce a match' })).toHaveAttribute('href', '/organizer/matches/new');
+    expect(await screen.findByRole('link', { name: 'Announce a match' })).toHaveAttribute(
+      'href',
+      '/organizer/matches/new',
+    );
     expect(await screen.findByText('Seoul Gangnam-gu')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Payments are checked automatically' })).toBeInTheDocument();
-    expect(screen.getByText('You never need to check payments. Just announce the match, show up and mark attendance.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Apply for another region' })).toHaveAttribute('href', '/organizer/apply');
+    expect(
+      screen.getByRole('heading', { name: 'Payments are checked automatically' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'You never need to check payments. Just announce the match, show up and mark attendance.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Apply for another region' })).toHaveAttribute(
+      'href',
+      '/organizer/apply',
+    );
   });
 
   it('lists upcoming matches with when, where, how full, and the roster, edit and view actions', async () => {
-    api.handlers['/v1/me/organized-matches'] = () => servePage([organized('m1', 'Gangnam Friday futsal')]);
+    api.handlers['/v1/me/organized-matches'] = () =>
+      servePage([organized('m1', 'Gangnam Friday futsal')]);
     renderApp('/organizer');
 
-    const card = (await screen.findByRole('heading', { name: 'Gangnam Friday futsal' })).closest('article');
+    const card = (await screen.findByRole('heading', { name: 'Gangnam Friday futsal' })).closest(
+      'article',
+    );
     expect(card).not.toBeNull();
     const scope = within(card as HTMLElement);
     expect(scope.getByText('Sat, May 4')).toBeInTheDocument();
     expect(scope.getByText('22:00–00:00')).toBeInTheDocument();
     expect(scope.getByText('강남 풋살파크 · Seoul Gangnam-gu')).toBeInTheDocument();
     expect(scope.getByText('14/18 joined')).toBeInTheDocument();
-    expect(scope.getByRole('link', { name: 'Roster: Gangnam Friday futsal' })).toHaveAttribute('href', '/organizer/matches/m1/roster');
-    expect(scope.getByRole('link', { name: 'Edit: Gangnam Friday futsal' })).toHaveAttribute('href', '/organizer/matches/m1/edit');
-    expect(scope.getByRole('link', { name: 'View: Gangnam Friday futsal' })).toHaveAttribute('href', '/matches/m1');
+    expect(scope.getByRole('link', { name: 'Roster: Gangnam Friday futsal' })).toHaveAttribute(
+      'href',
+      '/organizer/matches/m1/roster',
+    );
+    expect(scope.getByRole('link', { name: 'Edit: Gangnam Friday futsal' })).toHaveAttribute(
+      'href',
+      '/organizer/matches/m1/edit',
+    );
+    expect(scope.getByRole('link', { name: 'View: Gangnam Friday futsal' })).toHaveAttribute(
+      'href',
+      '/matches/m1',
+    );
 
     const request = api.find('GET', '/v1/me/organized-matches');
     expect(request?.url.searchParams.get('limit')).toBe('20');
@@ -72,7 +112,10 @@ describe('organizer home', () => {
     api.handlers['/v1/me/organized-matches'] = () =>
       servePage([
         organized('m2', 'Next week', { startsAt: at(3 * DAY), endsAt: at(3 * DAY + 2 * HOUR) }),
-        organized('m1', 'Old match', { startsAt: '2020-01-01T10:00:00.000Z', endsAt: '2020-01-01T12:00:00.000Z' }),
+        organized('m1', 'Old match', {
+          startsAt: '2020-01-01T10:00:00.000Z',
+          endsAt: '2020-01-01T12:00:00.000Z',
+        }),
       ]);
     const user = userEvent.setup();
     renderApp('/organizer');
@@ -97,7 +140,10 @@ describe('organizer home', () => {
     renderApp('/organizer');
 
     await screen.findByRole('heading', { name: 'Tomorrow' });
-    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual(['Tomorrow', 'In a month']);
+    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+      'Tomorrow',
+      'In a month',
+    ]);
   });
 
   it('treats a match in progress as upcoming: marked live, roster open, no editing', async () => {
@@ -105,7 +151,9 @@ describe('organizer home', () => {
       servePage([organized('m1', 'Happening now', { startsAt: at(-HOUR), endsAt: at(HOUR) })]);
     renderApp('/organizer');
 
-    const card = (await screen.findByRole('heading', { name: 'Happening now' })).closest('article') as HTMLElement;
+    const card = (await screen.findByRole('heading', { name: 'Happening now' })).closest(
+      'article',
+    ) as HTMLElement;
     expect(within(card).getByText('In progress')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: 'Roster: Happening now' })).toBeInTheDocument();
     expect(within(card).queryByRole('link', { name: /^Edit/ })).not.toBeInTheDocument();
@@ -114,9 +162,14 @@ describe('organizer home', () => {
   const upcomingIn = (days: number, title: string) =>
     organized(`m-${title}`, title, { startsAt: at(days * DAY), endsAt: at(days * DAY + HOUR) });
   const finished = (n: number) =>
-    organized(`old-${n}`, `Finished ${n}`, { startsAt: `2020-01-${String(n).padStart(2, '0')}T10:00:00.000Z`, endsAt: `2020-01-${String(n).padStart(2, '0')}T12:00:00.000Z` });
+    organized(`old-${n}`, `Finished ${n}`, {
+      startsAt: `2020-01-${String(n).padStart(2, '0')}T10:00:00.000Z`,
+      endsAt: `2020-01-${String(n).padStart(2, '0')}T12:00:00.000Z`,
+    });
   const offsetsRequested = () =>
-    api.calls.filter((c) => c.url.pathname === '/api/v1/me/organized-matches').map((c) => c.url.searchParams.get('offset'));
+    api.calls
+      .filter((c) => c.url.pathname === '/api/v1/me/organized-matches')
+      .map((c) => c.url.searchParams.get('offset'));
 
   it('keeps loading until every upcoming match is there, so the soonest one comes first', async () => {
     // Newest first, 20 per page: the matches nearest to today arrive on the second page.
@@ -129,14 +182,25 @@ describe('organizer home', () => {
 
     expect(await screen.findByRole('heading', { name: 'Day 1' })).toBeInTheDocument();
     expect(offsetsRequested()).toEqual(['0', '20']);
-    expect(screen.getAllByRole('heading', { level: 3 }).slice(0, 3).map((h) => h.textContent)).toEqual(['Day 1', 'Day 2', 'Far 21']);
+    expect(
+      screen
+        .getAllByRole('heading', { level: 3 })
+        .slice(0, 3)
+        .map((h) => h.textContent),
+    ).toEqual(['Day 1', 'Day 2', 'Far 21']);
     expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
   });
 
   it('loads older matches on request under Past', async () => {
-    const firstPage = [upcomingIn(2, 'Soon'), upcomingIn(1, 'Tomorrow'), ...Array.from({ length: 18 }, (_, i) => finished(28 - i))];
+    const firstPage = [
+      upcomingIn(2, 'Soon'),
+      upcomingIn(1, 'Tomorrow'),
+      ...Array.from({ length: 18 }, (_, i) => finished(28 - i)),
+    ];
     api.handlers['/v1/me/organized-matches'] = (url) =>
-      url.searchParams.get('offset') === '0' ? servePage(firstPage) : json({ items: [finished(1)], limit: 20, offset: 20 });
+      url.searchParams.get('offset') === '0'
+        ? servePage(firstPage)
+        : json({ items: [finished(1)], limit: 20, offset: 20 });
     const user = userEvent.setup();
     renderApp('/organizer');
 
@@ -153,7 +217,8 @@ describe('organizer home', () => {
   });
 
   it('says there is nothing upcoming even when older matches are still to be loaded', async () => {
-    api.handlers['/v1/me/organized-matches'] = () => servePage(Array.from({ length: 20 }, (_, i) => finished(i + 1)));
+    api.handlers['/v1/me/organized-matches'] = () =>
+      servePage(Array.from({ length: 20 }, (_, i) => finished(i + 1)));
     renderApp('/organizer');
 
     expect(await screen.findByRole('heading', { name: 'No upcoming matches' })).toBeInTheDocument();
@@ -166,8 +231,13 @@ describe('organizer home', () => {
     renderApp('/organizer');
 
     expect(await screen.findByRole('heading', { name: 'No upcoming matches' })).toBeInTheDocument();
-    expect(screen.getByText('Announce a match and players can join it right away.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Announce a match' })).toHaveAttribute('href', '/organizer/matches/new');
+    expect(
+      screen.getByText('Announce a match and players can join it right away.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Announce a match' })).toHaveAttribute(
+      'href',
+      '/organizer/matches/new',
+    );
 
     await user.click(screen.getByRole('tab', { name: 'Past' }));
     expect(screen.getByRole('heading', { name: 'No past matches' })).toBeInTheDocument();
@@ -175,11 +245,14 @@ describe('organizer home', () => {
 
   it('shows a localized error and retries', async () => {
     let failing = true;
-    api.handlers['/v1/me/organized-matches'] = () => (failing ? apiError('INTERNAL_ERROR', 500) : servePage([organized('m1', 'Back again')]));
+    api.handlers['/v1/me/organized-matches'] = () =>
+      failing ? apiError('INTERNAL_ERROR', 500) : servePage([organized('m1', 'Back again')]);
     const user = userEvent.setup();
     renderApp('/organizer');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     expect(screen.queryByText('ignored')).not.toBeInTheDocument();
     failing = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
@@ -191,8 +264,13 @@ describe('organizer home', () => {
     api.handlers['/v1/me/organized-matches'] = () => servePage([]);
     renderApp('/organizer');
 
-    expect(await screen.findByRole('heading', { name: 'You don’t have a region yet' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Apply to organize' })).toHaveAttribute('href', '/organizer/apply');
+    expect(
+      await screen.findByRole('heading', { name: 'You don’t have a region yet' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Apply to organize' })).toHaveAttribute(
+      'href',
+      '/organizer/apply',
+    );
     expect(screen.queryByRole('link', { name: 'Announce a match' })).not.toBeInTheDocument();
   });
 
@@ -202,8 +280,13 @@ describe('organizer home', () => {
     api.handlers['/v1/me/organized-matches'] = () => servePage([]);
     renderApp('/organizer');
 
-    expect(await screen.findByRole('link', { name: 'Announce a match' })).toHaveAttribute('href', '/organizer/matches/new');
-    expect(screen.getByText('As an admin, you can announce matches in every region.')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Announce a match' })).toHaveAttribute(
+      'href',
+      '/organizer/matches/new',
+    );
+    expect(
+      screen.getByText('As an admin, you can announce matches in every region.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Apply to organize' })).not.toBeInTheDocument();
   });
 
@@ -211,7 +294,9 @@ describe('organizer home', () => {
     signIn(api, me({ role: 'PLAYER' }));
     renderApp('/organizer');
 
-    expect(await screen.findByRole('heading', { name: 'You don’t have permission to do this.' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'You don’t have permission to do this.' }),
+    ).toBeInTheDocument();
     expect(api.calls.some((c) => c.url.pathname === '/api/v1/me/organized-matches')).toBe(false);
   });
 });
@@ -220,12 +305,27 @@ describe('organizer home', () => {
 
 interface Entry {
   registrationId: string;
-  player: { id: string; displayName: string; homeRegion: null; level: { level: number; xp: number; xpIntoLevel: number; xpForNextLevel: number } };
+  player: {
+    id: string;
+    displayName: string;
+    homeRegion: null;
+    level: { level: number; xp: number; xpIntoLevel: number; xpForNextLevel: number };
+  };
   attended: boolean | null;
 }
-const entry = (n: number, displayName: string, attended: boolean | null = null, level = 3): Entry => ({
+const entry = (
+  n: number,
+  displayName: string,
+  attended: boolean | null = null,
+  level = 3,
+): Entry => ({
   registrationId: `r${n}`,
-  player: { id: `p${n}`, displayName, homeRegion: null, level: { level, xp: 60, xpIntoLevel: 10, xpForNextLevel: 50 } },
+  player: {
+    id: `p${n}`,
+    displayName,
+    homeRegion: null,
+    level: { level, xp: 60, xpIntoLevel: 10, xpForNextLevel: 50 },
+  },
   attended,
 });
 
@@ -234,7 +334,10 @@ const group = (name: string) => screen.getByRole('group', { name: `Attendance fo
 const mark = (user: UserEvent, name: string, label: 'Present' | 'Absent' | 'Not marked') =>
   user.click(within(group(name)).getByRole('button', { name: label }));
 const counts = () => screen.getByRole('region', { name: 'Attendance summary' }).textContent;
-const putCalls = () => api.calls.filter((c) => c.init?.method === 'PUT' && c.url.pathname === '/api/v1/matches/m1/attendance');
+const putCalls = () =>
+  api.calls.filter(
+    (c) => c.init?.method === 'PUT' && c.url.pathname === '/api/v1/matches/m1/attendance',
+  );
 
 describe('roster', () => {
   let roster: Entry[];
@@ -244,7 +347,9 @@ describe('roster', () => {
   const serveRoster = () => {
     api.handlers['/v1/matches/m1/roster'] = () => json({ items: roster });
     api.handlers['/v1/matches/m1/attendance'] = (_url, init) => {
-      const { marks } = JSON.parse(String(init?.body)) as { marks: { registrationId: string; attended: boolean }[] };
+      const { marks } = JSON.parse(String(init?.body)) as {
+        marks: { registrationId: string; attended: boolean }[];
+      };
       roster = roster.map((e) => {
         const found = marks.find((m) => m.registrationId === e.registrationId);
         return found ? { ...e, attended: found.attended } : e;
@@ -255,7 +360,11 @@ describe('roster', () => {
 
   beforeEach(() => {
     signIn(api, me({ role: 'ORGANIZER' }));
-    roster = [entry(1, 'Aziz Karimov'), entry(2, 'Dilnoza Rustamova', null, 5), entry(3, 'Bobur Aliyev')];
+    roster = [
+      entry(1, 'Aziz Karimov'),
+      entry(2, 'Dilnoza Rustamova', null, 5),
+      entry(3, 'Bobur Aliyev'),
+    ];
     serveMatch();
     serveRoster();
   });
@@ -263,14 +372,18 @@ describe('roster', () => {
   it('shows the match and each confirmed player with level and a link to the profile', async () => {
     const { container } = renderApp('/organizer/matches/m1/roster');
 
-    expect(await screen.findByRole('heading', { name: 'Gangnam Friday futsal' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Gangnam Friday futsal' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '3 confirmed players' })).toBeInTheDocument();
     const link = await screen.findByRole('link', { name: /Dilnoza Rustamova/ });
     expect(link).toHaveAttribute('href', '/players/p2');
     expect(within(link).getByText('Lv. 5')).toBeInTheDocument();
     expect(counts()).toBe('Present0Absent0Not marked3');
     // The roster never carries payment or contact data, and the page does not invent any.
-    expect(container.textContent).not.toMatch(/telegram|phone|account number|depositor|receipt|payment/i);
+    expect(container.textContent).not.toMatch(
+      /telegram|phone|account number|depositor|receipt|payment/i,
+    );
   });
 
   it('marks players one by one, counts live, and saves only what was decided', async () => {
@@ -284,7 +397,10 @@ describe('roster', () => {
 
     await mark(user, 'Aziz Karimov', 'Present');
     await mark(user, 'Dilnoza Rustamova', 'Absent');
-    expect(within(group('Aziz Karimov')).getByRole('button', { name: 'Present' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(group('Aziz Karimov')).getByRole('button', { name: 'Present' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(counts()).toBe('Present1Absent1Not marked1');
     expect(screen.getByText('2 unsaved changes')).toBeInTheDocument();
     expect(save).toBeEnabled();
@@ -304,7 +420,9 @@ describe('roster', () => {
     await waitFor(() => expect(screen.getByText('No changes yet')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'Save attendance' })).toBeDisabled();
     expect(counts()).toBe('Present1Absent1Not marked1');
-    expect(api.calls.filter((c) => c.url.pathname === '/api/v1/matches/m1/roster').length).toBeGreaterThanOrEqual(2);
+    expect(
+      api.calls.filter((c) => c.url.pathname === '/api/v1/matches/m1/roster').length,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it('marks everyone present in one tap and still lets the organizer correct a single player', async () => {
@@ -340,7 +458,9 @@ describe('roster', () => {
     await user.click(screen.getByRole('button', { name: 'Mark the rest present' }));
 
     expect(counts()).toBe('Present2Absent1Not marked0');
-    expect(within(group('Dilnoza Rustamova')).getByRole('button', { name: 'Absent' })).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      within(group('Dilnoza Rustamova')).getByRole('button', { name: 'Absent' }),
+    ).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('can take a draft back, and never offers to clear a saved mark', async () => {
@@ -356,8 +476,12 @@ describe('roster', () => {
     expect(screen.getByText('No changes yet')).toBeInTheDocument();
 
     // Saved mark: shown as such, can only be switched, and switching back drops the draft.
-    expect(within(group('Dilnoza Rustamova')).getByRole('button', { name: 'Present' })).toHaveAttribute('aria-pressed', 'true');
-    expect(within(group('Dilnoza Rustamova')).getByRole('button', { name: 'Not marked' })).toBeDisabled();
+    expect(
+      within(group('Dilnoza Rustamova')).getByRole('button', { name: 'Present' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      within(group('Dilnoza Rustamova')).getByRole('button', { name: 'Not marked' }),
+    ).toBeDisabled();
     expect(screen.getByText('A saved mark can be changed but not removed.')).toBeInTheDocument();
     await mark(user, 'Dilnoza Rustamova', 'Absent');
     expect(screen.getByText('1 unsaved change')).toBeInTheDocument();
@@ -367,7 +491,11 @@ describe('roster', () => {
   });
 
   it('does not resend marks that are already saved', async () => {
-    roster = [entry(1, 'Aziz Karimov'), entry(2, 'Dilnoza Rustamova', true), entry(3, 'Bobur Aliyev', false)];
+    roster = [
+      entry(1, 'Aziz Karimov'),
+      entry(2, 'Dilnoza Rustamova', true),
+      entry(3, 'Bobur Aliyev', false),
+    ];
     const user = userEvent.setup();
     renderApp('/organizer/matches/m1/roster');
     await screen.findByRole('link', { name: /Aziz Karimov/ });
@@ -400,7 +528,9 @@ describe('roster', () => {
     serveMatch({ startsAt: at(DAY), endsAt: at(DAY + 2 * HOUR) });
     renderApp('/organizer/matches/m1/roster');
 
-    expect(await screen.findByText('You can mark attendance once the match has started.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('You can mark attendance once the match has started.'),
+    ).toBeInTheDocument();
     expect(within(group('Aziz Karimov')).getByRole('button', { name: 'Present' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Mark everyone present' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Save attendance' })).not.toBeInTheDocument();
@@ -412,9 +542,16 @@ describe('roster', () => {
     serveMatch({ startsAt: at(-21 * DAY), endsAt: at(-21 * DAY + 2 * HOUR) });
     renderApp('/organizer/matches/m1/roster');
 
-    expect(await screen.findByText('The attendance window has closed. Marks can be changed for 14 days after the match ends.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'The attendance window has closed. Marks can be changed for 14 days after the match ends.',
+      ),
+    ).toBeInTheDocument();
     expect(within(group('Aziz Karimov')).getByRole('button', { name: 'Absent' })).toBeDisabled();
-    expect(within(group('Aziz Karimov')).getByRole('button', { name: 'Present' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(group('Aziz Karimov')).getByRole('button', { name: 'Present' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(screen.queryByRole('button', { name: 'Save attendance' })).not.toBeInTheDocument();
   });
 
@@ -422,14 +559,20 @@ describe('roster', () => {
     let failing = true;
     api.handlers['/v1/matches/m1/attendance'] = (_url, init) => {
       if (failing) return apiError('MATCH_NOT_STARTED', 409);
-      const { marks } = JSON.parse(String(init?.body)) as { marks: { registrationId: string; attended: boolean }[] };
-      roster = roster.map((e) => ({ ...e, attended: marks.find((m) => m.registrationId === e.registrationId)?.attended ?? e.attended }));
+      const { marks } = JSON.parse(String(init?.body)) as {
+        marks: { registrationId: string; attended: boolean }[];
+      };
+      roster = roster.map((e) => ({
+        ...e,
+        attended: marks.find((m) => m.registrationId === e.registrationId)?.attended ?? e.attended,
+      }));
       return json({ items: roster });
     };
     const user = userEvent.setup();
     renderApp('/organizer/matches/m1/roster');
     await screen.findByRole('link', { name: /Aziz Karimov/ });
-    const rosterReads = () => api.calls.filter((c) => c.url.pathname === '/api/v1/matches/m1/roster').length;
+    const rosterReads = () =>
+      api.calls.filter((c) => c.url.pathname === '/api/v1/matches/m1/roster').length;
     const readsBefore = rosterReads();
 
     await mark(user, 'Aziz Karimov', 'Present');
@@ -449,7 +592,9 @@ describe('roster', () => {
   it('says so when nobody is confirmed yet', async () => {
     roster = [];
     renderApp('/organizer/matches/m1/roster');
-    expect(await screen.findByRole('heading', { name: 'No confirmed players yet' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'No confirmed players yet' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Save attendance' })).not.toBeInTheDocument();
   });
 
@@ -457,7 +602,9 @@ describe('roster', () => {
     api.handlers['/v1/matches/m1/roster'] = () => apiError('FORBIDDEN', 403);
     renderApp('/organizer/matches/m1/roster');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('You don’t have permission to do this.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'You don’t have permission to do this.',
+    );
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 
@@ -470,14 +617,20 @@ describe('roster', () => {
   it('is closed to players', async () => {
     signIn(api, me({ role: 'PLAYER' }));
     renderApp('/organizer/matches/m1/roster');
-    expect(await screen.findByRole('heading', { name: 'You don’t have permission to do this.' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'You don’t have permission to do this.' }),
+    ).toBeInTheDocument();
     expect(api.calls.some((c) => c.url.pathname === '/api/v1/matches/m1/roster')).toBe(false);
   });
 });
 
 // ---- Become an organizer ----------------------------------------------------------------------
 
-const node = (region: typeof seoul | typeof gangnam, upcomingMatches: number, children: unknown[] = []) => ({
+const node = (
+  region: typeof seoul | typeof gangnam,
+  upcomingMatches: number,
+  children: unknown[] = [],
+) => ({
   id: region.id,
   code: region.code,
   name: region.name,
@@ -524,9 +677,19 @@ describe('become an organizer', () => {
 
   it('explains in a few lines how it works and that payments are not the organizer’s job', async () => {
     renderApp('/organizer/apply');
-    expect(await screen.findByText('Anyone in the community can organize matches in their own city or district.')).toBeInTheDocument();
-    expect(screen.getByText('An admin reviews every application. We’ll notify you of the result.')).toBeInTheDocument();
-    expect(screen.getByText('Payments are checked automatically, so you only announce matches and mark attendance.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'Anyone in the community can organize matches in their own city or district.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('An admin reviews every application. We’ll notify you of the result.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Payments are checked automatically, so you only announce matches and mark attendance.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('sends the chosen region and the message, then shows the new application and resets the form', async () => {
@@ -540,13 +703,18 @@ describe('become an organizer', () => {
     await user.click(screen.getByRole('button', { name: 'Submit application' }));
 
     await waitFor(() => expect(api.find('POST', '/v1/organizer-applications')).toBeDefined());
-    expect(bodyOf(api.find('POST', '/v1/organizer-applications'))).toEqual({ regionCode: 'seoul-gangnam', message: 'I play every Friday' });
+    expect(bodyOf(api.find('POST', '/v1/organizer-applications'))).toEqual({
+      regionCode: 'seoul-gangnam',
+      message: 'I play every Friday',
+    });
     expect(await screen.findByText('Application sent.')).toBeInTheDocument();
     expect(await screen.findByText('I play every Friday')).toBeInTheDocument();
     expect(screen.getByText('Under review')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Region Choose a region' })).toBeInTheDocument();
     expect(screen.getByLabelText('About you (optional)')).toHaveValue('');
-    expect(api.calls.filter((c) => c.url.pathname === '/api/v1/me/organizer-applications').length).toBeGreaterThanOrEqual(2);
+    expect(
+      api.calls.filter((c) => c.url.pathname === '/api/v1/me/organizer-applications').length,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it('sends no message at all when the box was left empty', async () => {
@@ -556,7 +724,10 @@ describe('become an organizer', () => {
     await user.click(screen.getByRole('button', { name: 'Submit application' }));
 
     await waitFor(() => expect(api.find('POST', '/v1/organizer-applications')).toBeDefined());
-    expect(bodyOf(api.find('POST', '/v1/organizer-applications'))).toEqual({ regionCode: 'seoul-gangnam', message: null });
+    expect(bodyOf(api.find('POST', '/v1/organizer-applications'))).toEqual({
+      regionCode: 'seoul-gangnam',
+      message: null,
+    });
   });
 
   it('asks for a region before sending anything, and drops the complaint once one is chosen', async () => {
@@ -564,8 +735,12 @@ describe('become an organizer', () => {
     renderApp('/organizer/apply');
     await user.click(await screen.findByRole('button', { name: 'Submit application' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Choose the region you want to organize in.');
-    expect(screen.getByRole('button', { name: 'Region Choose a region' })).toHaveAccessibleDescription('Choose the region you want to organize in.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Choose the region you want to organize in.',
+    );
+    expect(
+      screen.getByRole('button', { name: 'Region Choose a region' }),
+    ).toHaveAccessibleDescription('Choose the region you want to organize in.');
     expect(api.find('POST', '/v1/organizer-applications')).toBeUndefined();
 
     await chooseRegion(user);
@@ -573,8 +748,18 @@ describe('become an organizer', () => {
   });
 
   it('keeps the message within the limit the contract allows', async () => {
-    expect(organizerApplicationInputSchema.safeParse({ regionCode: 'seoul', message: 'x'.repeat(APPLICATION_MESSAGE_MAX) }).success).toBe(true);
-    expect(organizerApplicationInputSchema.safeParse({ regionCode: 'seoul', message: 'x'.repeat(APPLICATION_MESSAGE_MAX + 1) }).success).toBe(false);
+    expect(
+      organizerApplicationInputSchema.safeParse({
+        regionCode: 'seoul',
+        message: 'x'.repeat(APPLICATION_MESSAGE_MAX),
+      }).success,
+    ).toBe(true);
+    expect(
+      organizerApplicationInputSchema.safeParse({
+        regionCode: 'seoul',
+        message: 'x'.repeat(APPLICATION_MESSAGE_MAX + 1),
+      }).success,
+    ).toBe(false);
 
     const user = userEvent.setup();
     renderApp('/organizer/apply');
@@ -587,52 +772,80 @@ describe('become an organizer', () => {
     await chooseRegion(user);
     fireEvent.change(box, { target: { value: 'x'.repeat(APPLICATION_MESSAGE_MAX + 1) } });
     await user.click(screen.getByRole('button', { name: 'Submit application' }));
-    expect(await screen.findByText(`Enter ${APPLICATION_MESSAGE_MAX} characters or fewer.`)).toBeInTheDocument();
+    expect(
+      await screen.findByText(`Enter ${APPLICATION_MESSAGE_MAX} characters or fewer.`),
+    ).toBeInTheDocument();
     expect(api.find('POST', '/v1/organizer-applications')).toBeUndefined();
   });
 
   it.each([
-    ['INVALID_STATE', 409, 'You’ve already applied for this region, you can already announce matches there, or you have too many open applications.'],
+    [
+      'INVALID_STATE',
+      409,
+      'You’ve already applied for this region, you can already announce matches there, or you have too many open applications.',
+    ],
     ['REGION_NOT_FOUND', 404, 'We couldn’t find this region.'],
     ['FORBIDDEN', 403, 'You don’t have permission to do this.'],
-  ])('explains a %s answer in the user’s language and lets them try again', async (code, status, text) => {
-    let failing = true;
-    const accept = api.handlers['/v1/organizer-applications'];
-    api.handlers['/v1/organizer-applications'] = (url, init) => (failing ? apiError(code, status) : (accept?.(url, init) as Response));
-    const user = userEvent.setup();
-    renderApp('/organizer/apply');
-    await chooseRegion(user);
-    await user.click(screen.getByRole('button', { name: 'Submit application' }));
+  ])(
+    'explains a %s answer in the user’s language and lets them try again',
+    async (code, status, text) => {
+      let failing = true;
+      const accept = api.handlers['/v1/organizer-applications'];
+      api.handlers['/v1/organizer-applications'] = (url, init) =>
+        failing ? apiError(code, status) : (accept?.(url, init) as Response);
+      const user = userEvent.setup();
+      renderApp('/organizer/apply');
+      await chooseRegion(user);
+      await user.click(screen.getByRole('button', { name: 'Submit application' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(text);
-    expect(screen.queryByText('ignored')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Region Seoul Gangnam-gu' })).toBeInTheDocument();
+      expect(await screen.findByRole('alert')).toHaveTextContent(text);
+      expect(screen.queryByText('ignored')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Region Seoul Gangnam-gu' })).toBeInTheDocument();
 
-    // Editing clears the stale error; sending again works once the cause is gone.
-    failing = false;
-    await user.type(screen.getByLabelText('About you (optional)'), 'x');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Submit application' }));
-    expect(await screen.findByText('Application sent.')).toBeInTheDocument();
-  });
+      // Editing clears the stale error; sending again works once the cause is gone.
+      failing = false;
+      await user.type(screen.getByLabelText('About you (optional)'), 'x');
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Submit application' }));
+      expect(await screen.findByText('Application sent.')).toBeInTheDocument();
+    },
+  );
 
   it('lists my applications with region, message, status and dates', async () => {
     applications = [
-      application({ id: 'a3', status: 'REJECTED', createdAt: '2030-05-03T00:00:00.000Z', reviewedAt: '2030-05-06T00:00:00.000Z', message: 'Second try' }),
-      application({ id: 'a2', status: 'APPROVED', region: { ...seoul, parent: null }, createdAt: '2030-04-01T00:00:00.000Z', reviewedAt: '2030-04-02T00:00:00.000Z' }),
+      application({
+        id: 'a3',
+        status: 'REJECTED',
+        createdAt: '2030-05-03T00:00:00.000Z',
+        reviewedAt: '2030-05-06T00:00:00.000Z',
+        message: 'Second try',
+      }),
+      application({
+        id: 'a2',
+        status: 'APPROVED',
+        region: { ...seoul, parent: null },
+        createdAt: '2030-04-01T00:00:00.000Z',
+        reviewedAt: '2030-04-02T00:00:00.000Z',
+      }),
       application({ id: 'a1', status: 'PENDING', message: 'I play every Friday' }),
     ];
     renderApp('/organizer/apply');
 
     await screen.findByText('Second try');
-    const rows = screen.getAllByRole('listitem').filter((li) => li.classList.contains('application'));
+    const rows = screen
+      .getAllByRole('listitem')
+      .filter((li) => li.classList.contains('application'));
     expect(rows).toHaveLength(3);
     expect(within(rows[0] as HTMLElement).getByText('Not approved')).toBeInTheDocument();
     expect(within(rows[0] as HTMLElement).getByText('Seoul Gangnam-gu')).toBeInTheDocument();
     expect(within(rows[0] as HTMLElement).getByText('Second try')).toBeInTheDocument();
-    expect(within(rows[0] as HTMLElement).getByText('Applied May 3, 2030 · Reviewed May 6, 2030')).toBeInTheDocument();
+    expect(
+      within(rows[0] as HTMLElement).getByText('Applied May 3, 2030 · Reviewed May 6, 2030'),
+    ).toBeInTheDocument();
     expect(within(rows[1] as HTMLElement).getByText('Approved')).toBeInTheDocument();
-    expect(within(rows[1] as HTMLElement).getByRole('heading', { name: 'Seoul' })).toBeInTheDocument();
+    expect(
+      within(rows[1] as HTMLElement).getByRole('heading', { name: 'Seoul' }),
+    ).toBeInTheDocument();
     expect(within(rows[2] as HTMLElement).getByText('Under review')).toBeInTheDocument();
     expect(within(rows[2] as HTMLElement).getByText('Applied May 1, 2030')).toBeInTheDocument();
   });
@@ -646,11 +859,14 @@ describe('become an organizer', () => {
 
   it('shows a localized error for the list and retries', async () => {
     let failing = true;
-    api.handlers['/v1/me/organizer-applications'] = () => (failing ? apiError('INTERNAL_ERROR', 500) : json({ items: [application()] }));
+    api.handlers['/v1/me/organizer-applications'] = () =>
+      failing ? apiError('INTERNAL_ERROR', 500) : json({ items: [application()] });
     const user = userEvent.setup();
     renderApp('/organizer/apply');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     failing = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByText('Under review')).toBeInTheDocument();
@@ -666,7 +882,11 @@ describe('become an organizer', () => {
     signIn(api, me({ role: 'ADMIN' }));
     renderApp('/organizer/apply');
 
-    expect(await screen.findByText('Admins can announce matches in every region, so there’s nothing to apply for.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'Admins can announce matches in every region, so there’s nothing to apply for.',
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Submit application' })).not.toBeInTheDocument();
   });
 
@@ -674,6 +894,8 @@ describe('become an organizer', () => {
     window.localStorage.removeItem('foodboll.accessToken');
     renderApp('/organizer/apply');
     expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument();
-    expect(api.calls.some((c) => c.url.pathname === '/api/v1/me/organizer-applications')).toBe(false);
+    expect(api.calls.some((c) => c.url.pathname === '/api/v1/me/organizer-applications')).toBe(
+      false,
+    );
   });
 });

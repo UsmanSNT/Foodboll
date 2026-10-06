@@ -55,28 +55,49 @@ export function PaymentActions({ item, withReceipt, handlers }: PaymentActionsPr
     <div className="money-actions">
       <div className="money-actions__row">
         {receipt && (
-          <Button aria-label={label(t('adminPayments.viewReceipt'))} onClick={() => handlers.open('receipt', item)}>
+          <Button
+            aria-label={label(t('adminPayments.viewReceipt'))}
+            onClick={() => handlers.open('receipt', item)}
+          >
             {t('adminPayments.viewReceipt')}
           </Button>
         )}
         {reviewing && (
-          <Button variant="danger" aria-label={label(t('adminPayments.reject'))} onClick={() => handlers.open('reject', item)}>
+          <Button
+            variant="danger"
+            aria-label={label(t('adminPayments.reject'))}
+            onClick={() => handlers.open('reject', item)}
+          >
             {t('adminPayments.reject')}
           </Button>
         )}
         {refunding && (
-          <Button aria-label={label(t('adminPayments.closeWithoutRefund'))} onClick={() => handlers.open('reject', item)}>
+          <Button
+            aria-label={label(t('adminPayments.closeWithoutRefund'))}
+            onClick={() => handlers.open('reject', item)}
+          >
             {t('adminPayments.closeWithoutRefund')}
           </Button>
         )}
       </div>
       {reviewing && (
-        <Button variant="primary" block loading={confirm.isPending} aria-label={label(t('adminPayments.confirm'))} onClick={onConfirm}>
+        <Button
+          variant="primary"
+          block
+          loading={confirm.isPending}
+          aria-label={label(t('adminPayments.confirm'))}
+          onClick={onConfirm}
+        >
           {t('adminPayments.confirm')}
         </Button>
       )}
       {refunding && (
-        <Button variant="primary" block aria-label={label(t('adminPayments.refund'))} onClick={() => handlers.open('refund', item)}>
+        <Button
+          variant="primary"
+          block
+          aria-label={label(t('adminPayments.refund'))}
+          onClick={() => handlers.open('refund', item)}
+        >
           {t('adminPayments.refund')}
         </Button>
       )}

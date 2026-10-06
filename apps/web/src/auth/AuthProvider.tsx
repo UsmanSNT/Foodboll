@@ -1,5 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { apiRequest, UNAUTHORIZED_EVENT } from '../api/client';
 import { clearAccessToken, readAccessToken, writeAccessToken } from '../i18n/storage';
 
@@ -48,7 +56,10 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, [queryClient]);
 
-  const value = useMemo(() => ({ token, signedIn: token !== null, signIn, signOut }), [token, signIn, signOut]);
+  const value = useMemo(
+    () => ({ token, signedIn: token !== null, signIn, signOut }),
+    [token, signIn, signOut],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

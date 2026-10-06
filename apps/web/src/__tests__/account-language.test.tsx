@@ -1,7 +1,17 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiError, chooseLanguageAndRegion, json, me, mockApi, renderApp, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  apiError,
+  chooseLanguageAndRegion,
+  json,
+  me,
+  mockApi,
+  renderApp,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 let api: Api;
 beforeEach(() => {
@@ -21,7 +31,9 @@ describe('language and the account', () => {
     renderApp('/settings');
 
     await user.click(await screen.findByRole('radio', { name: 'O‘zbekcha' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Sozlamalar' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Sozlamalar' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'O‘zbekcha' })).toBeChecked();
     expect(window.localStorage.getItem('foodboll.language')).toBe('uz');
   });
@@ -46,7 +58,11 @@ describe('language and the account', () => {
     await user.click(await screen.findByRole('button', { name: 'O‘zbekcha' }));
     await waitFor(() =>
       expect(
-        api.calls.some((c) => c.init?.method === 'PATCH' && c.init.body === JSON.stringify({ preferredLanguage: 'uz' })),
+        api.calls.some(
+          (c) =>
+            c.init?.method === 'PATCH' &&
+            c.init.body === JSON.stringify({ preferredLanguage: 'uz' }),
+        ),
       ).toBe(true),
     );
   });
@@ -55,7 +71,9 @@ describe('language and the account', () => {
     chooseLanguageAndRegion('ko');
     signIn(api, me({ preferredLanguage: 'ko', effectiveLanguage: 'ko' }));
     api.handlers['/v1/me/language'] = (_url, init) =>
-      init?.body && String(init.body).includes('preferredLanguage') ? apiError('INTERNAL_ERROR', 500) : json(me());
+      init?.body && String(init.body).includes('preferredLanguage')
+        ? apiError('INTERNAL_ERROR', 500)
+        : json(me());
     const user = userEvent.setup();
     renderApp('/settings');
 

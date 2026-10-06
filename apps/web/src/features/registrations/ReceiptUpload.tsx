@@ -16,7 +16,9 @@ export function ReceiptUpload({ registrationId }: { readonly registrationId: str
   const { t } = useI18n();
   const toast = useToast();
   const input = useRef<HTMLInputElement>(null);
-  const [localError, setLocalError] = useState<'PAYLOAD_TOO_LARGE' | 'INVALID_RECEIPT' | null>(null);
+  const [localError, setLocalError] = useState<'PAYLOAD_TOO_LARGE' | 'INVALID_RECEIPT' | null>(
+    null,
+  );
   const upload = useApiMutation<File, RegistrationDto>(
     (file) => ({ path: `/v1/registrations/${registrationId}/receipt`, method: 'PUT', file }),
     [['registration', registrationId], ['registrations']],
@@ -51,7 +53,9 @@ export function ReceiptUpload({ registrationId }: { readonly registrationId: str
         <Upload size={18} aria-hidden="true" />
         {t('payment.uploadReceipt')}
       </Button>
-      <p className="small muted">{t('registration.receiptHint', { maxMb: MAX_BYTES / 1024 / 1024 })}</p>
+      <p className="small muted">
+        {t('registration.receiptHint', { maxMb: MAX_BYTES / 1024 / 1024 })}
+      </p>
       {localError && <Alert>{t(`errors.${localError}`)}</Alert>}
       {upload.isError && <ErrorState error={upload.error} />}
     </section>

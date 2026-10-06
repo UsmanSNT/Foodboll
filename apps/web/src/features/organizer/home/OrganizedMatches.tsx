@@ -17,10 +17,22 @@ type Tab = 'upcoming' | 'past';
 export function OrganizedMatches() {
   const { t } = useI18n();
   const [tab, setTab] = useState<Tab>('upcoming');
-  const { data, isPending, isError, error, refetch, hasNextPage, fetchNextPage, isFetchingNextPage, isFetchNextPageError } =
-    useOrganizedMatches();
+  const {
+    data,
+    isPending,
+    isError,
+    error,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useOrganizedMatches();
   const now = useNow();
-  const { upcoming, past } = useMemo(() => splitOrganizedMatches(data?.pages ?? [], now), [data, now]);
+  const { upcoming, past } = useMemo(
+    () => splitOrganizedMatches(data?.pages ?? [], now),
+    [data, now],
+  );
   const list = tab === 'upcoming' ? upcoming : past;
 
   // The API lists the newest match first, so upcoming matches come before any finished one: once a
@@ -53,7 +65,11 @@ export function OrganizedMatches() {
         <EmptyState
           icon={<Calendar size={32} />}
           title={tab === 'upcoming' ? t('myMatches.emptyUpcoming') : t('myMatches.emptyPast')}
-          text={tab === 'upcoming' ? t('organizer.home.emptyUpcomingText') : t('organizer.home.emptyPastText')}
+          text={
+            tab === 'upcoming'
+              ? t('organizer.home.emptyUpcomingText')
+              : t('organizer.home.emptyPastText')
+          }
         />
       )}
 

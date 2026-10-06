@@ -17,7 +17,10 @@ export function RosterSummary({ present, absent, unmarked }: Props) {
   return (
     <section className="roster-summary" aria-label={t('organizer.roster.summary')}>
       {tiles.map((tile) => (
-        <div key={tile.tone} className={`tile roster-summary__tile roster-summary__tile--${tile.tone}`}>
+        <div
+          key={tile.tone}
+          className={`tile roster-summary__tile roster-summary__tile--${tile.tone}`}
+        >
           <span className="tile__label">{tile.label}</span>
           <strong className="tile__value num">{tile.value}</strong>
         </div>

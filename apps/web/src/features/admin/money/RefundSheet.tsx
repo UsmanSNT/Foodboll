@@ -21,12 +21,22 @@ export function RefundSheet({ item, onClose, handlers }: RefundSheetProps) {
   const { t } = useI18n();
   return (
     <Sheet open={item !== null} title={t('adminPayments.refundTitle')} onClose={onClose}>
-      {item && <RefundForm key={item.registrationId} item={item} onClose={onClose} handlers={handlers} />}
+      {item && (
+        <RefundForm key={item.registrationId} item={item} onClose={onClose} handlers={handlers} />
+      )}
     </Sheet>
   );
 }
 
-function RefundForm({ item, onClose, handlers }: { readonly item: AdminPaymentDto; readonly onClose: () => void; readonly handlers: PaymentHandlers }) {
+function RefundForm({
+  item,
+  onClose,
+  handlers,
+}: {
+  readonly item: AdminPaymentDto;
+  readonly onClose: () => void;
+  readonly handlers: PaymentHandlers;
+}) {
   const { t, formatKrw } = useI18n();
   const toast = useToast();
   const refund = useRefundPayment(item.registrationId);

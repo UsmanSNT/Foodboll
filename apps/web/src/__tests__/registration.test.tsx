@@ -1,7 +1,18 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseLanguageAndRegion, json, me, mockApi, paymentInstruction, registration, renderApp, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  chooseLanguageAndRegion,
+  json,
+  me,
+  mockApi,
+  paymentInstruction,
+  registration,
+  renderApp,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 let api: Api;
 beforeEach(() => {
@@ -42,7 +53,9 @@ describe('paying for a match', () => {
     expect(screen.getByText('Put your payment code in the sender memo.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Can’t add a memo?' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Upload payment receipt' })).toBeEnabled();
-    expect(screen.getByText('Most payments are confirmed within a few minutes.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Most payments are confirmed within a few minutes.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Awaiting payment')).toBeInTheDocument();
   });
 
@@ -71,7 +84,9 @@ describe('paying for a match', () => {
     await user.click(save);
 
     await waitFor(() => expect(api.find('PATCH', '/v1/me/depositor-name')).toBeDefined());
-    expect(api.find('PATCH', '/v1/me/depositor-name')?.init?.body).toBe(JSON.stringify({ depositorName: 'Aziz Karimov' }));
+    expect(api.find('PATCH', '/v1/me/depositor-name')?.init?.body).toBe(
+      JSON.stringify({ depositorName: 'Aziz Karimov' }),
+    );
   });
 
   it('prefills the saved name', async () => {
@@ -88,7 +103,9 @@ describe('paying for a match', () => {
     renderApp('/registrations/r1');
     await screen.findByText('4307');
 
-    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'receipt.png', { type: 'image/png' });
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'receipt.png', {
+      type: 'image/png',
+    });
     await user.upload(screen.getByTestId('receipt-input'), file);
 
     await waitFor(() => {
@@ -104,21 +121,38 @@ describe('paying for a match', () => {
     renderApp('/registrations/r1');
     await screen.findByText('4307');
 
-    await user.upload(screen.getByTestId('receipt-input'), new File(['hi'], 'x.txt', { type: 'text/plain' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Only JPG, PNG or PDF files can be uploaded.');
+    await user.upload(
+      screen.getByTestId('receipt-input'),
+      new File(['hi'], 'x.txt', { type: 'text/plain' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Only JPG, PNG or PDF files can be uploaded.',
+    );
 
     const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' });
     await user.upload(screen.getByTestId('receipt-input'), big);
-    expect(await screen.findByRole('alert')).toHaveTextContent('This file is too large. Please upload a smaller file.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This file is too large. Please upload a smaller file.',
+    );
     expect(api.calls.some((c) => c.init?.method === 'PUT')).toBe(false);
   });
 });
 
 describe('every payment state', () => {
   it('explains a rejection in the player language and offers a new upload', async () => {
-    serve(registration({ payment: payment({ status: 'PAYMENT_REJECTED', hasReceipt: true, rejectReason: 'AMOUNT_MISMATCH' }) }));
+    serve(
+      registration({
+        payment: payment({
+          status: 'PAYMENT_REJECTED',
+          hasReceipt: true,
+          rejectReason: 'AMOUNT_MISMATCH',
+        }),
+      }),
+    );
     renderApp('/registrations/r1');
-    expect(await screen.findByText(/We couldn’t confirm your payment\./)).toHaveTextContent('Reason: The payment amount doesn’t match');
+    expect(await screen.findByText(/We couldn’t confirm your payment\./)).toHaveTextContent(
+      'Reason: The payment amount doesn’t match',
+    );
     expect(screen.getByRole('button', { name: 'Upload payment receipt' })).toBeEnabled();
     expect(screen.getByText('4307')).toBeInTheDocument();
   });
@@ -126,22 +160,35 @@ describe('every payment state', () => {
   it('says it is being checked while a receipt is under review, with nothing to do', async () => {
     serve(registration({ payment: payment({ status: 'PAYMENT_REVIEW', hasReceipt: true }) }));
     renderApp('/registrations/r1');
-    expect(await screen.findByText('We are checking your payment. Please wait a moment.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Upload payment receipt' })).not.toBeInTheDocument();
+    expect(
+      await screen.findByText('We are checking your payment. Please wait a moment.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Upload payment receipt' }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText('4307')).not.toBeInTheDocument();
   });
 
   it('celebrates a confirmed payment and completes the steps', async () => {
-    serve(registration({ status: 'CONFIRMED', payment: payment({ status: 'PAYMENT_CONFIRMED', referenceCode: null }) }));
+    serve(
+      registration({
+        status: 'CONFIRMED',
+        payment: payment({ status: 'PAYMENT_CONFIRMED', referenceCode: null }),
+      }),
+    );
     renderApp('/registrations/r1');
     expect(await screen.findByText('Payment confirmed. See you on the pitch.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Upload payment receipt' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Upload payment receipt' }),
+    ).not.toBeInTheDocument();
   });
 
   it('confirms a free match immediately', async () => {
     serve(registration({ status: 'CONFIRMED', payment: null }));
     renderApp('/registrations/r1');
-    expect(await screen.findByText('This match is free, so your participation is confirmed right away.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('This match is free, so your participation is confirmed right away.'),
+    ).toBeInTheDocument();
   });
 
   it('tells the player about refunds', async () => {
@@ -151,9 +198,16 @@ describe('every payment state', () => {
   });
 
   it('says a lapsed unpaid seat was released', async () => {
-    serve(registration({ status: 'CANCELLED', payment: payment({ dueAt: '2020-01-01T00:00:00.000Z' }) }));
+    serve(
+      registration({
+        status: 'CANCELLED',
+        payment: payment({ dueAt: '2020-01-01T00:00:00.000Z' }),
+      }),
+    );
     renderApp('/registrations/r1');
-    expect(await screen.findByText('Your spot was released because payment wasn’t received in time.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Your spot was released because payment wasn’t received in time.'),
+    ).toBeInTheDocument();
   });
 
   it('refreshes while payment is expected, so an automatic confirmation shows up by itself', async () => {
@@ -163,14 +217,19 @@ describe('every payment state', () => {
       api.handlers['/v1/registrations/r1'] = () =>
         json(
           confirmed
-            ? registration({ status: 'CONFIRMED', payment: payment({ status: 'PAYMENT_CONFIRMED', referenceCode: null }) })
+            ? registration({
+                status: 'CONFIRMED',
+                payment: payment({ status: 'PAYMENT_CONFIRMED', referenceCode: null }),
+              })
             : registration(),
         );
       renderApp('/registrations/r1');
       await screen.findByText('4307');
       confirmed = true;
       await vi.advanceTimersByTimeAsync(16_000);
-      expect(await screen.findByText('Payment confirmed. See you on the pitch.')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Payment confirmed. See you on the pitch.'),
+      ).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }
@@ -193,11 +252,18 @@ describe('cancelling', () => {
   });
 
   it('warns that a paid registration is refunded by the team', async () => {
-    serve(registration({ status: 'CONFIRMED', payment: payment({ status: 'PAYMENT_CONFIRMED', referenceCode: null }) }));
+    serve(
+      registration({
+        status: 'CONFIRMED',
+        payment: payment({ status: 'PAYMENT_CONFIRMED', referenceCode: null }),
+      }),
+    );
     const user = userEvent.setup();
     renderApp('/registrations/r1');
     await user.click(await screen.findByRole('button', { name: 'Cancel registration' }));
-    expect(await screen.findByText('If you already paid, the team will handle your refund.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('If you already paid, the team will handle your refund.'),
+    ).toBeInTheDocument();
   });
 
   it('can keep the spot instead', async () => {
@@ -210,7 +276,15 @@ describe('cancelling', () => {
   });
 
   it('is not offered once the match has started', async () => {
-    serve(registration({ match: { ...registration().match, startsAt: '2020-01-01T10:00:00.000Z', endsAt: '2020-01-01T12:00:00.000Z' } }));
+    serve(
+      registration({
+        match: {
+          ...registration().match,
+          startsAt: '2020-01-01T10:00:00.000Z',
+          endsAt: '2020-01-01T12:00:00.000Z',
+        },
+      }),
+    );
     renderApp('/registrations/r1');
     await screen.findByText('4307');
     expect(screen.queryByRole('button', { name: 'Cancel registration' })).not.toBeInTheDocument();
@@ -226,8 +300,11 @@ describe('access', () => {
   });
 
   it('does not reveal another player’s registration', async () => {
-    api.handlers['/v1/registrations/r1'] = () => json({ error: { code: 'REGISTRATION_NOT_FOUND', message: '' } }, 404);
+    api.handlers['/v1/registrations/r1'] = () =>
+      json({ error: { code: 'REGISTRATION_NOT_FOUND', message: '' } }, 404);
     renderApp('/registrations/r1');
-    expect(await screen.findByRole('alert')).toHaveTextContent('We couldn’t find this registration.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'We couldn’t find this registration.',
+    );
   });
 });

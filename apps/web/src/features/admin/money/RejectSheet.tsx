@@ -29,8 +29,20 @@ export function RejectSheet({ item, onClose, handlers }: RejectSheetProps) {
   const { t } = useI18n();
   const closing = item?.payment.status === 'REFUND_PENDING';
   return (
-    <Sheet open={item !== null} title={closing ? t('adminPayments.closeTitle') : t('adminPayments.rejectTitle')} onClose={onClose}>
-      {item && <RejectForm key={item.registrationId} item={item} closing={closing} onClose={onClose} handlers={handlers} />}
+    <Sheet
+      open={item !== null}
+      title={closing ? t('adminPayments.closeTitle') : t('adminPayments.rejectTitle')}
+      onClose={onClose}
+    >
+      {item && (
+        <RejectForm
+          key={item.registrationId}
+          item={item}
+          closing={closing}
+          onClose={onClose}
+          handlers={handlers}
+        />
+      )}
     </Sheet>
   );
 }
@@ -73,18 +85,32 @@ function RejectForm({ item, closing, onClose, handlers }: RejectFormProps) {
       }}
     >
       <PaymentSummary item={item} />
-      <p className="small muted">{closing ? t('adminPayments.closeHint') : t('adminPayments.rejectHint')}</p>
+      <p className="small muted">
+        {closing ? t('adminPayments.closeHint') : t('adminPayments.rejectHint')}
+      </p>
       <fieldset className="money-choices">
         <legend>{t('payment.rejectReasonLabel')}</legend>
         {PAYMENT_REJECT_REASONS.map((option) => (
           <label key={option} className="money-choice">
-            <input type="radio" name="reject-reason" value={option} checked={reason === option} onChange={() => setReason(option)} />
+            <input
+              type="radio"
+              name="reject-reason"
+              value={option}
+              checked={reason === option}
+              onChange={() => setReason(option)}
+            />
             <span>{t(PAYMENT_REJECT_REASON_LABEL_KEY[option])}</span>
           </label>
         ))}
       </fieldset>
       <ActionError error={reject.error} />
-      <Button type="submit" variant="danger" block loading={reject.isPending} disabled={!input.success}>
+      <Button
+        type="submit"
+        variant="danger"
+        block
+        loading={reject.isPending}
+        disabled={!input.success}
+      >
         {closing ? t('adminPayments.closeWithoutRefund') : t('adminPayments.rejectSubmit')}
       </Button>
       <Button block onClick={onClose}>

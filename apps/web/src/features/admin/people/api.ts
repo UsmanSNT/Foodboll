@@ -1,4 +1,9 @@
-import type { AdminUserDto, OrganizerApplicationDto, OrganizerApplicationStatus, Page } from '@foodboll/contracts';
+import type {
+  AdminUserDto,
+  OrganizerApplicationDto,
+  OrganizerApplicationStatus,
+  Page,
+} from '@foodboll/contracts';
 import type { LocaleCode } from '@foodboll/i18n';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
@@ -23,8 +28,15 @@ export function useAdminApplications(status: OrganizerApplicationStatus) {
     queryKey: [...APPLICATIONS_KEY, status, locale],
     initialPageParam: 0,
     queryFn: ({ pageParam, signal }) => {
-      const params = new URLSearchParams({ status, limit: String(PAGE_SIZE), offset: String(pageParam) });
-      return apiRequest<Page<OrganizerApplicationDto>>(`/v1/admin/organizer-applications?${params}`, { locale, signal });
+      const params = new URLSearchParams({
+        status,
+        limit: String(PAGE_SIZE),
+        offset: String(pageParam),
+      });
+      return apiRequest<Page<OrganizerApplicationDto>>(
+        `/v1/admin/organizer-applications?${params}`,
+        { locale, signal },
+      );
     },
     getNextPageParam: nextOffset,
   });
@@ -35,14 +47,20 @@ export type ApplicationDecision = 'approve' | 'reject';
 /** Approving also changes a role and a region grant, so the users list is refreshed too. */
 export const useDecideApplication = (decision: ApplicationDecision) =>
   useApiMutation<string, OrganizerApplicationDto>(
-    (id) => ({ path: `/v1/admin/organizer-applications/${encodeURIComponent(id)}/${decision}`, method: 'POST' }),
+    (id) => ({
+      path: `/v1/admin/organizer-applications/${encodeURIComponent(id)}/${decision}`,
+      method: 'POST',
+    }),
     decision === 'approve' ? [APPLICATIONS_KEY, USERS_KEY] : [APPLICATIONS_KEY],
   );
 
 /** For a decision that failed because the list was stale: show what is there now. */
 export function useRefreshApplications(): () => void {
   const queryClient = useQueryClient();
-  return useCallback(() => void queryClient.invalidateQueries({ queryKey: [...APPLICATIONS_KEY] }), [queryClient]);
+  return useCallback(
+    () => void queryClient.invalidateQueries({ queryKey: [...APPLICATIONS_KEY] }),
+    [queryClient],
+  );
 }
 
 /** `all` sends no filter; `none` is the users who never chose a language. */

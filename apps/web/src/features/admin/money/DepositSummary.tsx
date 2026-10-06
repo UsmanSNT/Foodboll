@@ -9,7 +9,11 @@ export function DepositSummary({ deposit }: { readonly deposit: BankDepositDto }
     <div className="stack">
       <dl className="kv money-summary">
         <dt>{t('payment.amount')}</dt>
-        <dd className="num">{deposit.amountKrw === null ? t('adminDeposits.amountUnknown') : formatKrw(deposit.amountKrw)}</dd>
+        <dd className="num">
+          {deposit.amountKrw === null
+            ? t('adminDeposits.amountUnknown')
+            : formatKrw(deposit.amountKrw)}
+        </dd>
         <dt>{t('adminDeposits.receivedAt')}</dt>
         <dd>{formatDateTime(deposit.receivedAt)}</dd>
       </dl>

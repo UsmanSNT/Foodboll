@@ -1,1 +1,112 @@
-/* admin-settings screens */
+/* admin-settings screens: the bank payment instructions and the legal documents */
+
+/* ---------- Groups ---------- */
+.as-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.as-group > legend {
+  padding: 0;
+}
+
+/* ---------- Language tabs ---------- */
+/* The shared segmented control is 36px tall; touch targets need 44px, and each tab carries a status mark. */
+.as-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 8px;
+}
+.as-tab__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.as-status {
+  flex: none;
+}
+.as-status--ok {
+  color: var(--success);
+}
+.as-status--problem {
+  color: var(--danger);
+}
+.as-status--empty {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+/* The shared segmented control is 36px tall (the preview's language switch); touch targets need 44px. */
+.as-segmented .segmented button {
+  min-height: 44px;
+}
+
+/* ---------- Character counter and long text ---------- */
+.as-counter {
+  justify-self: end;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.as-counter--over {
+  color: var(--danger);
+  font-weight: 650;
+}
+.as-body {
+  min-height: 320px;
+  line-height: 1.6;
+}
+
+/* ---------- Bottom bar ---------- */
+/* The bar can also hold an error or a hint, so it is taller than the shared one the page reserves room for. */
+.as-page {
+  padding-bottom: calc(160px + env(safe-area-inset-bottom));
+}
+
+/* ---------- Document list ---------- */
+.as-docs {
+  overflow: hidden;
+}
+/* Each link is the only child of its <li>, so the shared `:last-child` rule would remove every divider. */
+.as-docs > li + li {
+  border-top: 1px solid var(--border);
+}
+.as-doc {
+  display: grid;
+  gap: 2px;
+}
+.as-doc__error {
+  padding: 0 16px 12px;
+}
+
+/* ---------- Publish confirmation ---------- */
+.as-outcome {
+  display: grid;
+  gap: 4px;
+  padding: 12px 16px;
+}
+.as-outcome + .as-outcome {
+  border-top: 1px solid var(--border);
+}
+.as-outcome__title {
+  overflow-wrap: anywhere;
+}
+.as-outcome__removed {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--warning);
+  font-weight: 600;
+}
+.as-outcome__removed svg {
+  flex: none;
+  margin-top: 2px;
+}

@@ -45,7 +45,8 @@ export function DepositList({ tab }: { readonly tab: DepositTab }) {
     }),
     [leave, refresh, toast, t],
   );
-  const closer = (kind: DepositSheetKind) => () => setActive((current) => (current?.kind === kind ? null : current));
+  const closer = (kind: DepositSheetKind) => () =>
+    setActive((current) => (current?.kind === kind ? null : current));
   const depositOf = (kind: DepositSheetKind) => (active?.kind === kind ? active.deposit : null);
 
   const items = useMemo(
@@ -55,17 +56,29 @@ export function DepositList({ tab }: { readonly tab: DepositTab }) {
   const loadMore = () => void query.fetchNextPage();
 
   if (query.isPending) return <ListSkeleton rows={3} height={240} />;
-  if (query.isError && !query.data) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
-  if (items.length === 0) return <EmptyState icon={<Banknote size={32} />} title={t(DEPOSIT_EMPTY_KEY[tab])} />;
+  if (query.isError && !query.data)
+    return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
+  if (items.length === 0)
+    return <EmptyState icon={<Banknote size={32} />} title={t(DEPOSIT_EMPTY_KEY[tab])} />;
 
   return (
     <>
       <ul className="money-list">
         {items.map((deposit) => (
-          <DepositCard key={deposit.id} deposit={deposit} leaving={resolution.isLeaving(deposit.id)} handlers={handlers} />
+          <DepositCard
+            key={deposit.id}
+            deposit={deposit}
+            leaving={resolution.isLeaving(deposit.id)}
+            handlers={handlers}
+          />
         ))}
       </ul>
-      {query.isError && <ErrorState error={query.error} onRetry={query.isFetchNextPageError ? loadMore : () => void query.refetch()} />}
+      {query.isError && (
+        <ErrorState
+          error={query.error}
+          onRetry={query.isFetchNextPageError ? loadMore : () => void query.refetch()}
+        />
+      )}
       {query.hasNextPage && !query.isFetchNextPageError && (
         <Button block loading={query.isFetchingNextPage} onClick={loadMore}>
           {t('feed.loadMore')}

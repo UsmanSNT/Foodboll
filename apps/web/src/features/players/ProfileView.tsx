@@ -1,4 +1,8 @@
-import { ACHIEVEMENT_LABEL_KEY, ACTIVITY_LABEL_KEY, type PlayerProfileDto } from '@foodboll/contracts';
+import {
+  ACHIEVEMENT_LABEL_KEY,
+  ACTIVITY_LABEL_KEY,
+  type PlayerProfileDto,
+} from '@foodboll/contracts';
 import type { ReactNode } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { regionLabel } from '../../lib/match';
@@ -18,7 +22,13 @@ function Stat({ label, value }: { readonly label: string; readonly value: string
 }
 
 /** A player's public page: level, activity, games played, achievements and recent matches. */
-export function ProfileView({ profile, extra }: { readonly profile: PlayerProfileDto; readonly extra?: ReactNode }) {
+export function ProfileView({
+  profile,
+  extra,
+}: {
+  readonly profile: PlayerProfileDto;
+  readonly extra?: ReactNode;
+}) {
   const { t, formatDateLong } = useI18n();
   const { level, stats } = profile;
   const percent = (value: number) => `${Math.round(value * 100)}%`;
@@ -58,7 +68,10 @@ export function ProfileView({ profile, extra }: { readonly profile: PlayerProfil
         <Stat label={t('profile.matchesPlayed')} value={String(stats.matchesPlayed)} />
         <Stat label={t('profile.last90Days')} value={String(stats.last90Days)} />
         <Stat label={t('profile.matchesOrganized')} value={String(stats.matchesOrganized)} />
-        <Stat label={t('profile.attendanceRate')} value={stats.attendanceRate === null ? '–' : percent(stats.attendanceRate)} />
+        <Stat
+          label={t('profile.attendanceRate')}
+          value={stats.attendanceRate === null ? '–' : percent(stats.attendanceRate)}
+        />
       </section>
 
       {extra}

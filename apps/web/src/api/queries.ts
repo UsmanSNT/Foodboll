@@ -32,7 +32,9 @@ import { apiRequest } from './client';
 export function useApiQuery<T>(
   key: readonly unknown[],
   path: string,
-  options: Partial<Pick<UseQueryOptions<T>, 'enabled' | 'staleTime' | 'placeholderData' | 'refetchInterval'>> = {},
+  options: Partial<
+    Pick<UseQueryOptions<T>, 'enabled' | 'staleTime' | 'placeholderData' | 'refetchInterval'>
+  > = {},
 ) {
   const { locale } = useI18n();
   return useQuery<T>({
@@ -42,7 +44,8 @@ export function useApiQuery<T>(
   });
 }
 
-export const useLanguages = () => useApiQuery<{ items: LanguageDto[] }>(['languages'], '/v1/languages', { staleTime: 3_600_000 });
+export const useLanguages = () =>
+  useApiQuery<{ items: LanguageDto[] }>(['languages'], '/v1/languages', { staleTime: 3_600_000 });
 
 export function useMe() {
   const { signedIn } = useAuth();
@@ -72,7 +75,8 @@ export function useFeed(filter: FeedFilter, options: { enabled?: boolean } = {})
       if (filter.date) params.set('date', filter.date);
       return apiRequest<Page<MatchSummaryDto>>(`/v1/matches?${params}`, { locale, signal });
     },
-    getNextPageParam: (last) => (last.items.length < FEED_PAGE ? undefined : last.offset + last.limit),
+    getNextPageParam: (last) =>
+      last.items.length < FEED_PAGE ? undefined : last.offset + last.limit,
     placeholderData: keepPreviousData,
     enabled: options.enabled ?? true,
   });
@@ -80,28 +84,41 @@ export function useFeed(filter: FeedFilter, options: { enabled?: boolean } = {})
 
 export function useMatch(id: string) {
   const { token } = useAuth();
-  return useApiQuery<MatchDto>(['match', id, token !== null], `/v1/matches/${encodeURIComponent(id)}`);
+  return useApiQuery<MatchDto>(
+    ['match', id, token !== null],
+    `/v1/matches/${encodeURIComponent(id)}`,
+  );
 }
 
 export function useMatchPlayers(id: string) {
   const { signedIn } = useAuth();
-  return useApiQuery<{ items: PlayerCardDto[] }>(['match-players', id], `/v1/matches/${encodeURIComponent(id)}/players`, {
-    enabled: signedIn,
-  });
+  return useApiQuery<{ items: PlayerCardDto[] }>(
+    ['match-players', id],
+    `/v1/matches/${encodeURIComponent(id)}/players`,
+    {
+      enabled: signedIn,
+    },
+  );
 }
 
 export function useMyRegistrations() {
   const { signedIn } = useAuth();
-  return useApiQuery<Page<RegistrationDto>>(['registrations'], '/v1/me/registrations?limit=100', { enabled: signedIn });
+  return useApiQuery<Page<RegistrationDto>>(['registrations'], '/v1/me/registrations?limit=100', {
+    enabled: signedIn,
+  });
 }
 
 /** One registration. While payment is still expected it refreshes, so an automatic confirmation appears on its own. */
 export function useRegistration(id: string) {
   const { signedIn } = useAuth();
-  return useApiQuery<RegistrationDto>(['registration', id], `/v1/registrations/${encodeURIComponent(id)}`, {
-    enabled: signedIn,
-    refetchInterval: (query) => (query.state.data?.status === 'APPLIED' ? 15_000 : false),
-  });
+  return useApiQuery<RegistrationDto>(
+    ['registration', id],
+    `/v1/registrations/${encodeURIComponent(id)}`,
+    {
+      enabled: signedIn,
+      refetchInterval: (query) => (query.state.data?.status === 'APPLIED' ? 15_000 : false),
+    },
+  );
 }
 
 export const useMyProfile = () => {
@@ -110,7 +127,9 @@ export const useMyProfile = () => {
 };
 
 export const usePaymentInstruction = (enabled: boolean) =>
-  useApiQuery<PaymentInstructionDto>(['payment-instruction'], '/v1/payment-instructions/current', { enabled });
+  useApiQuery<PaymentInstructionDto>(['payment-instruction'], '/v1/payment-instructions/current', {
+    enabled,
+  });
 
 export const usePlayerProfile = (id: string) =>
   useApiQuery<PlayerProfileDto>(['player', id], `/v1/players/${encodeURIComponent(id)}`);
@@ -152,13 +171,17 @@ export interface AuthConfig {
   readonly telegramBotUsername: string | null;
   readonly devLogin: boolean;
 }
-export const useAuthConfig = () => useApiQuery<AuthConfig>(['auth-config'], '/v1/auth/config', { staleTime: 3_600_000 });
+export const useAuthConfig = () =>
+  useApiQuery<AuthConfig>(['auth-config'], '/v1/auth/config', { staleTime: 3_600_000 });
 
 // ---- Mutations ---------------------------------------------------------------------------
 
 /** Runs a write and refreshes whatever it may have changed. */
 export function useApiMutation<TBody, TResult = unknown>(
-  build: (body: TBody, locale: ReturnType<typeof useI18n>['locale']) => { path: string; method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown; file?: File },
+  build: (
+    body: TBody,
+    locale: ReturnType<typeof useI18n>['locale'],
+  ) => { path: string; method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown; file?: File },
   invalidate: readonly (readonly unknown[])[] = [],
 ) {
   const { locale } = useI18n();
@@ -174,7 +197,9 @@ export function useApiMutation<TBody, TResult = unknown>(
       });
     },
     onSuccess: async () => {
-      await Promise.all(invalidate.map((key) => queryClient.invalidateQueries({ queryKey: [...key] })));
+      await Promise.all(
+        invalidate.map((key) => queryClient.invalidateQueries({ queryKey: [...key] })),
+      );
     },
   });
 }

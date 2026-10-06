@@ -1,9 +1,20 @@
 import type { RegionDto, RegionNodeDto } from '@foodboll/contracts';
 import { describe, expect, it } from 'vitest';
-import { allowedRegionGroups, filterRegionGroups, findRegion, onlyChoice, regionName } from './regions';
+import {
+  allowedRegionGroups,
+  filterRegionGroups,
+  findRegion,
+  onlyChoice,
+  regionName,
+} from './regions';
 
 const name = (text: string) => ({ text, locale: 'en' as const, isFallback: false });
-const node = (code: string, text: string, level: 1 | 2, children: RegionNodeDto[] = []): RegionNodeDto => ({
+const node = (
+  code: string,
+  text: string,
+  level: 1 | 2,
+  children: RegionNodeDto[] = [],
+): RegionNodeDto => ({
   id: `id-${code}`,
   code,
   name: name(text),
@@ -20,12 +31,21 @@ const granted = (code: string, text: string, level: 1 | 2): RegionDto => ({
 });
 
 const tree = [
-  node('seoul', 'Seoul', 1, [node('seoul-gangnam', 'Gangnam-gu', 2), node('seoul-mapo', 'Mapo-gu', 2)]),
-  node('gyeonggi', 'Gyeonggi', 1, [node('gyeonggi-suwon', 'Suwon', 2), node('gyeonggi-ansan', 'Ansan', 2)]),
+  node('seoul', 'Seoul', 1, [
+    node('seoul-gangnam', 'Gangnam-gu', 2),
+    node('seoul-mapo', 'Mapo-gu', 2),
+  ]),
+  node('gyeonggi', 'Gyeonggi', 1, [
+    node('gyeonggi-suwon', 'Suwon', 2),
+    node('gyeonggi-ansan', 'Ansan', 2),
+  ]),
   node('sejong', 'Sejong', 1),
 ];
 const codes = (groups: ReturnType<typeof allowedRegionGroups>) =>
-  groups.flatMap((g) => [...(g.selectable ? [g.province.code] : []), ...g.children.map((c) => c.code)]);
+  groups.flatMap((g) => [
+    ...(g.selectable ? [g.province.code] : []),
+    ...g.children.map((c) => c.code),
+  ]);
 
 describe('allowedRegionGroups', () => {
   it('lets a granted province cover itself and all its districts', () => {
@@ -47,7 +67,13 @@ describe('allowedRegionGroups', () => {
       granted('gyeonggi-ansan', 'Ansan', 2),
       granted('sejong', 'Sejong', 1),
     ]);
-    expect(codes(groups)).toEqual(['seoul-mapo', 'gyeonggi', 'gyeonggi-suwon', 'gyeonggi-ansan', 'sejong']);
+    expect(codes(groups)).toEqual([
+      'seoul-mapo',
+      'gyeonggi',
+      'gyeonggi-suwon',
+      'gyeonggi-ansan',
+      'sejong',
+    ]);
   });
 
   it('offers nothing without grants, and everything without restriction', () => {
@@ -62,13 +88,22 @@ describe('allowedRegionGroups', () => {
 
 describe('onlyChoice', () => {
   it('returns the code when exactly one place can be chosen', () => {
-    expect(onlyChoice(allowedRegionGroups(tree, [granted('seoul-mapo', 'Mapo-gu', 2)]))).toBe('seoul-mapo');
+    expect(onlyChoice(allowedRegionGroups(tree, [granted('seoul-mapo', 'Mapo-gu', 2)]))).toBe(
+      'seoul-mapo',
+    );
     expect(onlyChoice(allowedRegionGroups(tree, [granted('sejong', 'Sejong', 1)]))).toBe('sejong');
   });
 
   it('returns null when there is a choice to make', () => {
     expect(onlyChoice(allowedRegionGroups(tree, [granted('seoul', 'Seoul', 1)]))).toBeNull();
-    expect(onlyChoice(allowedRegionGroups(tree, [granted('seoul-mapo', 'Mapo-gu', 2), granted('sejong', 'Sejong', 1)]))).toBeNull();
+    expect(
+      onlyChoice(
+        allowedRegionGroups(tree, [
+          granted('seoul-mapo', 'Mapo-gu', 2),
+          granted('sejong', 'Sejong', 1),
+        ]),
+      ),
+    ).toBeNull();
     expect(onlyChoice([])).toBeNull();
   });
 });
@@ -99,7 +134,11 @@ describe('filterRegionGroups', () => {
   });
 
   it('finds a province with all its districts', () => {
-    expect(codes(filterRegionGroups(groups, 'gyeonggi'))).toEqual(['gyeonggi', 'gyeonggi-suwon', 'gyeonggi-ansan']);
+    expect(codes(filterRegionGroups(groups, 'gyeonggi'))).toEqual([
+      'gyeonggi',
+      'gyeonggi-suwon',
+      'gyeonggi-ansan',
+    ]);
   });
 
   it('finds a district by province and district together', () => {

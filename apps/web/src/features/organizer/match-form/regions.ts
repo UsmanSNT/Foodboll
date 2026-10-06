@@ -22,7 +22,9 @@ export function allowedRegionGroups(
     const children = wholeProvince
       ? province.children
       : province.children.filter((child) => grantedCodes.has(child.code));
-    return wholeProvince || children.length > 0 ? [{ province, selectable: wholeProvince, children }] : [];
+    return wholeProvince || children.length > 0
+      ? [{ province, selectable: wholeProvince, children }]
+      : [];
   });
 }
 
@@ -64,6 +66,8 @@ export function filterRegionGroups(groups: readonly RegionGroup[], query: string
       normalize(`${provinceName} ${child.name.text}`).includes(needle),
     );
     const selectable = group.selectable && provinceMatches;
-    return selectable || children.length > 0 ? [{ province: group.province, selectable, children }] : [];
+    return selectable || children.length > 0
+      ? [{ province: group.province, selectable, children }]
+      : [];
   });
 }

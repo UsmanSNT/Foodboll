@@ -21,32 +21,56 @@ function UserSummary({ user }: { readonly user: AdminUserDto }) {
           <LanguageBadge language={user.preferredLanguage} />
         </span>
         <DeviceLocale tag={user.deviceLocale} />
-        <span className="small muted">{t('adminPeople.users.joinedOn', { date: formatDateLong(user.createdAt) })}</span>
+        <span className="small muted">
+          {t('adminPeople.users.joinedOn', { date: formatDateLong(user.createdAt) })}
+        </span>
       </div>
     </div>
   );
 }
 
 /** Loads the region list, which only the editor needs: admins are never edited. */
-function RegionsLoader({ user, onClose }: { readonly user: AdminUserDto; readonly onClose: () => void }) {
+function RegionsLoader({
+  user,
+  onClose,
+}: {
+  readonly user: AdminUserDto;
+  readonly onClose: () => void;
+}) {
   const tree = useRegionTree();
   if (tree.isPending) return <ListSkeleton rows={4} height={52} />;
   if (tree.isError) return <ErrorState error={tree.error} onRetry={() => void tree.refetch()} />;
   return <RegionEditor user={user} tree={tree.data.items} onSaved={onClose} />;
 }
 
-function UserRegions({ user, onClose }: { readonly user: AdminUserDto; readonly onClose: () => void }) {
+function UserRegions({
+  user,
+  onClose,
+}: {
+  readonly user: AdminUserDto;
+  readonly onClose: () => void;
+}) {
   const { t } = useI18n();
   return (
     <div className="stack">
       <UserSummary user={user} />
-      {user.role === 'ADMIN' ? <Alert tone="info">{t('adminPeople.regions.adminLocked')}</Alert> : <RegionsLoader user={user} onClose={onClose} />}
+      {user.role === 'ADMIN' ? (
+        <Alert tone="info">{t('adminPeople.regions.adminLocked')}</Alert>
+      ) : (
+        <RegionsLoader user={user} onClose={onClose} />
+      )}
     </div>
   );
 }
 
 /** One person's organizer regions: where they may announce matches, editable by an admin. */
-export function UserRegionsSheet({ user, onClose }: { readonly user: AdminUserDto | null; readonly onClose: () => void }) {
+export function UserRegionsSheet({
+  user,
+  onClose,
+}: {
+  readonly user: AdminUserDto | null;
+  readonly onClose: () => void;
+}) {
   const { t } = useI18n();
   return (
     <Sheet open={user !== null} title={t('adminPeople.regions.title')} onClose={onClose}>

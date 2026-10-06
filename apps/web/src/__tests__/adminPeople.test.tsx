@@ -1,7 +1,20 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiError, chooseLanguageAndRegion, gangnam, json, me, mockApi, renderApp, seoul, setDeviceLanguages, signIn, type Api, type Call } from '../test-utils';
+import {
+  apiError,
+  chooseLanguageAndRegion,
+  gangnam,
+  json,
+  me,
+  mockApi,
+  renderApp,
+  seoul,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+  type Call,
+} from '../test-utils';
 
 let api: Api;
 beforeEach(() => {
@@ -45,7 +58,10 @@ function serveApplications(initial: ReturnType<typeof application>[]) {
     return pageOf(all.filter((a) => a.status === status).slice(offset, offset + 20), offset);
   };
   for (const a of initial) {
-    for (const [action, status] of [['approve', 'APPROVED'], ['reject', 'REJECTED']] as const) {
+    for (const [action, status] of [
+      ['approve', 'APPROVED'],
+      ['reject', 'REJECTED'],
+    ] as const) {
       api.handlers[`${APPLICATIONS}/${a.id}/${action}`] = () => {
         const found = all.find((x) => x.id === a.id);
         if (found) Object.assign(found, { status, reviewedAt: '2030-04-02T03:00:00.000Z' });
@@ -58,7 +74,10 @@ function serveApplications(initial: ReturnType<typeof application>[]) {
 
 describe('organizer applications', () => {
   it('lists pending applications first, with who applied, where, what they wrote and when', async () => {
-    serveApplications([application('a1', 'Dilnoza'), application('a2', 'Aziz Karimov', { message: null })]);
+    serveApplications([
+      application('a1', 'Dilnoza'),
+      application('a2', 'Aziz Karimov', { message: null }),
+    ]);
     renderApp('/admin/applications');
 
     const card = await screen.findByRole('article', { name: 'Dilnoza' });
@@ -68,25 +87,41 @@ describe('organizer applications', () => {
     expect(scope.getByText('Applied Apr 1, 2030')).toBeInTheDocument();
     expect(scope.getByRole('button', { name: 'Approve: Dilnoza' })).toBeEnabled();
     expect(scope.getByRole('button', { name: 'Reject: Dilnoza' })).toBeEnabled();
-    expect(within(screen.getByRole('article', { name: 'Aziz Karimov' })).getByText('No message was left.')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('article', { name: 'Aziz Karimov' })).getByText(
+        'No message was left.',
+      ),
+    ).toBeInTheDocument();
 
     expect(screen.getByRole('tab', { name: 'Pending', selected: true })).toBeInTheDocument();
     const request = calls('GET', APPLICATIONS)[0];
-    expect(Object.fromEntries(request?.url.searchParams ?? [])).toEqual({ status: 'PENDING', limit: '20', offset: '0', lang: 'en' });
+    expect(Object.fromEntries(request?.url.searchParams ?? [])).toEqual({
+      status: 'PENDING',
+      limit: '20',
+      offset: '0',
+      lang: 'en',
+    });
   });
 
   it('shows what the applicant wrote as plain text, never as markup', async () => {
-    serveApplications([application('a1', 'Dilnoza', { message: '<img src=x onerror="alert(1)"> <b>hello</b>' })]);
+    serveApplications([
+      application('a1', 'Dilnoza', { message: '<img src=x onerror="alert(1)"> <b>hello</b>' }),
+    ]);
     const { container } = renderApp('/admin/applications');
 
-    expect(await screen.findByText('<img src=x onerror="alert(1)"> <b>hello</b>')).toBeInTheDocument();
+    expect(
+      await screen.findByText('<img src=x onerror="alert(1)"> <b>hello</b>'),
+    ).toBeInTheDocument();
     expect(container.querySelector('img, b')).toBeNull();
   });
 
   it('shows decided applications under their own tab, without decision buttons', async () => {
     serveApplications([
       application('a1', 'Dilnoza', { status: 'APPROVED', reviewedAt: '2030-04-02T03:00:00.000Z' }),
-      application('a2', 'Aziz Karimov', { status: 'REJECTED', reviewedAt: '2030-04-03T03:00:00.000Z' }),
+      application('a2', 'Aziz Karimov', {
+        status: 'REJECTED',
+        reviewedAt: '2030-04-03T03:00:00.000Z',
+      }),
     ]);
     const user = userEvent.setup();
     renderApp('/admin/applications');
@@ -95,9 +130,13 @@ describe('organizer applications', () => {
     await user.click(screen.getByRole('tab', { name: 'Approved' }));
     const approved = await screen.findByRole('article', { name: 'Dilnoza' });
     expect(within(approved).getByText('Approved')).toBeInTheDocument();
-    expect(within(approved).getByText('Applied Apr 1, 2030 · Reviewed Apr 2, 2030')).toBeInTheDocument();
+    expect(
+      within(approved).getByText('Applied Apr 1, 2030 · Reviewed Apr 2, 2030'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^(Approve|Reject)/ })).not.toBeInTheDocument();
-    expect(calls('GET', APPLICATIONS).some((c) => c.url.searchParams.get('status') === 'APPROVED')).toBe(true);
+    expect(
+      calls('GET', APPLICATIONS).some((c) => c.url.searchParams.get('status') === 'APPROVED'),
+    ).toBe(true);
 
     await user.click(screen.getByRole('tab', { name: 'Rejected' }));
     const rejected = await screen.findByRole('article', { name: 'Aziz Karimov' });
@@ -111,11 +150,17 @@ describe('organizer applications', () => {
     renderApp('/admin/applications');
 
     expect(await screen.findByRole('heading', { name: 'All caught up' })).toBeInTheDocument();
-    expect(screen.getByText('No applications are waiting for review. New ones will show up here.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No applications are waiting for review. New ones will show up here.'),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: 'Approved' }));
-    expect(await screen.findByRole('heading', { name: 'No approved applications' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'No approved applications' }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: 'Rejected' }));
-    expect(await screen.findByRole('heading', { name: 'No rejected applications' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'No rejected applications' }),
+    ).toBeInTheDocument();
   });
 
   it('asks before approving and says exactly what approval does', async () => {
@@ -126,9 +171,15 @@ describe('organizer applications', () => {
     await user.click(await screen.findByRole('button', { name: 'Approve: Dilnoza' }));
     const dialog = await screen.findByRole('dialog', { name: 'Approve this application?' });
     expect(
-      within(dialog).getByText('Dilnoza will be able to announce matches in Seoul Gangnam-gu. If they are still a player, they become an organizer.'),
+      within(dialog).getByText(
+        'Dilnoza will be able to announce matches in Seoul Gangnam-gu. If they are still a player, they become an organizer.',
+      ),
     ).toBeInTheDocument();
-    expect(within(dialog).getByText('They get a notification in their own language. You can change their regions later under Users.')).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        'They get a notification in their own language. You can change their regions later under Users.',
+      ),
+    ).toBeInTheDocument();
     expect(within(dialog).queryByText(/whole province/)).not.toBeInTheDocument();
 
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
@@ -147,7 +198,9 @@ describe('organizer applications', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
 
     expect(await screen.findByText('Application approved.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole('article', { name: 'Dilnoza' })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole('article', { name: 'Dilnoza' })).not.toBeInTheDocument(),
+    );
     expect(screen.getByRole('article', { name: 'Aziz Karimov' })).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
@@ -166,7 +219,9 @@ describe('organizer applications', () => {
     expect(within(card).getByText('Seoul')).toBeInTheDocument();
     await user.click(within(card).getByRole('button', { name: 'Approve: Dilnoza' }));
     const dialog = await screen.findByRole('dialog', { name: 'Approve this application?' });
-    expect(within(dialog).getByText('This is a whole province, so every district in it is included.')).toBeInTheDocument();
+    expect(
+      within(dialog).getByText('This is a whole province, so every district in it is included.'),
+    ).toBeInTheDocument();
   });
 
   it('asks before rejecting, says the role stays and that it cannot be undone, then rejects', async () => {
@@ -176,12 +231,22 @@ describe('organizer applications', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Reject: Aziz Karimov' }));
     const dialog = await screen.findByRole('dialog', { name: 'Reject this application?' });
-    expect(within(dialog).getByText('The application from Aziz Karimov for Seoul Gangnam-gu will be declined. Their role stays the same.')).toBeInTheDocument();
-    expect(within(dialog).getByText('They get a notification in their own language. This can’t be undone, but they can apply again.')).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        'The application from Aziz Karimov for Seoul Gangnam-gu will be declined. Their role stays the same.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        'They get a notification in their own language. This can’t be undone, but they can apply again.',
+      ),
+    ).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Reject' }));
 
     expect(await screen.findByText('Application rejected.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole('article', { name: 'Aziz Karimov' })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole('article', { name: 'Aziz Karimov' })).not.toBeInTheDocument(),
+    );
     expect(calls('POST', `${APPLICATIONS}/a2/reject`)).toHaveLength(1);
     expect(calls('POST', `${APPLICATIONS}/a2/approve`)).toHaveLength(0);
     expect(screen.getByRole('article', { name: 'Dilnoza' })).toBeInTheDocument();
@@ -202,7 +267,9 @@ describe('organizer applications', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Approve this application?' });
     await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
 
-    await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Approve' })).toBeDisabled());
+    await waitFor(() =>
+      expect(within(dialog).getByRole('button', { name: 'Approve' })).toBeDisabled(),
+    );
     await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
     release();
     await screen.findByText('Application approved.');
@@ -222,10 +289,20 @@ describe('organizer applications', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Approve this application?' });
     await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
 
-    expect(await within(dialog).findByText('Another admin has already decided on this application. The list was refreshed.')).toBeInTheDocument();
+    expect(
+      await within(dialog).findByText(
+        'Another admin has already decided on this application. The list was refreshed.',
+      ),
+    ).toBeInTheDocument();
     expect(within(dialog).queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole('article', { name: 'Dilnoza' })).not.toBeInTheDocument());
-    await user.click(within(dialog).getByRole('button', { name: 'Close' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('article', { name: 'Dilnoza' })).not.toBeInTheDocument(),
+    );
+    // The sheet's own X button and the form's Close button share a name; the form's comes last.
+    await user.click(
+      within(dialog).getAllByRole('button', { name: 'Close' }).at(-1) as HTMLElement,
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'All caught up' })).toBeInTheDocument();
   });
 
@@ -239,7 +316,9 @@ describe('organizer applications', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Reject this application?' });
     await user.click(within(dialog).getByRole('button', { name: 'Reject' }));
 
-    expect(await within(dialog).findByRole('alert')).toHaveTextContent('We couldn’t find this application.');
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'We couldn’t find this application.',
+    );
     expect(within(dialog).queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument();
   });
 
@@ -247,14 +326,17 @@ describe('organizer applications', () => {
     serveApplications([application('a1', 'Dilnoza')]);
     const approve = api.handlers[`${APPLICATIONS}/a1/approve`]!;
     let fail = true;
-    api.handlers[`${APPLICATIONS}/a1/approve`] = (url, init) => (fail ? apiError('INTERNAL_ERROR', 500) : approve(url, init));
+    api.handlers[`${APPLICATIONS}/a1/approve`] = (url, init) =>
+      fail ? apiError('INTERNAL_ERROR', 500) : approve(url, init);
     const user = userEvent.setup();
     renderApp('/admin/applications');
 
     await user.click(await screen.findByRole('button', { name: 'Approve: Dilnoza' }));
     const dialog = await screen.findByRole('dialog', { name: 'Approve this application?' });
     await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
-    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     expect(within(dialog).getByRole('button', { name: 'Approve' })).toBeEnabled();
 
     fail = false;
@@ -263,7 +345,11 @@ describe('organizer applications', () => {
   });
 
   it('loads more applications a page at a time', async () => {
-    serveApplications(Array.from({ length: 21 }, (_, i) => application(`a${i}`, `Applicant ${String(i).padStart(2, '0')}`)));
+    serveApplications(
+      Array.from({ length: 21 }, (_, i) =>
+        application(`a${i}`, `Applicant ${String(i).padStart(2, '0')}`),
+      ),
+    );
     const user = userEvent.setup();
     renderApp('/admin/applications');
 
@@ -273,7 +359,10 @@ describe('organizer applications', () => {
 
     expect(await screen.findByRole('article', { name: 'Applicant 20' })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(21);
-    expect(calls('GET', APPLICATIONS).map((c) => c.url.searchParams.get('offset'))).toEqual(['0', '20']);
+    expect(calls('GET', APPLICATIONS).map((c) => c.url.searchParams.get('offset'))).toEqual([
+      '0',
+      '20',
+    ]);
     expect(screen.queryByRole('button', { name: 'Show more' })).not.toBeInTheDocument();
   });
 
@@ -281,11 +370,14 @@ describe('organizer applications', () => {
     serveApplications([application('a1', 'Dilnoza')]);
     const ok = api.handlers[APPLICATIONS]!;
     let fail = true;
-    api.handlers[APPLICATIONS] = (url, init) => (fail ? apiError('INTERNAL_ERROR', 500) : ok(url, init));
+    api.handlers[APPLICATIONS] = (url, init) =>
+      fail ? apiError('INTERNAL_ERROR', 500) : ok(url, init);
     const user = userEvent.setup();
     renderApp('/admin/applications');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     fail = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByRole('article', { name: 'Dilnoza' })).toBeInTheDocument();
@@ -319,8 +411,14 @@ const node = (code: string, name: string, level: 1 | 2, children: unknown[] = []
 });
 const regionTree = {
   items: [
-    node('seoul', 'Seoul', 1, [node('seoul-gangnam', 'Gangnam-gu', 2), node('seoul-songpa', 'Songpa-gu', 2)]),
-    node('gyeonggi', 'Gyeonggi', 1, [node('gyeonggi-suwon', 'Suwon', 2), node('gyeonggi-seongnam', 'Seongnam', 2)]),
+    node('seoul', 'Seoul', 1, [
+      node('seoul-gangnam', 'Gangnam-gu', 2),
+      node('seoul-songpa', 'Songpa-gu', 2),
+    ]),
+    node('gyeonggi', 'Gyeonggi', 1, [
+      node('gyeonggi-suwon', 'Suwon', 2),
+      node('gyeonggi-seongnam', 'Seongnam', 2),
+    ]),
     node('sejong', 'Sejong', 1),
   ],
 };
@@ -331,7 +429,13 @@ function serveUsers(initial: Person[]) {
   api.handlers[USERS] = (url) => {
     const language = url.searchParams.get('language');
     const offset = Number(url.searchParams.get('offset'));
-    const matching = all.filter((u) => (language === null ? true : language === 'none' ? u.preferredLanguage === null : u.preferredLanguage === language));
+    const matching = all.filter((u) =>
+      language === null
+        ? true
+        : language === 'none'
+          ? u.preferredLanguage === null
+          : u.preferredLanguage === language,
+    );
     return pageOf(matching.slice(offset, offset + 20), offset);
   };
   api.handlers['/v1/regions'] = () => json(regionTree);
@@ -339,7 +443,11 @@ function serveUsers(initial: Person[]) {
     api.handlers[`${USERS}/${u.id}/organizer-regions`] = (_url, init) => {
       const { regionCodes } = JSON.parse(String(init?.body)) as { regionCodes: string[] };
       const found = all.find((x) => x.id === u.id);
-      if (found) Object.assign(found, { organizerRegions: regionCodes, role: regionCodes.length > 0 ? 'ORGANIZER' : 'PLAYER' });
+      if (found)
+        Object.assign(found, {
+          organizerRegions: regionCodes,
+          role: regionCodes.length > 0 ? 'ORGANIZER' : 'PLAYER',
+        });
       return json({ organizerRegions: regionCodes });
     };
   }
@@ -355,7 +463,12 @@ describe('users', () => {
   it('shows each person with role, chosen language and the raw device language, and no nationality', async () => {
     serveUsers([
       person('u1', 'Aziz Karimov'),
-      person('u2', 'Dilnoza', { role: 'ORGANIZER', preferredLanguage: 'uz', deviceLocale: 'uz-Latn-UZ', organizerRegions: ['seoul', 'gyeonggi-suwon'] }),
+      person('u2', 'Dilnoza', {
+        role: 'ORGANIZER',
+        preferredLanguage: 'uz',
+        deviceLocale: 'uz-Latn-UZ',
+        organizerRegions: ['seoul', 'gyeonggi-suwon'],
+      }),
       person('u3', 'Bek Admin', { role: 'ADMIN', preferredLanguage: null, deviceLocale: null }),
     ]);
     const { container } = renderApp('/admin/users');
@@ -379,7 +492,11 @@ describe('users', () => {
 
     expect(container.textContent).not.toMatch(/nationalit|citizen|country/i);
     const request = calls('GET', USERS)[0];
-    expect(Object.fromEntries(request?.url.searchParams ?? [])).toEqual({ limit: '20', offset: '0', lang: 'en' });
+    expect(Object.fromEntries(request?.url.searchParams ?? [])).toEqual({
+      limit: '20',
+      offset: '0',
+      lang: 'en',
+    });
   });
 
   it('filters by language, including the people who never chose one', async () => {
@@ -394,13 +511,21 @@ describe('users', () => {
     await screen.findByRole('button', { name: /Aziz Karimov/ });
 
     const filter = within(screen.getByRole('group', { name: 'Filter by language' }));
-    expect(filter.getAllByRole('button').map((b) => b.textContent)).toEqual(['All', '한국어', 'O‘zbekcha', 'English', 'Not chosen']);
+    expect(filter.getAllByRole('button').map((b) => b.textContent)).toEqual([
+      'All',
+      '한국어',
+      'O‘zbekcha',
+      'English',
+      'Not chosen',
+    ]);
     expect(filter.getByRole('button', { name: 'All', pressed: true })).toBeInTheDocument();
     const lastLanguage = () => calls('GET', USERS).at(-1)?.url.searchParams.get('language');
 
     await user.click(filter.getByRole('button', { name: 'O‘zbekcha' }));
     expect(await screen.findByRole('button', { name: /Dilnoza/ })).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole('button', { name: /Aziz Karimov/ })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /Aziz Karimov/ })).not.toBeInTheDocument(),
+    );
     expect(lastLanguage()).toBe('uz');
     expect(filter.getByRole('button', { name: 'O‘zbekcha', pressed: true })).toBeInTheDocument();
 
@@ -423,12 +548,20 @@ describe('users', () => {
     renderApp('/admin/users');
 
     expect(await screen.findByRole('heading', { name: 'No users yet' })).toBeInTheDocument();
-    await user.click(within(screen.getByRole('group', { name: 'Filter by language' })).getByRole('button', { name: 'English' }));
-    expect(await screen.findByText('Nobody uses this language. Try another one.')).toBeInTheDocument();
+    await user.click(
+      within(screen.getByRole('group', { name: 'Filter by language' })).getByRole('button', {
+        name: 'English',
+      }),
+    );
+    expect(
+      await screen.findByText('Nobody uses this language. Try another one.'),
+    ).toBeInTheDocument();
   });
 
   it('loads more people a page at a time', async () => {
-    serveUsers(Array.from({ length: 21 }, (_, i) => person(`u${i}`, `Person ${String(i).padStart(2, '0')}`)));
+    serveUsers(
+      Array.from({ length: 21 }, (_, i) => person(`u${i}`, `Person ${String(i).padStart(2, '0')}`)),
+    );
     const user = userEvent.setup();
     renderApp('/admin/users');
 
@@ -447,7 +580,9 @@ describe('users', () => {
     const user = userEvent.setup();
     renderApp('/admin/users');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     fail = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByRole('button', { name: /Aziz Karimov/ })).toBeInTheDocument();
@@ -455,7 +590,13 @@ describe('users', () => {
 });
 
 describe('organizer regions', () => {
-  const dilnoza = () => person('u2', 'Dilnoza', { role: 'ORGANIZER', preferredLanguage: 'uz', deviceLocale: 'uz-Latn-UZ', organizerRegions: ['seoul', 'gyeonggi-suwon'] });
+  const dilnoza = () =>
+    person('u2', 'Dilnoza', {
+      role: 'ORGANIZER',
+      preferredLanguage: 'uz',
+      deviceLocale: 'uz-Latn-UZ',
+      organizerRegions: ['seoul', 'gyeonggi-suwon'],
+    });
 
   it('opens a person with what they have, the language they chose and how the grants work', async () => {
     serveUsers([dilnoza()]);
@@ -467,11 +608,17 @@ describe('organizer regions', () => {
     expect(dialog.getByText('O‘zbekcha')).toBeInTheDocument();
     expect(dialog.getByText('Device language: uz-Latn-UZ')).toBeInTheDocument();
     expect(dialog.getByText('Joined Mar 1, 2030')).toBeInTheDocument();
-    expect(dialog.getByText('Choose where Dilnoza can announce matches. Selecting a province includes every district in it.')).toBeInTheDocument();
+    expect(
+      dialog.getByText(
+        'Choose where Dilnoza can announce matches. Selecting a province includes every district in it.',
+      ),
+    ).toBeInTheDocument();
     expect(await dialog.findByText('All of Seoul')).toBeInTheDocument();
     expect(dialog.getByText('Gyeonggi Suwon')).toBeInTheDocument();
     expect(dialog.getByText('2 of 50 selected')).toBeInTheDocument();
-    expect(dialog.getByText('Removing every region turns Dilnoza back into a player.')).toBeInTheDocument();
+    expect(
+      dialog.getByText('Removing every region turns Dilnoza back into a player.'),
+    ).toBeInTheDocument();
     expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
@@ -482,7 +629,10 @@ describe('organizer regions', () => {
     const dialog = within(await openUser(user, 'Dilnoza'));
 
     await user.click(await dialog.findByRole('button', { name: 'Districts of Gyeonggi' }));
-    expect(dialog.getByRole('button', { name: 'Districts of Gyeonggi' })).toHaveAttribute('aria-expanded', 'true');
+    expect(dialog.getByRole('button', { name: 'Districts of Gyeonggi' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
     expect(dialog.getByRole('checkbox', { name: 'Suwon' })).toBeChecked();
     await user.click(dialog.getByRole('checkbox', { name: 'Seongnam' }));
 
@@ -491,8 +641,12 @@ describe('organizer regions', () => {
     await user.click(dialog.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Organizer regions saved.')).toBeInTheDocument();
-    expect(bodyOf(calls('PUT', `${USERS}/u2/organizer-regions`)[0])).toEqual({ regionCodes: ['gyeonggi-seongnam', 'gyeonggi-suwon', 'seoul'] });
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Organizer regions' })).not.toBeInTheDocument());
+    expect(bodyOf(calls('PUT', `${USERS}/u2/organizer-regions`)[0])).toEqual({
+      regionCodes: ['gyeonggi-seongnam', 'gyeonggi-suwon', 'seoul'],
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Organizer regions' })).not.toBeInTheDocument(),
+    );
     expect(await screen.findByText('3 regions')).toBeInTheDocument();
   });
 
@@ -507,11 +661,18 @@ describe('organizer regions', () => {
     await user.click(dialog.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(calls('PUT', `${USERS}/u2/organizer-regions`)).toHaveLength(1));
-    expect(bodyOf(calls('PUT', `${USERS}/u2/organizer-regions`)[0])).toEqual({ regionCodes: ['seoul'] });
+    expect(bodyOf(calls('PUT', `${USERS}/u2/organizer-regions`)[0])).toEqual({
+      regionCodes: ['seoul'],
+    });
   });
 
   it('lets a province cover its districts: they are included, not sent one by one', async () => {
-    serveUsers([person('u1', 'Aziz Karimov', { role: 'ORGANIZER', organizerRegions: ['seoul-gangnam', 'seoul-songpa'] })]);
+    serveUsers([
+      person('u1', 'Aziz Karimov', {
+        role: 'ORGANIZER',
+        organizerRegions: ['seoul-gangnam', 'seoul-songpa'],
+      }),
+    ]);
     const user = userEvent.setup();
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Aziz Karimov'));
@@ -531,7 +692,9 @@ describe('organizer regions', () => {
 
     await user.click(dialog.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(calls('PUT', `${USERS}/u1/organizer-regions`)).toHaveLength(1));
-    expect(bodyOf(calls('PUT', `${USERS}/u1/organizer-regions`)[0])).toEqual({ regionCodes: ['seoul'] });
+    expect(bodyOf(calls('PUT', `${USERS}/u1/organizer-regions`)[0])).toEqual({
+      regionCodes: ['seoul'],
+    });
   });
 
   it('counts the districts chosen inside a province that is not chosen itself', async () => {
@@ -543,7 +706,9 @@ describe('organizer regions', () => {
     await user.click(await dialog.findByRole('button', { name: 'Districts of Seoul' }));
     await user.click(dialog.getByRole('checkbox', { name: 'Gangnam-gu' }));
     await user.click(dialog.getByRole('checkbox', { name: 'Songpa-gu' }));
-    expect(dialog.getByRole('checkbox', { name: /^Seoul/ })).toHaveAccessibleName('Seoul 2 selected');
+    expect(dialog.getByRole('checkbox', { name: /^Seoul/ })).toHaveAccessibleName(
+      'Seoul 2 selected',
+    );
     expect(dialog.getByRole('checkbox', { name: /^Seoul/ })).not.toBeChecked();
   });
 
@@ -553,17 +718,25 @@ describe('organizer regions', () => {
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Aziz Karimov'));
 
-    expect(await dialog.findByText('Select at least one region to make Aziz Karimov an organizer.')).toBeInTheDocument();
+    expect(
+      await dialog.findByText('Select at least one region to make Aziz Karimov an organizer.'),
+    ).toBeInTheDocument();
     expect(dialog.getByText('No regions selected.')).toBeInTheDocument();
     expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
 
     await user.click(dialog.getByRole('checkbox', { name: 'Sejong' }));
-    expect(dialog.getByText('Aziz Karimov will become an organizer when you save.')).toBeInTheDocument();
+    expect(
+      dialog.getByText('Aziz Karimov will become an organizer when you save.'),
+    ).toBeInTheDocument();
     await user.click(dialog.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(calls('PUT', `${USERS}/u1/organizer-regions`)).toHaveLength(1));
-    expect(bodyOf(calls('PUT', `${USERS}/u1/organizer-regions`)[0])).toEqual({ regionCodes: ['sejong'] });
-    expect(await screen.findByRole('button', { name: /Aziz Karimov.*Organizer/ })).toBeInTheDocument();
+    expect(bodyOf(calls('PUT', `${USERS}/u1/organizer-regions`)[0])).toEqual({
+      regionCodes: ['sejong'],
+    });
+    expect(
+      await screen.findByRole('button', { name: /Aziz Karimov.*Organizer/ }),
+    ).toBeInTheDocument();
   });
 
   it('warns that removing every region turns an organizer back into a player', async () => {
@@ -572,9 +745,16 @@ describe('organizer regions', () => {
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Dilnoza'));
 
-    await user.click(await dialog.findByRole('button', { name: 'Remove All of Sejong' }));
-    expect(dialog.getByRole('alert', {})).toBeDefined();
-    expect(dialog.getByText('Dilnoza will become a player again and can no longer announce matches.')).toBeInTheDocument();
+    expect(
+      await dialog.findByText('Removing every region turns Dilnoza back into a player.'),
+    ).toBeInTheDocument();
+    await user.click(dialog.getByRole('button', { name: 'Remove All of Sejong' }));
+    expect(dialog.getByRole('status')).toHaveTextContent(
+      'Dilnoza will become a player again and can no longer announce matches.',
+    );
+    expect(
+      dialog.queryByText('Removing every region turns Dilnoza back into a player.'),
+    ).not.toBeInTheDocument();
     await user.click(dialog.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(calls('PUT', `${USERS}/u2/organizer-regions`)).toHaveLength(1));
@@ -607,7 +787,11 @@ describe('organizer regions', () => {
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Bek Admin'));
 
-    expect(dialog.getByText('Admins can announce matches in every region, so there is nothing to set here.')).toBeInTheDocument();
+    expect(
+      dialog.getByText(
+        'Admins can announce matches in every region, so there is nothing to set here.',
+      ),
+    ).toBeInTheDocument();
     expect(dialog.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
     expect(dialog.queryByRole('searchbox')).not.toBeInTheDocument();
     expect(calls('GET', '/v1/regions')).toHaveLength(0);
@@ -617,7 +801,8 @@ describe('organizer regions', () => {
     serveUsers([dilnoza()]);
     const save = api.handlers[`${USERS}/u2/organizer-regions`]!;
     let fail = true;
-    api.handlers[`${USERS}/u2/organizer-regions`] = (url, init) => (fail ? apiError('REGION_NOT_FOUND', 404) : save(url, init));
+    api.handlers[`${USERS}/u2/organizer-regions`] = (url, init) =>
+      fail ? apiError('REGION_NOT_FOUND', 404) : save(url, init);
     const user = userEvent.setup();
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Dilnoza'));
@@ -625,16 +810,21 @@ describe('organizer regions', () => {
     await user.click(await dialog.findByRole('button', { name: 'Remove Gyeonggi Suwon' }));
     await user.click(dialog.getByRole('button', { name: 'Save' }));
     expect(await dialog.findByRole('alert')).toHaveTextContent('We couldn’t find this region.');
-    expect(dialog.getByText('2 of 50 selected')).toBeInTheDocument().constructor;
+    expect(dialog.getByText('1 of 50 selected')).toBeInTheDocument();
     expect(dialog.getByRole('button', { name: 'Save' })).toBeEnabled();
 
     fail = false;
     await user.click(dialog.getByRole('button', { name: 'Save' }));
     expect(await screen.findByText('Organizer regions saved.')).toBeInTheDocument();
+    const puts = calls('PUT', `${USERS}/u2/organizer-regions`);
+    expect(puts).toHaveLength(2);
+    expect(bodyOf(puts[1])).toEqual({ regionCodes: ['seoul'] });
   });
 
   it('keeps regions the list no longer offers, so saving never revokes them silently', async () => {
-    serveUsers([person('u2', 'Dilnoza', { role: 'ORGANIZER', organizerRegions: ['old-closed', 'sejong'] })]);
+    serveUsers([
+      person('u2', 'Dilnoza', { role: 'ORGANIZER', organizerRegions: ['old-closed', 'sejong'] }),
+    ]);
     const user = userEvent.setup();
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Dilnoza'));
@@ -645,12 +835,22 @@ describe('organizer regions', () => {
     await user.click(dialog.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(calls('PUT', `${USERS}/u2/organizer-regions`)).toHaveLength(1));
-    expect(bodyOf(calls('PUT', `${USERS}/u2/organizer-regions`)[0])).toEqual({ regionCodes: ['old-closed', 'seoul'] });
+    expect(bodyOf(calls('PUT', `${USERS}/u2/organizer-regions`)[0])).toEqual({
+      regionCodes: ['old-closed', 'seoul'],
+    });
   });
 
   it('stops at 50 regions: nothing more can be added, and a longer list cannot be saved', async () => {
-    const stale = (n: number) => Array.from({ length: n }, (_, i) => `old-${String.fromCharCode(97 + Math.floor(i / 26))}${String.fromCharCode(97 + (i % 26))}`);
-    serveUsers([person('u2', 'Dilnoza', { role: 'ORGANIZER', organizerRegions: stale(50) }), person('u1', 'Aziz Karimov', { role: 'ORGANIZER', organizerRegions: stale(52) })]);
+    const stale = (n: number) =>
+      Array.from(
+        { length: n },
+        (_, i) =>
+          `old-${String.fromCharCode(97 + Math.floor(i / 26))}${String.fromCharCode(97 + (i % 26))}`,
+      );
+    serveUsers([
+      person('u2', 'Dilnoza', { role: 'ORGANIZER', organizerRegions: stale(50) }),
+      person('u1', 'Aziz Karimov', { role: 'ORGANIZER', organizerRegions: stale(52) }),
+    ]);
     const user = userEvent.setup();
     renderApp('/admin/users');
 
@@ -662,15 +862,22 @@ describe('organizer regions', () => {
 
     const over = within(await openUser(user, 'Aziz Karimov'));
     expect((await over.findAllByText('Unavailable region')).length).toBe(52);
-    await user.click(over.getAllByRole('button', { name: 'Remove Unavailable region' })[0] as HTMLElement);
+    await user.click(
+      over.getAllByRole('button', { name: 'Remove Unavailable region' })[0] as HTMLElement,
+    );
     expect(over.getByText('51 of 50 selected')).toBeInTheDocument();
     expect(over.getByRole('button', { name: 'Save' })).toBeDisabled();
-    await user.click(over.getAllByRole('button', { name: 'Remove Unavailable region' })[0] as HTMLElement);
+    await user.click(
+      over.getAllByRole('button', { name: 'Remove Unavailable region' })[0] as HTMLElement,
+    );
     expect(over.getByText('50 of 50 selected')).toBeInTheDocument();
     await user.click(over.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(calls('PUT', `${USERS}/u1/organizer-regions`)).toHaveLength(1));
-    expect((bodyOf(calls('PUT', `${USERS}/u1/organizer-regions`)[0]) as { regionCodes: string[] }).regionCodes).toHaveLength(50);
+    expect(
+      (bodyOf(calls('PUT', `${USERS}/u1/organizer-regions`)[0]) as { regionCodes: string[] })
+        .regionCodes,
+    ).toHaveLength(50);
   });
 
   it('offers a retry when the region list cannot be loaded', async () => {
@@ -681,7 +888,9 @@ describe('organizer regions', () => {
     renderApp('/admin/users');
     const dialog = within(await openUser(user, 'Dilnoza'));
 
-    expect(await dialog.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await dialog.findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     fail = false;
     await user.click(dialog.getByRole('button', { name: 'Try again' }));
     expect(await dialog.findByText('All of Seoul')).toBeInTheDocument();
@@ -694,13 +903,18 @@ describe('access', () => {
   it.each([
     ['/admin/applications', APPLICATIONS],
     ['/admin/users', USERS],
-  ])('keeps %s to admins: players and organizers see no people and no request is made', async (path, endpoint) => {
-    for (const role of ['PLAYER', 'ORGANIZER']) {
-      signIn(api, me({ role }));
-      const { unmount } = renderApp(path);
-      expect(await screen.findByRole('heading', { name: 'You don’t have permission to do this.' })).toBeInTheDocument();
-      unmount();
-    }
-    expect(calls('GET', endpoint)).toHaveLength(0);
-  });
+  ])(
+    'keeps %s to admins: players and organizers see no people and no request is made',
+    async (path, endpoint) => {
+      for (const role of ['PLAYER', 'ORGANIZER']) {
+        signIn(api, me({ role }));
+        const { unmount } = renderApp(path);
+        expect(
+          await screen.findByRole('heading', { name: 'You don’t have permission to do this.' }),
+        ).toBeInTheDocument();
+        unmount();
+      }
+      expect(calls('GET', endpoint)).toHaveLength(0);
+    },
+  );
 });

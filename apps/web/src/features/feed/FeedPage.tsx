@@ -31,7 +31,10 @@ export function FeedPage() {
   const [picking, setPicking] = useState(false);
   const feed = useFeed({ region, date }, { enabled: !resolving });
 
-  const groups = useMemo(() => groupByDay(feed.data?.pages.flatMap((page) => page.items) ?? []), [feed.data]);
+  const groups = useMemo(
+    () => groupByDay(feed.data?.pages.flatMap((page) => page.items) ?? []),
+    [feed.data],
+  );
   const today = koreanDateKey(new Date());
   const unread = signedIn ? (notifications.data?.unread ?? 0) : 0;
 
@@ -48,9 +51,19 @@ export function FeedPage() {
         <div className="row row--between">
           <Wordmark />
           {signedIn ? (
-            <Link to="/notifications" className="btn btn--ghost btn--icon bell" aria-label={t('inbox.title')}>
+            <Link
+              to="/notifications"
+              className="btn btn--ghost btn--icon bell"
+              aria-label={t('inbox.title')}
+            >
               <Bell size={22} aria-hidden="true" />
-              {unread > 0 && <span className="bell__dot" role="img" aria-label={t('inbox.unread', { count: unread })} />}
+              {unread > 0 && (
+                <span
+                  className="bell__dot"
+                  role="img"
+                  aria-label={t('inbox.unread', { count: unread })}
+                />
+              )}
             </Link>
           ) : (
             <Button size="sm" variant="primary" onClick={openLogin}>

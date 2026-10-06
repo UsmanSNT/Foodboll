@@ -52,7 +52,8 @@ export const matchFormKo = {
   },
   content: {
     legend: '내용',
-    intro: '원문을 먼저 쓰고, 가능하면 다른 언어도 추가하세요. 제목만 필수이고 나머지는 선택이에요.',
+    intro:
+      '원문을 먼저 쓰고, 가능하면 다른 언어도 추가하세요. 제목만 필수이고 나머지는 선택이에요.',
     source: '원문 언어',
     sourceHint: '처음 작성하는 언어예요. 이 언어의 제목은 꼭 필요해요.',
     tabs: '언어별 내용',
@@ -126,8 +127,7 @@ export const matchFormUz: typeof matchFormKo = {
   where: {
     legend: 'Joy',
     venue: 'Maydon nomi',
-    venueHint:
-      'Nomini joyida yozilganidek kiriting, odatda koreyscha. Tarjima qilinmaydi.',
+    venueHint: 'Nomini joyida yozilganidek kiriting, odatda koreyscha. Tarjima qilinmaydi.',
     address: 'Manzil (ixtiyoriy)',
     addressHint: 'Xaritadan topish oson bo‘lishi uchun to‘liq manzilni yozing.',
   },
@@ -153,8 +153,7 @@ export const matchFormUz: typeof matchFormKo = {
     attention: 'Tekshirish kerak',
     original: 'Asl matn',
     translation: 'Tarjima',
-    fallback:
-      'Bo‘sh qoldirilgan tilda o‘qiydiganlarga asl matn ({language}) ko‘rsatiladi.',
+    fallback: 'Bo‘sh qoldirilgan tilda o‘qiydiganlarga asl matn ({language}) ko‘rsatiladi.',
     clear: 'Bu tilni tozalash',
     titleLabel: 'Sarlavha',
     titleHint: 'Qisqa va tushunarli yozing. Masalan: “Gangnam, juma futzal”',

@@ -1,7 +1,19 @@
 import { matchInputSchema, type MatchInput } from '@foodboll/contracts';
-import { isLocaleCode, LOCALE_CODES, type LocaleCode, type MessageKey, type MessageParams } from '@foodboll/i18n';
+import {
+  isLocaleCode,
+  LOCALE_CODES,
+  type LocaleCode,
+  type MessageKey,
+  type MessageParams,
+} from '@foodboll/i18n';
 import { koreanDateKey } from '../../../lib/dates';
-import { LIMITS, hasText, TRANSLATION_FIELDS, type FormState, type TranslationField } from './form-state';
+import {
+  LIMITS,
+  hasText,
+  TRANSLATION_FIELDS,
+  type FormState,
+  type TranslationField,
+} from './form-state';
 import { isDateKey, isTimeOfDay, MAX_MATCH_HOURS, resolveWindow, windowProblems } from './kst';
 
 export interface FieldError {
@@ -32,14 +44,25 @@ const REQUIRED: FieldError = { key: 'form.required' };
 const GENERIC: FieldError = { key: 'errors.VALIDATION_FAILED' };
 
 /** In the order the fields appear on screen. */
-const PLAIN_FIELDS = ['regionCode', 'venueName', 'venueAddress', 'date', 'startTime', 'endTime', 'playersPerSide', 'maxPlayers'];
+const PLAIN_FIELDS = [
+  'regionCode',
+  'venueName',
+  'venueAddress',
+  'date',
+  'startTime',
+  'endTime',
+  'playersPerSide',
+  'maxPlayers',
+];
 
 /** The first field in reading order that has an error, with the original language read first. */
 export function firstInvalidField(errors: FieldErrors, sourceLanguage: LocaleCode): string | null {
   const languages = [sourceLanguage, ...LOCALE_CODES.filter((code) => code !== sourceLanguage)];
   const order = [
     ...PLAIN_FIELDS,
-    ...languages.flatMap((code) => TRANSLATION_FIELDS.map((field) => translationFieldId(code, field))),
+    ...languages.flatMap((code) =>
+      TRANSLATION_FIELDS.map((field) => translationFieldId(code, field)),
+    ),
   ];
   return order.find((id) => id in errors) ?? null;
 }
@@ -60,7 +83,10 @@ function describeIssue(issue: IssueLike, state: FormState): FieldError {
     return { key: 'matchForm.errors.playersPerSide', params: { ...LIMITS.playersPerSide } };
   }
   if (issue.path[0] === 'maxPlayers') {
-    return { key: 'matchForm.errors.maxPlayers', params: { min: state.playersPerSide * 2, max: LIMITS.maxPlayers } };
+    return {
+      key: 'matchForm.errors.maxPlayers',
+      params: { min: state.playersPerSide * 2, max: LIMITS.maxPlayers },
+    };
   }
   return GENERIC;
 }
@@ -74,7 +100,9 @@ function issueTarget(path: readonly PropertyKey[], hasWindow: boolean): string |
     case 'endsAt':
       return hasWindow ? 'endTime' : null;
     case 'translations':
-      return typeof locale === 'string' && typeof field === 'string' ? `translations.${locale}.${field}` : null;
+      return typeof locale === 'string' && typeof field === 'string'
+        ? `translations.${locale}.${field}`
+        : null;
     default:
       return typeof head === 'string' && PLAIN_FIELDS.includes(head) ? head : null;
   }
@@ -97,7 +125,9 @@ export function validateMatchForm(state: FormState, now: Date): ValidationResult
   const window = resolveWindow(state.date, state.startTime, state.endTime);
   for (const problem of window ? windowProblems(window, now) : []) {
     if (problem === 'startInPast') {
-      errors[state.date < koreanDateKey(now) ? 'date' : 'startTime'] = { key: 'matchForm.errors.startPast' };
+      errors[state.date < koreanDateKey(now) ? 'date' : 'startTime'] = {
+        key: 'matchForm.errors.startPast',
+      };
     } else {
       errors.endTime = { key: 'matchForm.errors.tooLong', params: { hours: MAX_MATCH_HOURS } };
     }
@@ -123,7 +153,9 @@ export function validateMatchForm(state: FormState, now: Date): ValidationResult
     playersPerSide: state.playersPerSide,
     maxPlayers: state.maxPlayers,
     translations: Object.fromEntries(
-      LOCALE_CODES.flatMap((code) => (hasText(state.translations[code]) ? [[code, state.translations[code]] as const] : [])),
+      LOCALE_CODES.flatMap((code) =>
+        hasText(state.translations[code]) ? [[code, state.translations[code]] as const] : [],
+      ),
     ),
   });
 

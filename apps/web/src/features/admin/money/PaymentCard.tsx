@@ -36,7 +36,11 @@ export function PaymentCard({ item, leaving, handlers }: PaymentCardProps) {
         </header>
 
         <div className="money-match">
-          <Link to={`/matches/${match.id}`} className="money-match__title" lang={match.title.locale}>
+          <Link
+            to={`/matches/${match.id}`}
+            className="money-match__title"
+            lang={match.title.locale}
+          >
             {match.title.text}
           </Link>
           <p>

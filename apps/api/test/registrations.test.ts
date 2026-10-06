@@ -246,7 +246,9 @@ describe('reading one registration', () => {
       expect(res.json()).toMatchObject({ id: reg.id, payment: { status: 'AWAITING_PAYMENT' } });
     }
     expect((await get(stranger.token, `/v1/registrations/${reg.id}`)).statusCode).toBe(404);
-    expect((await get(player.token, `/v1/registrations/${crypto.randomUUID()}`)).statusCode).toBe(404);
+    expect((await get(player.token, `/v1/registrations/${crypto.randomUUID()}`)).statusCode).toBe(
+      404,
+    );
     expect((await get(null, `/v1/registrations/${reg.id}`)).statusCode).toBe(401);
   });
 });

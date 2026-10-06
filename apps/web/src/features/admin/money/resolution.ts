@@ -22,10 +22,15 @@ export function useResolution(queues: readonly (readonly unknown[])[]): Resoluti
   const queryClient = useQueryClient();
   const [leaving, setLeaving] = useState<ReadonlySet<string>>(() => new Set());
   const timers = useRef(new Set<number>());
+  // Read through a ref so `refresh` stays the same function even if the caller builds `queues` inline.
+  const queuesRef = useRef(queues);
+  useEffect(() => {
+    queuesRef.current = queues;
+  }, [queues]);
 
   const refresh = useCallback(() => {
-    for (const key of queues) void queryClient.invalidateQueries({ queryKey: [...key] });
-  }, [queryClient, queues]);
+    for (const key of queuesRef.current) void queryClient.invalidateQueries({ queryKey: [...key] });
+  }, [queryClient]);
 
   const leave = useCallback(
     (id: string) => {
@@ -49,7 +54,10 @@ export function useResolution(queues: readonly (readonly unknown[])[]): Resoluti
     };
   }, [refresh]);
 
-  return useMemo(() => ({ isLeaving: (id) => leaving.has(id), leave, refresh }), [leaving, leave, refresh]);
+  return useMemo(
+    () => ({ isLeaving: (id) => leaving.has(id), leave, refresh }),
+    [leaving, leave, refresh],
+  );
 }
 
 /**

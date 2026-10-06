@@ -54,7 +54,10 @@ export function PlayerProfilePage() {
       <>
         {header}
         <div className="page">
-          <ErrorState error={profile.error} {...(missing ? {} : { onRetry: () => void profile.refetch() })} />
+          <ErrorState
+            error={profile.error}
+            {...(missing ? {} : { onRetry: () => void profile.refetch() })}
+          />
         </div>
       </>
     );

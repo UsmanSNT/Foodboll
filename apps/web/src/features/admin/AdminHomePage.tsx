@@ -8,7 +8,11 @@ export function AdminHomePage() {
   const tools = [
     { to: '/admin/payments', icon: <Wallet size={20} />, label: t('adminHome.payments') },
     { to: '/admin/deposits', icon: <Banknote size={20} />, label: t('adminHome.deposits') },
-    { to: '/admin/applications', icon: <ClipboardCheck size={20} />, label: t('adminHome.applications') },
+    {
+      to: '/admin/applications',
+      icon: <ClipboardCheck size={20} />,
+      label: t('adminHome.applications'),
+    },
     { to: '/admin/users', icon: <Users size={20} />, label: t('adminHome.users') },
     { to: '/admin/payment-info', icon: <Wallet size={20} />, label: t('adminHome.paymentInfo') },
     { to: '/admin/legal', icon: <ShieldCheck size={20} />, label: t('adminHome.legal') },

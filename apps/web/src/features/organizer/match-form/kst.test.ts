@@ -42,7 +42,10 @@ describe('resolveWindow', () => {
   });
 
   it('reads an end equal to the start as a full day', () => {
-    expect(resolveWindow('2030-05-04', '10:00', '10:00')).toMatchObject({ endsNextDay: true, minutes: 1440 });
+    expect(resolveWindow('2030-05-04', '10:00', '10:00')).toMatchObject({
+      endsNextDay: true,
+      minutes: 1440,
+    });
   });
 
   it('returns null until every part is a valid date or time', () => {
@@ -69,23 +72,40 @@ describe('windowProblems', () => {
   const now = new Date('2030-05-04T00:00:00Z'); // 09:00 on 4 May in Seoul
 
   it('accepts a match that starts later and lasts up to 12 hours', () => {
-    expect(windowProblems(resolveWindow('2030-05-04', '10:00', '22:00') ?? fail(), now)).toEqual([]);
+    expect(windowProblems(resolveWindow('2030-05-04', '10:00', '22:00') ?? fail(), now)).toEqual(
+      [],
+    );
   });
 
   it('refuses a match longer than 12 hours', () => {
-    expect(windowProblems(resolveWindow('2030-05-04', '10:00', '22:01') ?? fail(), now)).toEqual(['tooLong']);
-    expect(windowProblems(resolveWindow('2030-05-04', '10:00', '10:00') ?? fail(), now)).toEqual(['tooLong']);
+    expect(windowProblems(resolveWindow('2030-05-04', '10:00', '22:01') ?? fail(), now)).toEqual([
+      'tooLong',
+    ]);
+    expect(windowProblems(resolveWindow('2030-05-04', '10:00', '10:00') ?? fail(), now)).toEqual([
+      'tooLong',
+    ]);
   });
 
   it('refuses a start that is not in the future, judged in Korean time', () => {
-    expect(windowProblems(resolveWindow('2030-05-04', '08:59', '10:00') ?? fail(), now)).toEqual(['startInPast']);
-    expect(windowProblems(resolveWindow('2030-05-04', '09:00', '10:00') ?? fail(), now)).toEqual(['startInPast']);
-    expect(windowProblems(resolveWindow('2030-05-04', '09:01', '10:00') ?? fail(), now)).toEqual([]);
-    expect(windowProblems(resolveWindow('2030-05-03', '23:00', '23:30') ?? fail(), now)).toEqual(['startInPast']);
+    expect(windowProblems(resolveWindow('2030-05-04', '08:59', '10:00') ?? fail(), now)).toEqual([
+      'startInPast',
+    ]);
+    expect(windowProblems(resolveWindow('2030-05-04', '09:00', '10:00') ?? fail(), now)).toEqual([
+      'startInPast',
+    ]);
+    expect(windowProblems(resolveWindow('2030-05-04', '09:01', '10:00') ?? fail(), now)).toEqual(
+      [],
+    );
+    expect(windowProblems(resolveWindow('2030-05-03', '23:00', '23:30') ?? fail(), now)).toEqual([
+      'startInPast',
+    ]);
   });
 
   it('reports both problems together', () => {
-    expect(windowProblems(resolveWindow('2030-05-03', '08:00', '23:00') ?? fail(), now)).toEqual(['startInPast', 'tooLong']);
+    expect(windowProblems(resolveWindow('2030-05-03', '08:00', '23:00') ?? fail(), now)).toEqual([
+      'startInPast',
+      'tooLong',
+    ]);
   });
 });
 

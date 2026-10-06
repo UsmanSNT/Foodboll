@@ -19,7 +19,10 @@ const node = (code: string, name: string, children: RegionNodeDto[] = []): Regio
   children,
 });
 
-const seoul = node('seoul', 'Seoul', [node('seoul-gangnam', 'Gangnam-gu'), node('seoul-songpa', 'Songpa-gu')]);
+const seoul = node('seoul', 'Seoul', [
+  node('seoul-gangnam', 'Gangnam-gu'),
+  node('seoul-songpa', 'Songpa-gu'),
+]);
 const gyeonggi = node('gyeonggi', 'Gyeonggi', [node('gyeonggi-suwon', 'Suwon')]);
 const sejong = node('sejong', 'Sejong');
 const tree = [seoul, gyeonggi, sejong];
@@ -56,12 +59,20 @@ describe('toggleProvince', () => {
 describe('toggleCode', () => {
   it('adds a missing code and removes a present one', () => {
     expect(codes(toggleCode(new Set(), 'seoul-gangnam'))).toEqual(['seoul-gangnam']);
-    expect(codes(toggleCode(new Set(['seoul-gangnam', 'sejong']), 'seoul-gangnam'))).toEqual(['sejong']);
+    expect(codes(toggleCode(new Set(['seoul-gangnam', 'sejong']), 'seoul-gangnam'))).toEqual([
+      'sejong',
+    ]);
   });
 });
 
 describe('limit', () => {
-  const full = new Set(Array.from({ length: MAX_ORGANIZER_REGIONS }, (_, i) => `code-${String.fromCharCode(97 + (i % 26))}${String.fromCharCode(97 + Math.floor(i / 26))}`));
+  const full = new Set(
+    Array.from(
+      { length: MAX_ORGANIZER_REGIONS },
+      (_, i) =>
+        `code-${String.fromCharCode(97 + (i % 26))}${String.fromCharCode(97 + Math.floor(i / 26))}`,
+    ),
+  );
 
   it('refuses to grow past the limit', () => {
     expect(exceedsLimit(toggleCode(full, 'extra'), full)).toBe(true);
@@ -76,7 +87,9 @@ describe('limit', () => {
   });
 
   it('allows swapping districts for their province at the limit', () => {
-    const atLimit = new Set([...full].slice(0, MAX_ORGANIZER_REGIONS - 2).concat(['seoul-gangnam', 'seoul-songpa']));
+    const atLimit = new Set(
+      [...full].slice(0, MAX_ORGANIZER_REGIONS - 2).concat(['seoul-gangnam', 'seoul-songpa']),
+    );
     expect(atLimit.size).toBe(MAX_ORGANIZER_REGIONS);
     expect(exceedsLimit(toggleProvince(atLimit, seoul), atLimit)).toBe(false);
   });
@@ -92,7 +105,11 @@ describe('sameSelection', () => {
 
 describe('filterProvinces', () => {
   it('keeps everything for an empty search', () => {
-    expect(filterProvinces(tree, '  ').map((g) => g.province.code)).toEqual(['seoul', 'gyeonggi', 'sejong']);
+    expect(filterProvinces(tree, '  ').map((g) => g.province.code)).toEqual([
+      'seoul',
+      'gyeonggi',
+      'sejong',
+    ]);
   });
 
   it('lists every district of a province that matches by name', () => {
@@ -107,7 +124,9 @@ describe('filterProvinces', () => {
   });
 
   it('matches a district together with its province name, ignoring case', () => {
-    expect(filterProvinces(tree, 'GYEONGGI suwon').map((g) => g.province.code)).toEqual(['gyeonggi']);
+    expect(filterProvinces(tree, 'GYEONGGI suwon').map((g) => g.province.code)).toEqual([
+      'gyeonggi',
+    ]);
   });
 
   it('returns nothing when nothing matches', () => {

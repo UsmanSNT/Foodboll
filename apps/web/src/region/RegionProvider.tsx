@@ -1,6 +1,14 @@
 import type { RegionDto } from '@foodboll/contracts';
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { apiRequest } from '../api/client';
 import { useMe } from '../api/queries';
 import { useAuth } from '../auth/AuthProvider';

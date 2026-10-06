@@ -20,7 +20,11 @@ export function useReceipt(registrationId: string): ReceiptState {
       (blob) => {
         if (controller.signal.aborted) return;
         objectUrl = URL.createObjectURL(blob);
-        setState({ status: 'ready', url: objectUrl, kind: blob.type === 'application/pdf' ? 'pdf' : 'image' });
+        setState({
+          status: 'ready',
+          url: objectUrl,
+          kind: blob.type === 'application/pdf' ? 'pdf' : 'image',
+        });
       },
       (error: unknown) => {
         if (!controller.signal.aborted) setState({ status: 'error', error });

@@ -24,7 +24,12 @@ export function AdminPaymentsPage() {
         </Alert>
         <div className="chips" role="group" aria-label={t('adminPayments.filterLabel')}>
           {PAYMENT_TABS.map((tab) => (
-            <Chip key={tab} className="money-chip" selected={tab === status} onClick={() => setStatus(tab)}>
+            <Chip
+              key={tab}
+              className="money-chip"
+              selected={tab === status}
+              onClick={() => setStatus(tab)}
+            >
               {t(PAYMENT_TAB_LABEL_KEY[tab])}
             </Chip>
           ))}

@@ -18,7 +18,17 @@ interface NumberStepperProps {
  * A whole number between `min` and `max`, set with the buttons, the arrow keys or by typing. While
  * typing, the field may be empty or out of range; it snaps back into range when it loses focus.
  */
-export function NumberStepper({ label, hint, error, value, min, max, decreaseLabel, increaseLabel, onChange }: NumberStepperProps) {
+export function NumberStepper({
+  label,
+  hint,
+  error,
+  value,
+  min,
+  max,
+  decreaseLabel,
+  increaseLabel,
+  onChange,
+}: NumberStepperProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
 

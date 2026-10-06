@@ -12,7 +12,8 @@ import { ProgressBar } from '../../ui/ProgressBar';
 export function ViewerBadge({ match }: { readonly match: MatchSummaryDto }) {
   const { t } = useI18n();
   if (!match.viewer) return null;
-  if (match.viewer.status === 'CONFIRMED') return <Badge tone="success">{t('match.badgeJoined')}</Badge>;
+  if (match.viewer.status === 'CONFIRMED')
+    return <Badge tone="success">{t('match.badgeJoined')}</Badge>;
   if (match.viewer.status === 'APPLIED') return <Badge tone="warning">{t('match.applied')}</Badge>;
   return null;
 }
@@ -52,7 +53,9 @@ export function MatchCard({ match }: { readonly match: MatchSummaryDto }) {
               <span
                 className="lang-tag"
                 role="img"
-                aria-label={t('content.fallbackNotice', { language: LOCALES[match.title.locale].nativeName })}
+                aria-label={t('content.fallbackNotice', {
+                  language: LOCALES[match.title.locale].nativeName,
+                })}
               >
                 {match.title.locale}
               </span>

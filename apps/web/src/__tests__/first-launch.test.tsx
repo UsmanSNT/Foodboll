@@ -1,7 +1,15 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseLanguageAndRegion, json, mockApi, renderApp, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  chooseLanguageAndRegion,
+  json,
+  mockApi,
+  renderApp,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 const PROMPT = '언어 선택 / Tilni tanlang / Select language';
 
@@ -42,7 +50,9 @@ describe('language selection', () => {
   it('suggests the device language without choosing it or skipping the prompt', () => {
     setDeviceLanguages(['uz-UZ']);
     renderApp();
-    expect(screen.getByRole('button', { name: 'O‘zbekcha' })).toHaveClass('gate__option--suggested');
+    expect(screen.getByRole('button', { name: 'O‘zbekcha' })).toHaveClass(
+      'gate__option--suggested',
+    );
     expect(screen.getByRole('heading', { name: PROMPT })).toBeInTheDocument();
     expect(window.localStorage.getItem('foodboll.language')).toBeNull();
   });
@@ -58,7 +68,9 @@ describe('language selection', () => {
     renderApp();
     await user.click(screen.getByRole('button', { name: 'O‘zbekcha' }));
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Qayerda futbol o‘ynaysiz?' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Qayerda futbol o‘ynaysiz?' }),
+    ).toBeInTheDocument();
     expect(window.localStorage.getItem('foodboll.language')).toBe('uz');
     expect(document.documentElement.lang).toBe('uz-Latn-UZ');
     expect(api.calls.filter((c) => c.init?.method === 'PATCH')).toEqual([]);
@@ -85,12 +97,16 @@ describe('region onboarding', () => {
   it('asks where the player plays and remembers the choice', async () => {
     const user = userEvent.setup();
     renderApp();
-    expect(await screen.findByRole('heading', { level: 1, name: 'Where do you play?' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Where do you play?' }),
+    ).toBeInTheDocument();
     await user.click(await screen.findByRole('button', { name: /Seoul/ }));
 
     expect(await screen.findByRole('link', { name: 'Matches' })).toBeInTheDocument();
     expect(window.localStorage.getItem('foodboll.region')).toBe('seoul');
-    await waitFor(() => expect(api.calls.some((c) => c.url.pathname === '/api/v1/matches')).toBe(true));
+    await waitFor(() =>
+      expect(api.calls.some((c) => c.url.pathname === '/api/v1/matches')).toBe(true),
+    );
     expect(api.find('GET', '/v1/matches')?.url.searchParams.get('region')).toBe('seoul');
   });
 
@@ -104,7 +120,8 @@ describe('region onboarding', () => {
   });
 
   it('does not block a shared link to one match', async () => {
-    api.handlers['/v1/matches/m1'] = () => json({ error: { code: 'MATCH_NOT_FOUND', message: '' } }, 404);
+    api.handlers['/v1/matches/m1'] = () =>
+      json({ error: { code: 'MATCH_NOT_FOUND', message: '' } }, 404);
     renderApp('/matches/m1');
     expect(await screen.findByText('We couldn’t find this match.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Where do you play?' })).not.toBeInTheDocument();
@@ -118,12 +135,20 @@ describe('region onboarding', () => {
       preferredLanguage: 'en',
       effectiveLanguage: 'en',
       depositorName: null,
-      homeRegion: { id: 'r1', code: 'seoul', name: { text: 'Seoul', locale: 'en', isFallback: false }, level: 1, parent: null },
+      homeRegion: {
+        id: 'r1',
+        code: 'seoul',
+        name: { text: 'Seoul', locale: 'en', isFallback: false },
+        level: 1,
+        parent: null,
+      },
     });
     renderApp();
     expect(await screen.findByRole('link', { name: 'Matches' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Where do you play?' })).not.toBeInTheDocument();
-    await waitFor(() => expect(api.calls.some((c) => c.url.pathname === '/api/v1/matches')).toBe(true));
+    await waitFor(() =>
+      expect(api.calls.some((c) => c.url.pathname === '/api/v1/matches')).toBe(true),
+    );
     // The feed waited for the account instead of fetching every region first.
     const feedCalls = api.calls.filter((c) => c.url.pathname === '/api/v1/matches');
     expect(feedCalls.map((c) => c.url.searchParams.get('region'))).toEqual(['seoul']);

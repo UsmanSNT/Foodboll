@@ -37,10 +37,15 @@ export function DepositCard({ deposit, leaving, handlers }: DepositCardProps) {
   const { t, formatKrw, formatDateTime } = useI18n();
   const amountId = useId();
   const received = formatDateTime(deposit.receivedAt);
-  const amount = deposit.amountKrw === null ? t('adminDeposits.amountUnknown') : formatKrw(deposit.amountKrw);
+  const amount =
+    deposit.amountKrw === null ? t('adminDeposits.amountUnknown') : formatKrw(deposit.amountKrw);
   // Each button's name carries the deposit, so a list of cards stays distinguishable by ear.
-  const label = (action: string) => t('adminDeposits.actionLabel', { action, summary: `${amount}, ${received}` });
-  const amountClass = deposit.amountKrw === null ? 'money-deposit__amount money-deposit__amount--unknown' : 'money-deposit__amount num';
+  const label = (action: string) =>
+    t('adminDeposits.actionLabel', { action, summary: `${amount}, ${received}` });
+  const amountClass =
+    deposit.amountKrw === null
+      ? 'money-deposit__amount money-deposit__amount--unknown'
+      : 'money-deposit__amount num';
   const assignable = isAssignable(deposit);
   const ignorable = isIgnorable(deposit);
 
@@ -51,7 +56,9 @@ export function DepositCard({ deposit, leaving, handlers }: DepositCardProps) {
           <strong id={amountId} className={amountClass}>
             {amount}
           </strong>
-          <Badge tone={DEPOSIT_STATUS_TONE[deposit.status]}>{t(DEPOSIT_STATUS_LABEL_KEY[deposit.status])}</Badge>
+          <Badge tone={DEPOSIT_STATUS_TONE[deposit.status]}>
+            {t(DEPOSIT_STATUS_LABEL_KEY[deposit.status])}
+          </Badge>
         </header>
 
         {deposit.reason && (
@@ -80,13 +87,21 @@ export function DepositCard({ deposit, leaving, handlers }: DepositCardProps) {
           <div className="money-actions">
             {ignorable && (
               <div className="money-actions__row">
-                <Button aria-label={label(t('adminDeposits.ignore'))} onClick={() => handlers.open('ignore', deposit)}>
+                <Button
+                  aria-label={label(t('adminDeposits.ignore'))}
+                  onClick={() => handlers.open('ignore', deposit)}
+                >
                   {t('adminDeposits.ignore')}
                 </Button>
               </div>
             )}
             {assignable && (
-              <Button variant="primary" block aria-label={label(t('adminDeposits.assign'))} onClick={() => handlers.open('assign', deposit)}>
+              <Button
+                variant="primary"
+                block
+                aria-label={label(t('adminDeposits.assign'))}
+                onClick={() => handlers.open('assign', deposit)}
+              >
                 {t('adminDeposits.assign')}
               </Button>
             )}

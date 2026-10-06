@@ -11,7 +11,8 @@ import { useRoster } from './api';
 import { AttendanceList } from './home/AttendanceList';
 
 /** A missing match or someone else's roster cannot be fixed by trying again. */
-const isFinal = (error: unknown) => error instanceof ApiError && (error.code === 'MATCH_NOT_FOUND' || error.code === 'FORBIDDEN');
+const isFinal = (error: unknown) =>
+  error instanceof ApiError && (error.code === 'MATCH_NOT_FOUND' || error.code === 'FORBIDDEN');
 
 function MatchHeading({ match }: { readonly match: MatchDto }) {
   return (
@@ -34,7 +35,10 @@ export function RosterPage() {
       <>
         {header}
         <div className="page">
-          <ErrorState error={match.error} {...(!isFinal(match.error) && { onRetry: () => void match.refetch() })} />
+          <ErrorState
+            error={match.error}
+            {...(!isFinal(match.error) && { onRetry: () => void match.refetch() })}
+          />
         </div>
       </>
     );
@@ -46,9 +50,17 @@ export function RosterPage() {
       <div className="page page--with-cta">
         {match.data ? <MatchHeading match={match.data} /> : <Skeleton height={104} />}
         {match.data && roster.data ? (
-          <AttendanceList key={id} match={match.data} entries={roster.data.items} onStale={() => void roster.refetch()} />
+          <AttendanceList
+            key={id}
+            match={match.data}
+            entries={roster.data.items}
+            onStale={() => void roster.refetch()}
+          />
         ) : roster.isError ? (
-          <ErrorState error={roster.error} {...(!isFinal(roster.error) && { onRetry: () => void roster.refetch() })} />
+          <ErrorState
+            error={roster.error}
+            {...(!isFinal(roster.error) && { onRetry: () => void roster.refetch() })}
+          />
         ) : (
           <ListSkeleton rows={4} height={104} />
         )}

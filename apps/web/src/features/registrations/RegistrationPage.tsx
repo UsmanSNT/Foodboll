@@ -36,7 +36,9 @@ function CancelRegistration({ registration }: { readonly registration: Registrat
     () => ({ path: `/v1/registrations/${registration.id}/cancel`, method: 'POST' }),
     [['registration', registration.id], ['registrations'], ['feed'], ['match'], ['match-players']],
   );
-  const paid = registration.payment?.status === 'PAYMENT_CONFIRMED' || registration.payment?.status === 'PAYMENT_REVIEW';
+  const paid =
+    registration.payment?.status === 'PAYMENT_CONFIRMED' ||
+    registration.payment?.status === 'PAYMENT_REVIEW';
 
   return (
     <>
@@ -110,7 +112,8 @@ export function RegistrationPage() {
     );
   }
   if (query.isError) {
-    const missing = query.error instanceof ApiError && query.error.code === 'REGISTRATION_NOT_FOUND';
+    const missing =
+      query.error instanceof ApiError && query.error.code === 'REGISTRATION_NOT_FOUND';
     return (
       <>
         {header}
@@ -129,8 +132,7 @@ export function RegistrationPage() {
   const cancelled = registration.status === 'CANCELLED';
   const payment = registration.payment;
   // Unpaid seats are released automatically once the payment window closes.
-  const lapsed =
-    cancelled && payment?.status === 'AWAITING_PAYMENT' && isPast(payment.dueAt);
+  const lapsed = cancelled && payment?.status === 'AWAITING_PAYMENT' && isPast(payment.dueAt);
 
   return (
     <>
@@ -148,7 +150,9 @@ export function RegistrationPage() {
             {cancelled ? (
               <Badge>{t('match.cancelled')}</Badge>
             ) : payment ? (
-              <Badge tone={paymentTone(payment.status)}>{t(PAYMENT_STATUS_LABEL_KEY[payment.status])}</Badge>
+              <Badge tone={paymentTone(payment.status)}>
+                {t(PAYMENT_STATUS_LABEL_KEY[payment.status])}
+              </Badge>
             ) : (
               <Badge tone="success">{t('match.confirmed')}</Badge>
             )}
@@ -156,12 +160,16 @@ export function RegistrationPage() {
         </Link>
 
         {cancelled ? (
-          <Alert tone="info">{lapsed ? t('payment.expiredNote') : t('registration.cancelDone')}</Alert>
+          <Alert tone="info">
+            {lapsed ? t('payment.expiredNote') : t('registration.cancelDone')}
+          </Alert>
         ) : (
           <PaymentPanel registration={registration} />
         )}
 
-        {!cancelled && !hasStarted(registration.match) && <CancelRegistration registration={registration} />}
+        {!cancelled && !hasStarted(registration.match) && (
+          <CancelRegistration registration={registration} />
+        )}
       </div>
     </>
   );

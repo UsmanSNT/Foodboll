@@ -11,7 +11,8 @@ export function MatchFacts({ match }: { readonly match: MatchSummaryDto }) {
       <li>
         <Calendar size={18} aria-hidden="true" />
         <span>
-          <strong>{formatDate(match.startsAt)}</strong> · <span className="num">{formatTimeRange(match.startsAt, match.endsAt)}</span>
+          <strong>{formatDate(match.startsAt)}</strong> ·{' '}
+          <span className="num">{formatTimeRange(match.startsAt, match.endsAt)}</span>
           <small className="muted"> {t('match.kst')}</small>
         </span>
       </li>

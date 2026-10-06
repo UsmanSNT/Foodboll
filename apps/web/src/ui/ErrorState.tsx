@@ -5,7 +5,13 @@ import { Alert } from './Alert';
 import { Button } from './Button';
 
 /** Localizes from the stable error code in the client's own catalog, not from server text. */
-export function ErrorState({ error, onRetry }: { readonly error: unknown; readonly onRetry?: () => void }) {
+export function ErrorState({
+  error,
+  onRetry,
+}: {
+  readonly error: unknown;
+  readonly onRetry?: () => void;
+}) {
   const { t } = useI18n();
   const code = error instanceof ApiError ? error.code : 'INTERNAL_ERROR';
   const key = `errors.${code}`;

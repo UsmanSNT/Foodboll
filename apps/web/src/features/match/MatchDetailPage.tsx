@@ -17,7 +17,13 @@ import { ListSkeleton } from '../../ui/Skeleton';
 import { MatchFacts } from './MatchFacts';
 import { SpotsMeter } from './MatchCard';
 
-function ContentSection({ title, value }: { readonly title: string; readonly value: LocalizedValueDto | null }) {
+function ContentSection({
+  title,
+  value,
+}: {
+  readonly title: string;
+  readonly value: LocalizedValueDto | null;
+}) {
   const { t } = useI18n();
   if (!value) return null;
   return (
@@ -27,7 +33,9 @@ function ContentSection({ title, value }: { readonly title: string; readonly val
         {value.text}
       </p>
       {value.isFallback && (
-        <p className="small muted">{t('content.fallbackNotice', { language: LOCALES[value.locale].nativeName })}</p>
+        <p className="small muted">
+          {t('content.fallbackNotice', { language: LOCALES[value.locale].nativeName })}
+        </p>
       )}
     </section>
   );
@@ -50,7 +58,9 @@ function Attendees({ matchId }: { readonly matchId: string }) {
               <Link to={`/players/${player.id}`} className="list__item">
                 <Avatar name={player.displayName} id={player.id} size="sm" />
                 <span className="grow">{player.displayName}</span>
-                <span className="small muted">{t('stats.levelValue', { level: player.level.level })}</span>
+                <span className="small muted">
+                  {t('stats.levelValue', { level: player.level.level })}
+                </span>
                 <ChevronRight size={16} aria-hidden="true" />
               </Link>
             </li>
@@ -77,7 +87,12 @@ function JoinBar({ match }: { readonly match: MatchDto }) {
   let action: React.ReactNode;
   if (registered) {
     action = (
-      <ButtonLink variant="primary" size="lg" block to={`/registrations/${match.viewer?.registrationId}`}>
+      <ButtonLink
+        variant="primary"
+        size="lg"
+        block
+        to={`/registrations/${match.viewer?.registrationId}`}
+      >
         {t('match.viewRegistration')}
       </ButtonLink>
     );
@@ -106,7 +121,9 @@ function JoinBar({ match }: { readonly match: MatchDto }) {
         size="lg"
         block
         loading={join.isPending}
-        onClick={() => join.mutate(undefined, { onSuccess: (reg) => void navigate(`/registrations/${reg.id}`) })}
+        onClick={() =>
+          join.mutate(undefined, { onSuccess: (reg) => void navigate(`/registrations/${reg.id}`) })
+        }
       >
         {t('match.apply')} · {fee}
       </Button>
@@ -146,7 +163,11 @@ export function MatchDetailPage() {
         <PageHeader back plain title={t('nav.matches')} />
         <div className="page">
           {notFound ? (
-            <EmptyState icon={<Calendar size={32} />} title={t('match.notFound')} action={<ButtonLink to="/">{t('nav.matches')}</ButtonLink>} />
+            <EmptyState
+              icon={<Calendar size={32} />}
+              title={t('match.notFound')}
+              action={<ButtonLink to="/">{t('nav.matches')}</ButtonLink>}
+            />
           ) : (
             <ErrorState error={match.error} onRetry={() => void match.refetch()} />
           )}
@@ -164,11 +185,18 @@ export function MatchDetailPage() {
         <section className="card card--pad stack match-hero">
           <h1 lang={m.title.locale}>{m.title.text}</h1>
           {m.title.isFallback && (
-            <p className="small muted">{t('content.fallbackNotice', { language: LOCALES[m.title.locale].nativeName })}</p>
+            <p className="small muted">
+              {t('content.fallbackNotice', { language: LOCALES[m.title.locale].nativeName })}
+            </p>
           )}
           <MatchFacts match={m} />
           {m.venueAddress && <p className="small muted">{m.venueAddress}</p>}
-          <a className="btn btn--secondary btn--sm" href={mapSearchUrl(mapQuery)} target="_blank" rel="noopener noreferrer">
+          <a
+            className="btn btn--secondary btn--sm"
+            href={mapSearchUrl(mapQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <MapPin size={16} aria-hidden="true" />
             {t('match.openMap')}
           </a>
@@ -177,14 +205,20 @@ export function MatchDetailPage() {
         <section className="tiles" aria-label={t('match.format')}>
           <div className="tile">
             <span className="tile__label">{t('match.format')}</span>
-            <strong className="tile__value num">{t('match.formatValue', { size: m.playersPerSide })}</strong>
+            <strong className="tile__value num">
+              {t('match.formatValue', { size: m.playersPerSide })}
+            </strong>
           </div>
           <div className="tile">
             <span className="tile__label">{t('match.fee')}</span>
-            <strong className="tile__value num">{m.feeKrw === 0 ? t('match.free') : formatKrw(m.feeKrw)}</strong>
+            <strong className="tile__value num">
+              {m.feeKrw === 0 ? t('match.free') : formatKrw(m.feeKrw)}
+            </strong>
           </div>
           <div className="tile tile--wide">
-            <span className="tile__label">{t('match.maxPlayers')}: {m.maxPlayers}</span>
+            <span className="tile__label">
+              {t('match.maxPlayers')}: {m.maxPlayers}
+            </span>
             <SpotsMeter match={m} />
           </div>
         </section>

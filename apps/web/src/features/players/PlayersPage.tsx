@@ -69,8 +69,12 @@ export function PlayersPage() {
           />
         </div>
         {search.isPending && <ListSkeleton rows={4} height={64} />}
-        {search.isError && <ErrorState error={search.error} onRetry={() => void search.refetch()} />}
-        {search.isSuccess && items.length === 0 && <EmptyState icon={<Users size={32} />} title={t('profile.noResults')} />}
+        {search.isError && (
+          <ErrorState error={search.error} onRetry={() => void search.refetch()} />
+        )}
+        {search.isSuccess && items.length === 0 && (
+          <EmptyState icon={<Users size={32} />} title={t('profile.noResults')} />
+        )}
         {items.length > 0 && (
           <ul className="card list">
             {items.map((player) => (
@@ -79,9 +83,13 @@ export function PlayersPage() {
                   <Avatar name={player.displayName} id={player.id} />
                   <span className="grow">
                     <strong>{player.displayName}</strong>
-                    {player.homeRegion && <small className="muted block">{regionLabel(player.homeRegion)}</small>}
+                    {player.homeRegion && (
+                      <small className="muted block">{regionLabel(player.homeRegion)}</small>
+                    )}
                   </span>
-                  <Badge tone="primary">{t('stats.levelValue', { level: player.level.level })}</Badge>
+                  <Badge tone="primary">
+                    {t('stats.levelValue', { level: player.level.level })}
+                  </Badge>
                   <ChevronRight size={16} aria-hidden="true" />
                 </Link>
               </li>

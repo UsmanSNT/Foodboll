@@ -61,7 +61,9 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
   const checked = attempted ? validateMatchForm(state, new Date()) : null;
   const messages: FieldMessages =
     checked && !checked.ok
-      ? Object.fromEntries(Object.entries(checked.errors).map(([id, error]) => [id, t(error.key, error.params)]))
+      ? Object.fromEntries(
+          Object.entries(checked.errors).map(([id, error]) => [id, t(error.key, error.params)]),
+        )
       : NO_ERRORS;
 
   const dirty = isDirty(state, baseline);
@@ -111,7 +113,11 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
 
   // Enter in a single-line field must not publish the match by accident: only the button does.
   const ignoreEnter = (event: KeyboardEvent<HTMLFormElement>) => {
-    if (event.key === 'Enter' && event.target instanceof HTMLInputElement && !event.nativeEvent.isComposing) {
+    if (
+      event.key === 'Enter' &&
+      event.target instanceof HTMLInputElement &&
+      !event.nativeEvent.isComposing
+    ) {
       event.preventDefault();
     }
   };
@@ -123,7 +129,13 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
         onBack={cancel}
         title={t(matchId === undefined ? 'matchForm.titleNew' : 'matchForm.titleEdit')}
       />
-      <form ref={formRef} className="page page--with-cta" noValidate onSubmit={submit} onKeyDown={ignoreEnter}>
+      <form
+        ref={formRef}
+        className="page page--with-cta"
+        noValidate
+        onSubmit={submit}
+        onKeyDown={ignoreEnter}
+      >
         {locked && <Alert tone="warning">{t('matchForm.startedNotice')}</Alert>}
 
         <FormGroup legend={t('matchForm.where.legend')} disabled={locked}>
@@ -161,7 +173,9 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
             playersPerSide={state.playersPerSide}
             maxPlayers={state.maxPlayers}
             errors={messages}
-            onPlayersPerSideChange={(value) => update((current) => withPlayersPerSide(current, value))}
+            onPlayersPerSideChange={(value) =>
+              update((current) => withPlayersPerSide(current, value))
+            }
             onMaxPlayersChange={(value) => update((current) => withMaxPlayers(current, value))}
           />
         </FormGroup>
@@ -176,7 +190,9 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
               patch({ sourceLanguage });
               setActiveLocale(sourceLanguage);
             }}
-            onFieldChange={(locale, field, value) => update((current) => withTranslationField(current, locale, field, value))}
+            onFieldChange={(locale, field, value) =>
+              update((current) => withTranslationField(current, locale, field, value))
+            }
             onClear={(locale) => update((current) => withClearedLanguage(current, locale))}
           />
         </FormGroup>
@@ -191,7 +207,13 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
               <Button size="lg" onClick={cancel}>
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" variant="primary" size="lg" loading={save.isPending} disabled={locked}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                loading={save.isPending}
+                disabled={locked}
+              >
                 {t(matchId === undefined ? 'matchForm.submitCreate' : 'matchForm.submitSave')}
               </Button>
             </div>

@@ -3,7 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { formatDate } from '@foodboll/i18n';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { upcomingDays } from '../lib/dates';
-import { chooseLanguageAndRegion, json, matchSummary, mockApi, renderApp, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  chooseLanguageAndRegion,
+  json,
+  matchSummary,
+  mockApi,
+  renderApp,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 let api: Api;
 beforeEach(() => {
@@ -24,8 +33,20 @@ describe('match feed', () => {
       page([
         matchSummary({ id: 'm1' }),
         // 2030-05-04 22:00 KST → same Korean day as m1; the next one is after midnight KST.
-        matchSummary({ id: 'm2', startsAt: '2030-05-04T15:30:00.000Z', endsAt: '2030-05-04T17:00:00.000Z', title: { text: 'Late match', locale: 'en', isFallback: false } }),
-        matchSummary({ id: 'm3', startsAt: '2030-05-05T10:00:00.000Z', endsAt: '2030-05-05T12:00:00.000Z', spotsLeft: 0, registeredCount: 18, title: { text: 'Sunday match', locale: 'en', isFallback: false } }),
+        matchSummary({
+          id: 'm2',
+          startsAt: '2030-05-04T15:30:00.000Z',
+          endsAt: '2030-05-04T17:00:00.000Z',
+          title: { text: 'Late match', locale: 'en', isFallback: false },
+        }),
+        matchSummary({
+          id: 'm3',
+          startsAt: '2030-05-05T10:00:00.000Z',
+          endsAt: '2030-05-05T12:00:00.000Z',
+          spotsLeft: 0,
+          registeredCount: 18,
+          title: { text: 'Sunday match', locale: 'en', isFallback: false },
+        }),
       ]);
     renderApp();
 
@@ -48,7 +69,11 @@ describe('match feed', () => {
     api.handlers['/v1/matches'] = () =>
       page([
         matchSummary({ id: 'm1', viewer: { registrationId: 'r1', status: 'CONFIRMED' } }),
-        matchSummary({ id: 'm2', title: { text: 'Other', locale: 'en', isFallback: false }, viewer: { registrationId: 'r2', status: 'APPLIED' } }),
+        matchSummary({
+          id: 'm2',
+          title: { text: 'Other', locale: 'en', isFallback: false },
+          viewer: { registrationId: 'r2', status: 'APPLIED' },
+        }),
       ]);
     renderApp();
     expect(await screen.findByText('Joined')).toBeInTheDocument();
@@ -58,7 +83,19 @@ describe('match feed', () => {
   it('explains an empty feed and offers to widen the search', async () => {
     chooseLanguageAndRegion('en', 'seoul');
     api.handlers['/v1/matches'] = () => page([]);
-    api.handlers['/v1/regions'] = () => json({ items: [{ id: 'r', code: 'seoul', name: { text: 'Seoul', locale: 'en', isFallback: false }, level: 1, upcomingMatches: 0, children: [] }] });
+    api.handlers['/v1/regions'] = () =>
+      json({
+        items: [
+          {
+            id: 'r',
+            code: 'seoul',
+            name: { text: 'Seoul', locale: 'en', isFallback: false },
+            level: 1,
+            upcomingMatches: 0,
+            children: [],
+          },
+        ],
+      });
     const user = userEvent.setup();
     renderApp();
 
@@ -75,7 +112,9 @@ describe('match feed', () => {
     await screen.findByRole('link', { name: /Gangnam Friday futsal/ });
 
     const day = upcomingDays(5)[3]!;
-    await user.click(screen.getByRole('button', { name: formatDate('en', `${day.key}T12:00:00+09:00`) }));
+    await user.click(
+      screen.getByRole('button', { name: formatDate('en', `${day.key}T12:00:00+09:00`) }),
+    );
     await waitFor(() => expect(api.calls.at(-1)?.url.searchParams.get('date')).toBe(day.key));
   });
 
@@ -84,7 +123,14 @@ describe('match feed', () => {
     api.handlers['/v1/regions'] = () =>
       json({
         items: [
-          { id: 'a', code: 'busan', name: { text: 'Busan', locale: 'en', isFallback: false }, level: 1, upcomingMatches: 2, children: [] },
+          {
+            id: 'a',
+            code: 'busan',
+            name: { text: 'Busan', locale: 'en', isFallback: false },
+            level: 1,
+            upcomingMatches: 2,
+            children: [],
+          },
         ],
       });
     const user = userEvent.setup();
@@ -101,10 +147,13 @@ describe('match feed', () => {
 
   it('shows a localized error and can retry', async () => {
     let fail = true;
-    api.handlers['/v1/matches'] = () => (fail ? json({ error: { code: 'INTERNAL_ERROR', message: '' } }, 500) : page([matchSummary()]));
+    api.handlers['/v1/matches'] = () =>
+      fail ? json({ error: { code: 'INTERNAL_ERROR', message: '' } }, 500) : page([matchSummary()]);
     const user = userEvent.setup();
     renderApp();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong. Please try again in a moment.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Something went wrong. Please try again in a moment.',
+    );
     fail = false;
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByRole('link', { name: /Gangnam Friday futsal/ })).toBeInTheDocument();

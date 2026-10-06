@@ -27,7 +27,10 @@ export function AdminDepositsPage() {
             label={t('adminDeposits.tabsLabel')}
             value={tab}
             onChange={setTab}
-            options={DEPOSIT_TABS.map((value) => ({ value, label: t(DEPOSIT_TAB_LABEL_KEY[value]) }))}
+            options={DEPOSIT_TABS.map((value) => ({
+              value,
+              label: t(DEPOSIT_TAB_LABEL_KEY[value]),
+            }))}
           />
         </div>
         <p className="small muted">{t(DEPOSIT_HINT_KEY[tab])}</p>

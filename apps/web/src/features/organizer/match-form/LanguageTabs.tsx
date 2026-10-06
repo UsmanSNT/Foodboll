@@ -21,7 +21,8 @@ interface LanguageTabsProps {
 }
 
 function StatusIcon({ status }: { readonly status: LanguageStatus }) {
-  if (status === 'filled') return <CheckCircle2 size={16} className="mf-status mf-status--ok" aria-hidden="true" />;
+  if (status === 'filled')
+    return <CheckCircle2 size={16} className="mf-status mf-status--ok" aria-hidden="true" />;
   if (status === 'empty') return <span className="mf-status mf-status--empty" aria-hidden="true" />;
   return <AlertTriangle size={16} className="mf-status mf-status--problem" aria-hidden="true" />;
 }
@@ -38,11 +39,19 @@ export function LanguageTabs({ active, statuses, onSelect, children }: LanguageT
   const move = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const last = LOCALE_CODES.length - 1;
     const target =
-      event.key === 'ArrowRight' ? (index === last ? 0 : index + 1)
-      : event.key === 'ArrowLeft' ? (index === 0 ? last : index - 1)
-      : event.key === 'Home' ? 0
-      : event.key === 'End' ? last
-      : null;
+      event.key === 'ArrowRight'
+        ? index === last
+          ? 0
+          : index + 1
+        : event.key === 'ArrowLeft'
+          ? index === 0
+            ? last
+            : index - 1
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? last
+              : null;
     const code = target === null ? undefined : LOCALE_CODES[target];
     if (code === undefined) return;
     event.preventDefault();

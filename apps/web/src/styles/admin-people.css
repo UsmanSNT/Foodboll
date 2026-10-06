@@ -33,12 +33,20 @@
 .people-users {
   overflow: hidden;
 }
+/* Each row is the only child of its <li>, so the shared `:last-child` rule would remove every divider. */
+.people-users > li + li {
+  border-top: 1px solid var(--border);
+}
 .people-user {
   align-items: flex-start;
   padding-block: 12px;
 }
 .people-user:hover {
   background: var(--surface-2);
+}
+/* The card clips its edges, so the focus ring is drawn inside the row. */
+.people-user:focus-visible {
+  outline-offset: -3px;
 }
 .people-user > svg {
   align-self: center;

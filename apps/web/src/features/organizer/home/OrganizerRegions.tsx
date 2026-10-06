@@ -19,7 +19,8 @@ export function OrganizerRegions({ isAdmin, regions }: Props) {
 
   if (isAdmin) return <p className="muted small">{t('organizer.home.regionsAdmin')}</p>;
   if (regions.isPending) return <Skeleton height={40} />;
-  if (regions.isError) return <ErrorState error={regions.error} onRetry={() => void regions.refetch()} />;
+  if (regions.isError)
+    return <ErrorState error={regions.error} onRetry={() => void regions.refetch()} />;
 
   const items = regions.data.items;
   if (items.length === 0) {

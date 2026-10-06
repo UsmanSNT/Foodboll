@@ -34,7 +34,11 @@ export function ApplicationCard({ application, onDecide }: Props) {
             <span lang={region.name.locale}>{regionLabel(region)}</span>
           </p>
         </div>
-        {status !== 'PENDING' && <Badge tone={APPLICATION_STATUS_TONE[status]}>{t(APPLICATION_STATUS_LABEL_KEY[status])}</Badge>}
+        {status !== 'PENDING' && (
+          <Badge tone={APPLICATION_STATUS_TONE[status]}>
+            {t(APPLICATION_STATUS_LABEL_KEY[status])}
+          </Badge>
+        )}
       </div>
 
       {message ? (
@@ -45,15 +49,24 @@ export function ApplicationCard({ application, onDecide }: Props) {
 
       <p className="small muted">
         {t('adminPeople.applications.appliedOn', { date: formatDateLong(application.createdAt) })}
-        {application.reviewedAt && ` · ${t('adminPeople.applications.reviewedOn', { date: formatDateLong(application.reviewedAt) })}`}
+        {application.reviewedAt &&
+          ` · ${t('adminPeople.applications.reviewedOn', { date: formatDateLong(application.reviewedAt) })}`}
       </p>
 
       {status === 'PENDING' && (
         <div className="people-actions">
-          <Button variant="danger" aria-label={action('adminPeople.applications.reject')} onClick={() => onDecide('reject')}>
+          <Button
+            variant="danger"
+            aria-label={action('adminPeople.applications.reject')}
+            onClick={() => onDecide('reject')}
+          >
             {t('adminPeople.applications.reject')}
           </Button>
-          <Button variant="primary" aria-label={action('adminPeople.applications.approve')} onClick={() => onDecide('approve')}>
+          <Button
+            variant="primary"
+            aria-label={action('adminPeople.applications.approve')}
+            onClick={() => onDecide('approve')}
+          >
             {t('adminPeople.applications.approve')}
           </Button>
         </div>

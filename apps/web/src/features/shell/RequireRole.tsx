@@ -15,7 +15,13 @@ import { ListSkeleton } from '../../ui/Skeleton';
  * Gate for staff screens. The API enforces every permission itself; this only keeps people from
  * landing on a screen whose requests would all fail, and tells them why.
  */
-export function RequireRole({ roles, children }: { readonly roles?: readonly UserRole[]; readonly children: ReactNode }) {
+export function RequireRole({
+  roles,
+  children,
+}: {
+  readonly roles?: readonly UserRole[];
+  readonly children: ReactNode;
+}) {
   const { t } = useI18n();
   const { signedIn } = useAuth();
   const { openLogin } = useLoginGate();

@@ -14,7 +14,9 @@ export function Layout() {
     <NavLink to={to} end={end} className="tab">
       <span className="tab__icon">
         <Icon size={22} aria-hidden="true" />
-        {badge && <span className="tab__dot" role="img" aria-label={t('inbox.unread', { count: unread })} />}
+        {badge && (
+          <span className="tab__dot" role="img" aria-label={t('inbox.unread', { count: unread })} />
+        )}
       </span>
       <span>{label}</span>
     </NavLink>

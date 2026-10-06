@@ -62,9 +62,7 @@ export function I18nProvider({ children }: { readonly children: ReactNode }) {
   const [account, setAccount] = useState<LocaleCode | null>(null);
   // A signed-in user with no local choice must wait for the account language, or they would
   // briefly be shown the selection screen they already completed on another device.
-  const [accountPending, setAccountPending] = useState(
-    () => token !== null && stored === null,
-  );
+  const [accountPending, setAccountPending] = useState(() => token !== null && stored === null);
   const [accountSaveFailed, setAccountSaveFailed] = useState(false);
 
   const resolved = useMemo(
@@ -114,22 +112,25 @@ export function I18nProvider({ children }: { readonly children: ReactNode }) {
     return () => controller.abort();
   }, [token]);
 
-  const setLanguage = useCallback(async (next: LocaleCode) => {
-    writeStoredLanguage(next);
-    setStored(next);
-    setAccount((current) => (current === null ? current : next));
-    setAccountSaveFailed(false);
-    if (token === null) return;
-    try {
-      await apiRequest<MeDto>('/v1/me/language', {
-        method: 'PATCH',
-        body: { preferredLanguage: next },
-      });
-      setAccount(next);
-    } catch {
-      setAccountSaveFailed(true);
-    }
-  }, [token]);
+  const setLanguage = useCallback(
+    async (next: LocaleCode) => {
+      writeStoredLanguage(next);
+      setStored(next);
+      setAccount((current) => (current === null ? current : next));
+      setAccountSaveFailed(false);
+      if (token === null) return;
+      try {
+        await apiRequest<MeDto>('/v1/me/language', {
+          method: 'PATCH',
+          body: { preferredLanguage: next },
+        });
+        setAccount(next);
+      } catch {
+        setAccountSaveFailed(true);
+      }
+    },
+    [token],
+  );
 
   const value = useMemo<I18nValue>(() => {
     const translator = createTranslator(locale);

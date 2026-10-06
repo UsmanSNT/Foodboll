@@ -245,7 +245,8 @@ export const uz: typeof ko = {
     },
   },
   format: {
-    weekdayShort: '{weekday, select, 0 {Yak} 1 {Dush} 2 {Sesh} 3 {Chor} 4 {Pay} 5 {Jum} 6 {Shan} other {}}',
+    weekdayShort:
+      '{weekday, select, 0 {Yak} 1 {Dush} 2 {Sesh} 3 {Chor} 4 {Pay} 5 {Jum} 6 {Shan} other {}}',
     date: '{day}-{month, select, 1 {yanvar} 2 {fevral} 3 {mart} 4 {aprel} 5 {may} 6 {iyun} 7 {iyul} 8 {avgust} 9 {sentabr} 10 {oktabr} 11 {noyabr} 12 {dekabr} other {}} ({weekday, select, 0 {yakshanba} 1 {dushanba} 2 {seshanba} 3 {chorshanba} 4 {payshanba} 5 {juma} 6 {shanba} other {}})',
     dateLong:
       '{day}-{month, select, 1 {yanvar} 2 {fevral} 3 {mart} 4 {aprel} 5 {may} 6 {iyun} 7 {iyul} 8 {avgust} 9 {sentabr} 10 {oktabr} 11 {noyabr} 12 {dekabr} other {}} {year}',

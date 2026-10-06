@@ -91,7 +91,8 @@ export const adminDepositsUz: typeof adminDepositsKo = {
     needs:
       'Tizim bu o‘tkazmalar qaysi arizaga tegishli ekanini aniqlay olmadi. Har birini arizaga biriktiring yoki futbolchi to‘lovi bo‘lmasa, e’tiborsiz qoldiring.',
     matched: 'To‘lovni tasdiqlagan o‘tkazmalar.',
-    ignored: 'O‘tkazib yuborilgan o‘tkazmalar. Agar biri aslida to‘lov bo‘lsa, uni hozir ham biriktirish mumkin.',
+    ignored:
+      'O‘tkazib yuborilgan o‘tkazmalar. Agar biri aslida to‘lov bo‘lsa, uni hozir ham biriktirish mumkin.',
   },
   emptyTitle: {
     needs: 'Hal qilinadigan o‘tkazma yo‘q',
@@ -112,11 +113,14 @@ export const adminDepositsUz: typeof adminDepositsKo = {
   receivedAt: 'Kelgan vaqti',
   amountUnknown: 'Summa noma’lum',
   reason: {
-    AMOUNT_MISMATCH: 'To‘lov kodi yoki ism mos keldi, lekin summa to‘lanishi kerak bo‘lgan summadan farq qiladi.',
-    NO_CANDIDATE: 'Bu o‘tkazmaga mos kutilayotgan to‘lov topilmadi: to‘lov kodi ham, ma’lum ism ham yo‘q.',
+    AMOUNT_MISMATCH:
+      'To‘lov kodi yoki ism mos keldi, lekin summa to‘lanishi kerak bo‘lgan summadan farq qiladi.',
+    NO_CANDIDATE:
+      'Bu o‘tkazmaga mos kutilayotgan to‘lov topilmadi: to‘lov kodi ham, ma’lum ism ham yo‘q.',
     MULTIPLE_CANDIDATES: 'Bu o‘tkazmaga bir nechta kutilayotgan to‘lov mos kelishi mumkin.',
     STALE_MESSAGE: 'Xabar juda eski, shuning uchun avtomatik qayta ishlanmadi.',
-    RATE_GUARD: 'Qisqa vaqtda juda ko‘p to‘lov avtomatik tasdiqlandi, shuning uchun buni odam ko‘rib chiqadi.',
+    RATE_GUARD:
+      'Qisqa vaqtda juda ko‘p to‘lov avtomatik tasdiqlandi, shuning uchun buni odam ko‘rib chiqadi.',
     STATE_CHANGED:
       'To‘lov tekshirilayotganda o‘zgarib qoldi, masalan, bekor qilingan yoki allaqachon tasdiqlangan.',
     NOT_PARSED: 'Bu xabar pul kelgani haqidagi xabarga o‘xshamaydi.',
@@ -189,11 +193,14 @@ export const adminDepositsEn: typeof adminDepositsKo = {
   receivedAt: 'Received',
   amountUnknown: 'Unknown amount',
   reason: {
-    AMOUNT_MISMATCH: 'A payment code or name matched, but the amount is different from what is due.',
-    NO_CANDIDATE: 'No waiting payment matches this deposit: no payment code or known name was found.',
+    AMOUNT_MISMATCH:
+      'A payment code or name matched, but the amount is different from what is due.',
+    NO_CANDIDATE:
+      'No waiting payment matches this deposit: no payment code or known name was found.',
     MULTIPLE_CANDIDATES: 'More than one waiting payment could match this deposit.',
     STALE_MESSAGE: 'The message is too old to trust automatically.',
-    RATE_GUARD: 'Many payments were confirmed automatically in a short time, so this one waits for a person.',
+    RATE_GUARD:
+      'Many payments were confirmed automatically in a short time, so this one waits for a person.',
     STATE_CHANGED:
       'The payment changed while it was being matched, for example it was cancelled or already confirmed.',
     NOT_PARSED: 'This message doesn’t look like a deposit notice.',

@@ -48,7 +48,13 @@ export function AttendanceList({ match, entries, onStale }: Props) {
   useUnsavedGuard(marks.length > 0);
 
   if (entries.length === 0) {
-    return <EmptyState icon={<Users size={32} />} title={t('organizer.roster.emptyTitle')} text={t('organizer.roster.emptyText')} />;
+    return (
+      <EmptyState
+        icon={<Users size={32} />}
+        title={t('organizer.roster.emptyTitle')}
+        text={t('organizer.roster.emptyText')}
+      />
+    );
   }
 
   const anyDecided = counts.unmarked < entries.length;
@@ -68,13 +74,23 @@ export function AttendanceList({ match, entries, onStale }: Props) {
   return (
     <>
       {marking === 'before' && <Alert tone="info">{t('organizer.roster.notStarted')}</Alert>}
-      {marking === 'closed' && <Alert tone="warning">{t('organizer.roster.closed', { days: ATTENDANCE_WINDOW_DAYS })}</Alert>}
+      {marking === 'closed' && (
+        <Alert tone="warning">
+          {t('organizer.roster.closed', { days: ATTENDANCE_WINDOW_DAYS })}
+        </Alert>
+      )}
 
       <RosterSummary {...counts} />
 
       <section className="stack">
-        <h2 className="section-title">{t('organizer.roster.players', { count: entries.length })}</h2>
-        <Button block disabled={!editable || counts.unmarked === 0} onClick={() => change((current) => withRestPresent(current, entries))}>
+        <h2 className="section-title">
+          {t('organizer.roster.players', { count: entries.length })}
+        </h2>
+        <Button
+          block
+          disabled={!editable || counts.unmarked === 0}
+          onClick={() => change((current) => withRestPresent(current, entries))}
+        >
           <CheckCircle2 size={18} aria-hidden="true" />
           {anyDecided ? t('organizer.roster.markRest') : t('organizer.roster.markAll')}
         </Button>
@@ -89,7 +105,9 @@ export function AttendanceList({ match, entries, onStale }: Props) {
             />
           ))}
         </ul>
-        {entries.some((entry) => entry.attended !== null) && <p className="small muted">{t('organizer.roster.savedHint')}</p>}
+        {entries.some((entry) => entry.attended !== null) && (
+          <p className="small muted">{t('organizer.roster.savedHint')}</p>
+        )}
       </section>
 
       {marking === 'open' && (
@@ -97,9 +115,18 @@ export function AttendanceList({ match, entries, onStale }: Props) {
           <div className="cta-bar__inner stack">
             {save.isError && <ErrorState error={save.error} />}
             <p className="small muted roster-status" aria-live="polite">
-              {marks.length > 0 ? t('organizer.roster.unsaved', { count: marks.length }) : t('organizer.roster.noChanges')}
+              {marks.length > 0
+                ? t('organizer.roster.unsaved', { count: marks.length })
+                : t('organizer.roster.noChanges')}
             </p>
-            <Button variant="primary" size="lg" block loading={save.isPending} disabled={marks.length === 0} onClick={submit}>
+            <Button
+              variant="primary"
+              size="lg"
+              block
+              loading={save.isPending}
+              disabled={marks.length === 0}
+              onClick={submit}
+            >
               {t('organizer.roster.save')}
             </Button>
           </div>

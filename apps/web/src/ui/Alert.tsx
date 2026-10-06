@@ -10,7 +10,10 @@ export function Alert({
 }) {
   const Icon = tone === 'success' ? CheckCircle2 : tone === 'info' ? Info : AlertTriangle;
   return (
-    <div className={tone === 'danger' ? 'alert' : `alert alert--${tone}`} role={tone === 'danger' ? 'alert' : 'status'}>
+    <div
+      className={tone === 'danger' ? 'alert' : `alert alert--${tone}`}
+      role={tone === 'danger' ? 'alert' : 'status'}
+    >
       <Icon size={18} aria-hidden="true" style={{ flex: 'none', marginTop: 1 }} />
       <div>{children}</div>
     </div>

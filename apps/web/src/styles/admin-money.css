@@ -273,7 +273,9 @@
   border-radius: var(--radius-sm);
   background: var(--surface);
   text-align: start;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 .money-candidate:hover:not(:disabled) {
   border-color: var(--primary);

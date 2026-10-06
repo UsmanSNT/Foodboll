@@ -3,7 +3,18 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiError, chooseLanguageAndRegion, json, matchDetail, me, mockApi, renderApp, setDeviceLanguages, signIn, type Api } from '../test-utils';
+import {
+  apiError,
+  chooseLanguageAndRegion,
+  json,
+  matchDetail,
+  me,
+  mockApi,
+  renderApp,
+  setDeviceLanguages,
+  signIn,
+  type Api,
+} from '../test-utils';
 
 // The screen after saving is not under test: a marker shows that the form navigated to it.
 vi.mock('../features/organizer/OrganizerHomePage', () => ({
@@ -11,7 +22,14 @@ vi.mock('../features/organizer/OrganizerHomePage', () => ({
 }));
 
 const localized = (text: string) => ({ text, locale: 'en', isFallback: false });
-const leaf = (code: string, text: string) => ({ id: `id-${code}`, code, name: localized(text), level: 2, upcomingMatches: 0, children: [] });
+const leaf = (code: string, text: string) => ({
+  id: `id-${code}`,
+  code,
+  name: localized(text),
+  level: 2,
+  upcomingMatches: 0,
+  children: [],
+});
 const province = (code: string, text: string, children: ReturnType<typeof leaf>[] = []) => ({
   id: `id-${code}`,
   code,
@@ -22,12 +40,24 @@ const province = (code: string, text: string, children: ReturnType<typeof leaf>[
 });
 const regionTree = {
   items: [
-    province('seoul', 'Seoul', [leaf('seoul-gangnam', 'Gangnam-gu'), leaf('seoul-mapo', 'Mapo-gu')]),
-    province('gyeonggi', 'Gyeonggi', [leaf('gyeonggi-suwon', 'Suwon'), leaf('gyeonggi-ansan', 'Ansan')]),
+    province('seoul', 'Seoul', [
+      leaf('seoul-gangnam', 'Gangnam-gu'),
+      leaf('seoul-mapo', 'Mapo-gu'),
+    ]),
+    province('gyeonggi', 'Gyeonggi', [
+      leaf('gyeonggi-suwon', 'Suwon'),
+      leaf('gyeonggi-ansan', 'Ansan'),
+    ]),
     province('busan', 'Busan', [leaf('busan-haeundae', 'Haeundae-gu')]),
   ],
 };
-const granted = (code: string, text: string, level = 1) => ({ id: `id-${code}`, code, name: localized(text), level, parent: null });
+const granted = (code: string, text: string, level = 1) => ({
+  id: `id-${code}`,
+  code,
+  name: localized(text),
+  level,
+  parent: null,
+});
 
 const MAPO = granted('seoul-mapo', 'Mapo-gu', 2);
 const GYEONGGI = granted('gyeonggi', 'Gyeonggi');
@@ -44,12 +74,17 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function openAs(role: 'ORGANIZER' | 'ADMIN' | 'PLAYER', regions: unknown[] = [MAPO], account: Record<string, unknown> = {}) {
+function openAs(
+  role: 'ORGANIZER' | 'ADMIN' | 'PLAYER',
+  regions: unknown[] = [MAPO],
+  account: Record<string, unknown> = {},
+) {
   signIn(api, me({ role, ...account }));
   api.handlers['/v1/me/organizer-regions'] = () => json({ items: regions });
 }
 
-const bodyOf = (method: string, path: string) => JSON.parse(String(api.find(method, path)?.init?.body)) as Record<string, unknown>;
+const bodyOf = (method: string, path: string) =>
+  JSON.parse(String(api.find(method, path)?.init?.body)) as Record<string, unknown>;
 const regionButton = () => screen.getByRole('button', { name: /^Region/ });
 const submitButton = (name = 'Announce match') => screen.getByRole('button', { name });
 
@@ -75,7 +110,9 @@ describe('announcing a match', () => {
     const user = userEvent.setup();
     renderApp('/organizer/matches/new');
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Create match' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Create match' }),
+    ).toBeInTheDocument();
     await screen.findByLabelText('Venue name');
     await pickRegion(user, 'Ansan');
     expect(regionButton()).toHaveAccessibleName('Region Gyeonggi Ansan');
@@ -97,7 +134,9 @@ describe('announcing a match', () => {
     await user.type(screen.getByLabelText('About this match'), '  모든 실력 환영  ');
     await user.click(screen.getByRole('tab', { name: /O‘zbekcha/ }));
     await user.type(screen.getByLabelText('Title'), 'Ansan juma futzal');
-    expect(screen.getByText('Readers whose language is left empty will see the original text (한국어).')).toBeInTheDocument();
+    expect(
+      screen.getByText('Readers whose language is left empty will see the original text (한국어).'),
+    ).toBeInTheDocument();
 
     await user.click(submitButton());
 
@@ -141,7 +180,9 @@ describe('announcing a match', () => {
     renderApp('/organizer/matches/new');
     await screen.findByLabelText('Venue name');
 
-    expect(screen.getByText(/The entry fee is set by the platform and is the same for everyone/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/The entry fee is set by the platform and is the same for everyone/),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/₩/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/fee|price/i)).not.toBeInTheDocument();
 
@@ -159,7 +200,9 @@ describe('announcing a match', () => {
 
     expect(screen.getByRole('radio', { name: 'O‘zbekcha' })).toBeChecked();
     expect(screen.getByRole('tab', { name: /O‘zbekcha/ })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('button', { name: /^Hudud/ })).toHaveAccessibleName('Hudud Seoul Mapo-gu');
+    expect(screen.getByRole('button', { name: /^Hudud/ })).toHaveAccessibleName(
+      'Hudud Seoul Mapo-gu',
+    );
   });
 
   it('sends only the languages that have text and defaults capacity to two full sides', async () => {
@@ -172,9 +215,19 @@ describe('announcing a match', () => {
 
     await user.click(submitButton());
     await waitFor(() => expect(api.find('POST', '/v1/matches')).toBeDefined());
-    const body = bodyOf('POST', '/v1/matches') as { translations: Record<string, unknown>; maxPlayers: number; playersPerSide: number; sourceLanguage: string };
+    const body = bodyOf('POST', '/v1/matches') as {
+      translations: Record<string, unknown>;
+      maxPlayers: number;
+      playersPerSide: number;
+      sourceLanguage: string;
+    };
     expect(Object.keys(body.translations)).toEqual(['en']);
-    expect(body).toMatchObject({ sourceLanguage: 'en', playersPerSide: 6, maxPlayers: 12, regionCode: 'seoul-mapo' });
+    expect(body).toMatchObject({
+      sourceLanguage: 'en',
+      playersPerSide: 6,
+      maxPlayers: 12,
+      regionCode: 'seoul-mapo',
+    });
   });
 });
 
@@ -229,7 +282,13 @@ describe('regions', () => {
 
     await user.click(regionButton());
     const dialog = await screen.findByRole('dialog', { name: 'Choose region' });
-    for (const name of ['All of Seoul', 'Gangnam-gu', 'All of Gyeonggi', 'All of Busan', 'Haeundae-gu']) {
+    for (const name of [
+      'All of Seoul',
+      'Gangnam-gu',
+      'All of Gyeonggi',
+      'All of Busan',
+      'Haeundae-gu',
+    ]) {
       expect(within(dialog).getByRole('button', { name })).toBeInTheDocument();
     }
     expect(api.find('GET', '/v1/me/organizer-regions')).toBeUndefined();
@@ -239,8 +298,13 @@ describe('regions', () => {
     openAs('ORGANIZER', []);
     renderApp('/organizer/matches/new');
 
-    expect(await screen.findByRole('heading', { name: 'You can’t announce matches in any region yet' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Apply to organize' })).toHaveAttribute('href', '/organizer/apply');
+    expect(
+      await screen.findByRole('heading', { name: 'You can’t announce matches in any region yet' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Apply to organize' })).toHaveAttribute(
+      'href',
+      '/organizer/apply',
+    );
     expect(screen.queryByLabelText('Venue name')).not.toBeInTheDocument();
   });
 });
@@ -267,7 +331,9 @@ describe('validation', () => {
     await user.click(submitButton());
     expect(screen.getByLabelText('Venue name')).toHaveFocus();
     expect(screen.getByLabelText('Venue name')).toBeInvalid();
-    expect(screen.getByLabelText('Venue name')).toHaveAccessibleDescription(/This field is required\./);
+    expect(screen.getByLabelText('Venue name')).toHaveAccessibleDescription(
+      /This field is required\./,
+    );
   });
 
   it('switches to the language tab with the problem and focuses its field', async () => {
@@ -288,7 +354,9 @@ describe('validation', () => {
 
     expect(api.find('POST', '/v1/matches')).toBeUndefined();
     expect(screen.getByRole('tab', { name: /O‘zbekcha/ })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByText('Add a title, or clear everything in this language.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Add a title, or clear everything in this language.'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Title')).toHaveFocus();
   });
 
@@ -345,7 +413,9 @@ describe('validation', () => {
 
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2020-01-01' } });
     await user.click(submitButton());
-    expect(screen.getByText('The match must start in the future (Korea time).')).toBeInTheDocument();
+    expect(
+      screen.getByText('The match must start in the future (Korea time).'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Date')).toHaveFocus();
 
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2030-05-04' } });
@@ -466,7 +536,11 @@ describe('languages', () => {
     await user.click(screen.getByRole('radio', { name: 'O‘zbekcha' }));
     expect(screen.getByRole('tab', { name: /O‘zbekcha/ })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Original')).toBeInTheDocument();
-    expect(screen.getByText('Readers whose language is left empty will see the original text (O‘zbekcha).')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Readers whose language is left empty will see the original text (O‘zbekcha).',
+      ),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('tab', { name: /한국어/ }));
     expect(screen.getByText('Translation')).toBeInTheDocument();
   });
@@ -475,32 +549,41 @@ describe('languages', () => {
 describe('server errors', () => {
   it.each([
     ['REGION_FORBIDDEN', 403, 'You can’t create matches in this region.'],
-    ['CAPACITY_BELOW_REGISTRATIONS', 409, 'Max players can’t be lower than the number of current registrations.'],
+    [
+      'CAPACITY_BELOW_REGISTRATIONS',
+      409,
+      'Max players can’t be lower than the number of current registrations.',
+    ],
     ['MATCH_STARTED', 409, 'This match has already started.'],
     ['SOURCE_TRANSLATION_REQUIRED', 422, 'Please add the text in the original (default) language.'],
     ['INTERNAL_ERROR', 500, 'Something went wrong. Please try again in a moment.'],
     ['NETWORK_ERROR', 500, 'Check your network connection and try again.'],
-  ])('shows %s in the user’s language, never the server text, and keeps what was typed', async (code, status, message) => {
-    openAs('ORGANIZER');
-    api.handlers['/v1/matches'] = () => apiError(code, status);
-    const user = userEvent.setup();
-    renderApp('/organizer/matches/new');
-    await screen.findByLabelText('Venue name');
-    await fillMinimum(user);
+  ])(
+    'shows %s in the user’s language, never the server text, and keeps what was typed',
+    async (code, status, message) => {
+      openAs('ORGANIZER');
+      api.handlers['/v1/matches'] = () => apiError(code, status);
+      const user = userEvent.setup();
+      renderApp('/organizer/matches/new');
+      await screen.findByLabelText('Venue name');
+      await fillMinimum(user);
 
-    await user.click(submitButton());
+      await user.click(submitButton());
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(message);
-    expect(screen.queryByText('ignored')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Venue name')).toHaveValue('마포 풋살장');
-    expect(submitButton()).toBeEnabled();
-    expect(screen.queryByText('Organizer home marker')).not.toBeInTheDocument();
-  });
+      expect(await screen.findByRole('alert')).toHaveTextContent(message);
+      expect(screen.queryByText('ignored')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Venue name')).toHaveValue('마포 풋살장');
+      expect(submitButton()).toBeEnabled();
+      expect(screen.queryByText('Organizer home marker')).not.toBeInTheDocument();
+    },
+  );
 
   it('retires the error as soon as the organizer changes something', async () => {
     openAs('ORGANIZER', [GYEONGGI, MAPO]);
     api.handlers['/v1/matches'] = (_url, init) =>
-      JSON.parse(String(init?.body)).regionCode === 'seoul-mapo' ? apiError('REGION_FORBIDDEN', 403) : json(matchDetail(), 201);
+      JSON.parse(String(init?.body)).regionCode === 'seoul-mapo'
+        ? apiError('REGION_FORBIDDEN', 403)
+        : json(matchDetail(), 201);
     const user = userEvent.setup();
     renderApp('/organizer/matches/new');
     await screen.findByLabelText('Venue name');
@@ -508,7 +591,9 @@ describe('server errors', () => {
     await fillMinimum(user);
 
     await user.click(submitButton());
-    expect(await screen.findByRole('alert')).toHaveTextContent('You can’t create matches in this region.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'You can’t create matches in this region.',
+    );
     await pickRegion(user, 'Ansan');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
@@ -519,7 +604,8 @@ describe('server errors', () => {
   it('can be sent again after a failure', async () => {
     openAs('ORGANIZER');
     let attempts = 0;
-    api.handlers['/v1/matches'] = () => (++attempts === 1 ? apiError('INTERNAL_ERROR', 500) : json(matchDetail(), 201));
+    api.handlers['/v1/matches'] = () =>
+      ++attempts === 1 ? apiError('INTERNAL_ERROR', 500) : json(matchDetail(), 201);
     const user = userEvent.setup();
     renderApp('/organizer/matches/new');
     await screen.findByLabelText('Venue name');
@@ -552,7 +638,11 @@ describe('server errors', () => {
 
     release();
     expect(await screen.findByText('Organizer home marker')).toBeInTheDocument();
-    expect(api.calls.filter((call) => call.init?.method === 'POST' && call.url.pathname === '/api/v1/matches')).toHaveLength(1);
+    expect(
+      api.calls.filter(
+        (call) => call.init?.method === 'POST' && call.url.pathname === '/api/v1/matches',
+      ),
+    ).toHaveLength(1);
   });
 });
 
@@ -568,7 +658,10 @@ describe('accidental submits and exits', () => {
     await user.type(screen.getByLabelText('Venue name'), '{Enter}');
     await user.click(regionButton());
     const dialog = await screen.findByRole('dialog', { name: 'Choose region' });
-    await user.type(within(dialog).getByRole('searchbox', { name: 'Search regions' }), 'mapo{Enter}');
+    await user.type(
+      within(dialog).getByRole('searchbox', { name: 'Search regions' }),
+      'mapo{Enter}',
+    );
     expect(screen.getByRole('dialog', { name: 'Choose region' })).toBeInTheDocument();
     expect(api.find('POST', '/v1/matches')).toBeUndefined();
 
@@ -578,7 +671,9 @@ describe('accidental submits and exits', () => {
     expect(screen.getByLabelText('About this match')).toHaveValue('one\ntwo');
     await user.click(submitButton());
     await waitFor(() => expect(api.find('POST', '/v1/matches')).toBeDefined());
-    expect(bodyOf('POST', '/v1/matches')).toMatchObject({ translations: { en: { description: 'one\ntwo' } } });
+    expect(bodyOf('POST', '/v1/matches')).toMatchObject({
+      translations: { en: { description: 'one\ntwo' } },
+    });
   });
 
   it('warns before the page is closed or reloaded only when there is typed work to lose', async () => {
@@ -622,7 +717,12 @@ describe('leaving the form', () => {
     expect(screen.getByLabelText('Venue name')).toHaveValue('마포');
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    await user.click(within(await screen.findByRole('dialog', { name: 'Discard your changes?' })).getByRole('button', { name: 'Discard and leave' }));
+    await user.click(
+      within(await screen.findByRole('dialog', { name: 'Discard your changes?' })).getByRole(
+        'button',
+        { name: 'Discard and leave' },
+      ),
+    );
     expect(await screen.findByText('Organizer home marker')).toBeInTheDocument();
     expect(api.find('POST', '/v1/matches')).toBeUndefined();
   });
@@ -640,8 +740,22 @@ describe('editing a match', () => {
     playersPerSide: 6,
     maxPlayers: 14,
     translations: {
-      uz: { title: 'Ansan juma futzal', description: 'Barcha darajalar', rules: null, locationInstructions: null, equipmentRequirements: null, cancellationPolicy: null },
-      ko: { title: '안산 금요 풋살', description: null, rules: '슬라이딩 금지', locationInstructions: null, equipmentRequirements: null, cancellationPolicy: null },
+      uz: {
+        title: 'Ansan juma futzal',
+        description: 'Barcha darajalar',
+        rules: null,
+        locationInstructions: null,
+        equipmentRequirements: null,
+        cancellationPolicy: null,
+      },
+      ko: {
+        title: '안산 금요 풋살',
+        description: null,
+        rules: '슬라이딩 금지',
+        locationInstructions: null,
+        equipmentRequirements: null,
+        cancellationPolicy: null,
+      },
     },
   };
 
@@ -653,7 +767,9 @@ describe('editing a match', () => {
     const user = userEvent.setup();
     renderApp('/organizer/matches/m1/edit');
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Edit match' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Edit match' }),
+    ).toBeInTheDocument();
     expect(await screen.findByLabelText('Venue name')).toHaveValue('안산 풋살파크');
     expect(regionButton()).toHaveAccessibleName('Region Gyeonggi Ansan');
     expect(screen.getByLabelText('Date')).toHaveValue('2030-05-04');
@@ -689,8 +805,22 @@ describe('editing a match', () => {
       playersPerSide: 6,
       maxPlayers: 14,
       translations: {
-        uz: { title: 'Ansan juma futzal', description: 'Barcha darajalar', rules: null, locationInstructions: null, equipmentRequirements: null, cancellationPolicy: null },
-        ko: { title: '안산 금요 풋살', description: null, rules: '슬라이딩 금지', locationInstructions: null, equipmentRequirements: null, cancellationPolicy: null },
+        uz: {
+          title: 'Ansan juma futzal',
+          description: 'Barcha darajalar',
+          rules: null,
+          locationInstructions: null,
+          equipmentRequirements: null,
+          cancellationPolicy: null,
+        },
+        ko: {
+          title: '안산 금요 풋살',
+          description: null,
+          rules: '슬라이딩 금지',
+          locationInstructions: null,
+          equipmentRequirements: null,
+          cancellationPolicy: null,
+        },
       },
     });
     expect(await screen.findByText('Organizer home marker')).toBeInTheDocument();
@@ -717,10 +847,13 @@ describe('editing a match', () => {
 
   it('does not allow changing a match that has already started', async () => {
     openAs('ORGANIZER', [GYEONGGI]);
-    api.handlers['/v1/matches/m1/translations'] = () => json({ ...saved, startsAt: '2020-01-01T10:00:00.000Z', endsAt: '2020-01-01T12:00:00.000Z' });
+    api.handlers['/v1/matches/m1/translations'] = () =>
+      json({ ...saved, startsAt: '2020-01-01T10:00:00.000Z', endsAt: '2020-01-01T12:00:00.000Z' });
     renderApp('/organizer/matches/m1/edit');
 
-    expect(await screen.findByText('A match that has already started can’t be edited.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('A match that has already started can’t be edited.'),
+    ).toBeInTheDocument();
     expect(submitButton('Save changes')).toBeDisabled();
     expect(screen.getByLabelText('Venue name')).toBeDisabled();
     expect(regionButton()).toBeDisabled();
@@ -730,7 +863,8 @@ describe('editing a match', () => {
   it('keeps the form and everything typed when refreshing the saved match fails in the background', async () => {
     openAs('ORGANIZER', [GYEONGGI]);
     let failing = false;
-    api.handlers['/v1/matches/m1/translations'] = () => (failing ? apiError('INTERNAL_ERROR', 500) : json(saved));
+    api.handlers['/v1/matches/m1/translations'] = () =>
+      failing ? apiError('INTERNAL_ERROR', 500) : json(saved);
     const user = userEvent.setup();
     renderApp('/organizer/matches/m1/edit');
     const venue = await screen.findByLabelText('Venue name');
@@ -739,7 +873,11 @@ describe('editing a match', () => {
     failing = true;
     focusManager.setFocused(false);
     focusManager.setFocused(true);
-    await waitFor(() => expect(api.calls.filter((call) => call.url.pathname.endsWith('/translations'))).toHaveLength(2));
+    await waitFor(() =>
+      expect(api.calls.filter((call) => call.url.pathname.endsWith('/translations'))).toHaveLength(
+        2,
+      ),
+    );
     await waitFor(() => expect(screen.getByLabelText('Venue name')).toHaveValue('안산 풋살파크 2'));
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(submitButton('Save changes')).toBeEnabled();
@@ -765,7 +903,8 @@ describe('editing a match', () => {
   it('offers a retry when loading fails for a reason that may pass', async () => {
     openAs('ORGANIZER', [GYEONGGI]);
     let attempts = 0;
-    api.handlers['/v1/matches/m1/translations'] = () => (++attempts === 1 ? apiError('INTERNAL_ERROR', 500) : json(saved));
+    api.handlers['/v1/matches/m1/translations'] = () =>
+      ++attempts === 1 ? apiError('INTERNAL_ERROR', 500) : json(saved);
     const user = userEvent.setup();
     renderApp('/organizer/matches/m1/edit');
 
@@ -795,7 +934,9 @@ describe('access', () => {
     openAs('PLAYER');
     renderApp('/organizer/matches/new');
 
-    expect(await screen.findByRole('heading', { name: 'You don’t have permission to do this.' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'You don’t have permission to do this.' }),
+    ).toBeInTheDocument();
     expect(screen.queryByLabelText('Venue name')).not.toBeInTheDocument();
     expect(api.find('GET', '/v1/me/organizer-regions')).toBeUndefined();
   });

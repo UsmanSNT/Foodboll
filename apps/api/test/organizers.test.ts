@@ -120,14 +120,22 @@ describe('listing my announced matches', () => {
     const later = new Date(Date.now() + 6 * 24 * hours(1)).toISOString();
     const end = (iso: string) => new Date(Date.parse(iso) + hours(2)).toISOString();
     const post = (token: string, startsAt: string, title: string) =>
-      send('POST', '/v1/matches', token, matchBody('seoul', { startsAt, endsAt: end(startsAt), translations: { ko: { title } } }));
+      send(
+        'POST',
+        '/v1/matches',
+        token,
+        matchBody('seoul', { startsAt, endsAt: end(startsAt), translations: { ko: { title } } }),
+      );
     expect((await post(mine.token, soon, '먼저')).statusCode).toBe(201);
     expect((await post(mine.token, later, '나중')).statusCode).toBe(201);
     expect((await post(other.token, soon, '남의 매치')).statusCode).toBe(201);
 
     const res = await send('GET', '/v1/me/organized-matches', mine.token);
     expect(res.statusCode).toBe(200);
-    expect(res.json().items.map((m: { title: { text: string } }) => m.title.text)).toEqual(['나중', '먼저']);
+    expect(res.json().items.map((m: { title: { text: string } }) => m.title.text)).toEqual([
+      '나중',
+      '먼저',
+    ]);
 
     expect((await send('GET', '/v1/me/organized-matches', player.token)).statusCode).toBe(403);
     expect((await send('GET', '/v1/me/organized-matches', null)).statusCode).toBe(401);

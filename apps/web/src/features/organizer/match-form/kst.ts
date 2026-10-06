@@ -19,7 +19,9 @@ export function isDateKey(value: string): boolean {
   if (!match) return false;
   const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
   const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
 }
 
 /** Minutes after midnight for a 24-hour `HH:mm`, or null when it is not one. */
@@ -42,7 +44,11 @@ export interface MatchWindow {
 }
 
 /** Combines the three form inputs into the match window, or null while any of them is missing or invalid. */
-export function resolveWindow(date: string, startTime: string, endTime: string): MatchWindow | null {
+export function resolveWindow(
+  date: string,
+  startTime: string,
+  endTime: string,
+): MatchWindow | null {
   const start = minutesOfDay(startTime);
   const end = minutesOfDay(endTime);
   if (!isDateKey(date) || start === null || end === null) return null;
@@ -67,6 +73,9 @@ export function windowProblems(window: MatchWindow, now: Date): WindowProblem[] 
   return problems;
 }
 
-export function splitDuration(minutes: number): { readonly hours: number; readonly minutes: number } {
+export function splitDuration(minutes: number): {
+  readonly hours: number;
+  readonly minutes: number;
+} {
   return { hours: Math.floor(minutes / 60), minutes: minutes % 60 };
 }

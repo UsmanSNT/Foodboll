@@ -121,7 +121,9 @@
   font-size: var(--text-sm);
   font-weight: 650;
   line-height: 1.2;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 .attendance__option:hover:not(:disabled):not([aria-pressed='true']) {
   background: var(--surface-3);

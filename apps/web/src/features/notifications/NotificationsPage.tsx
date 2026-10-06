@@ -15,9 +15,10 @@ export function NotificationsPage() {
   const { signedIn } = useAuth();
   const { openLogin } = useLoginGate();
   const notifications = useNotifications();
-  const markAll = useApiMutation<void>(() => ({ path: '/v1/me/notifications/read', method: 'POST', body: { all: true } }), [
-    ['notifications'],
-  ]);
+  const markAll = useApiMutation<void>(
+    () => ({ path: '/v1/me/notifications/read', method: 'POST', body: { all: true } }),
+    [['notifications']],
+  );
   const unread = notifications.data?.unread ?? 0;
   const items = useMemo(() => notifications.data?.items ?? [], [notifications.data]);
 
@@ -56,15 +57,30 @@ export function NotificationsPage() {
       />
       <div className="page">
         {notifications.isPending && <ListSkeleton rows={3} height={80} />}
-        {notifications.isError && <ErrorState error={notifications.error} onRetry={() => void notifications.refetch()} />}
-        {notifications.isSuccess && items.length === 0 && <EmptyState icon={<Bell size={32} />} title={t('inbox.empty')} />}
+        {notifications.isError && (
+          <ErrorState error={notifications.error} onRetry={() => void notifications.refetch()} />
+        )}
+        {notifications.isSuccess && items.length === 0 && (
+          <EmptyState icon={<Bell size={32} />} title={t('inbox.empty')} />
+        )}
         {items.length > 0 && (
           <ul className="stack">
             {items.map((item) => (
-              <li key={item.id} className={item.readAt === null ? 'card card--pad note note--unread' : 'card card--pad note'}>
+              <li
+                key={item.id}
+                className={
+                  item.readAt === null ? 'card card--pad note note--unread' : 'card card--pad note'
+                }
+              >
                 <div className="row row--between">
                   <h2>{item.title}</h2>
-                  {item.readAt === null && <span className="note__dot" role="img" aria-label={t('inbox.unread', { count: 1 })} />}
+                  {item.readAt === null && (
+                    <span
+                      className="note__dot"
+                      role="img"
+                      aria-label={t('inbox.unread', { count: 1 })}
+                    />
+                  )}
                 </div>
                 <p className="prewrap">{item.body}</p>
                 <time className="small muted" dateTime={item.createdAt}>

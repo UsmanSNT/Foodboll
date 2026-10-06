@@ -21,12 +21,22 @@ export function IgnoreSheet({ deposit, onClose, handlers }: IgnoreSheetProps) {
   const { t } = useI18n();
   return (
     <Sheet open={deposit !== null} title={t('adminDeposits.ignoreTitle')} onClose={onClose}>
-      {deposit && <IgnoreForm key={deposit.id} deposit={deposit} onClose={onClose} handlers={handlers} />}
+      {deposit && (
+        <IgnoreForm key={deposit.id} deposit={deposit} onClose={onClose} handlers={handlers} />
+      )}
     </Sheet>
   );
 }
 
-function IgnoreForm({ deposit, onClose, handlers }: { readonly deposit: BankDepositDto; readonly onClose: () => void; readonly handlers: DepositHandlers }) {
+function IgnoreForm({
+  deposit,
+  onClose,
+  handlers,
+}: {
+  readonly deposit: BankDepositDto;
+  readonly onClose: () => void;
+  readonly handlers: DepositHandlers;
+}) {
   const { t } = useI18n();
   const toast = useToast();
   const ignore = useIgnoreDeposit(deposit.id);

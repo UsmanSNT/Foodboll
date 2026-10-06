@@ -79,16 +79,16 @@ dropped (unrelated texts are not stored) or stored as `IGNORED`. For a deposit, 
 payments still expected (`AWAITING_PAYMENT`, `PAYMENT_REVIEW`, `PAYMENT_REJECTED`) whose registration is
 still `APPLIED` and whose window has not closed, then:
 
-| Situation                                                                       | Result                                                |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Exactly one payment's 4-digit code appears in the message, amount equals fee    | **Confirmed** automatically (`REFERENCE`)             |
-| No code, exactly one payment with the same amount and the depositor's saved name | **Confirmed** automatically (`NAME`)                  |
-| Code found but amount differs                                                   | Admin queue (`AMOUNT_MISMATCH`)                       |
-| Two or more candidates                                                          | Admin queue (`MULTIPLE_CANDIDATES`)                   |
-| Nothing fits                                                                    | Admin queue (`NO_CANDIDATE`)                          |
-| Message older than `BANK_MESSAGE_MAX_AGE_HOURS` (36 h) or from the future       | Admin queue (`STALE_MESSAGE`)                         |
-| More than `BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN` (30) automatic confirmations in 10 min | Admin queue (`RATE_GUARD`), a circuit breaker   |
-| The registration changed while matching (cancelled, confirmed by an admin)      | Admin queue (`STATE_CHANGED`)                         |
+| Situation                                                                             | Result                                        |
+| ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Exactly one payment's 4-digit code appears in the message, amount equals fee          | **Confirmed** automatically (`REFERENCE`)     |
+| No code, exactly one payment with the same amount and the depositor's saved name      | **Confirmed** automatically (`NAME`)          |
+| Code found but amount differs                                                         | Admin queue (`AMOUNT_MISMATCH`)               |
+| Two or more candidates                                                                | Admin queue (`MULTIPLE_CANDIDATES`)           |
+| Nothing fits                                                                          | Admin queue (`NO_CANDIDATE`)                  |
+| Message older than `BANK_MESSAGE_MAX_AGE_HOURS` (36 h) or from the future             | Admin queue (`STALE_MESSAGE`)                 |
+| More than `BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN` (30) automatic confirmations in 10 min | Admin queue (`RATE_GUARD`), a circuit breaker |
+| The registration changed while matching (cancelled, confirmed by an admin)            | Admin queue (`STATE_CHANGED`)                 |
 
 Confirmation, the player's notification, the audit event and the deposit record are written in **one
 transaction**: a deposit is `MATCHED` if and only if its payment really was confirmed. The same message
@@ -138,17 +138,17 @@ amount equals what is due) or ignore it. Every status change is an append-only `
 
 ## Configuration
 
-| Variable                            | Default            | Meaning                                                                 |
-| ----------------------------------- | ------------------ | ----------------------------------------------------------------------- |
-| `MATCH_FEE_KRW`                     | `10000`            | The one price, snapshotted on each match when it is announced           |
-| `RECEIPT_DIR`                       | `./data/receipts`  | Private, persistent, backed-up directory for receipt files              |
-| `BANK_WEBHOOK_SECRET`               | unset (feature off)| Bearer secret for `POST /v1/integrations/bank-notifications` (≥ 32 chars) |
-| `BANK_SMS_SENDERS`                  | empty (any sender) | Comma-separated allowed sender numbers/names                            |
-| `TELEGRAM_BANK_CHAT_ID`             | unset              | Private channel whose posts are bank notifications                      |
-| `BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN`| `30`               | Circuit breaker for automatic confirmations                             |
-| `BANK_MESSAGE_MAX_AGE_HOURS`        | `36`               | Older messages are never confirmed automatically                        |
-| `TELEGRAM_BOT_TOKEN` / `_USERNAME` / `TELEGRAM_WEBHOOK_SECRET` | unset | Telegram login, notifications and the bank channel (all or none) |
-| `UPLOAD_RATE_LIMIT_PER_MINUTE`      | `10`               | Per-client cap on receipt uploads                                       |
+| Variable                                                       | Default             | Meaning                                                                   |
+| -------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------- |
+| `MATCH_FEE_KRW`                                                | `10000`             | The one price, snapshotted on each match when it is announced             |
+| `RECEIPT_DIR`                                                  | `./data/receipts`   | Private, persistent, backed-up directory for receipt files                |
+| `BANK_WEBHOOK_SECRET`                                          | unset (feature off) | Bearer secret for `POST /v1/integrations/bank-notifications` (≥ 32 chars) |
+| `BANK_SMS_SENDERS`                                             | empty (any sender)  | Comma-separated allowed sender numbers/names                              |
+| `TELEGRAM_BANK_CHAT_ID`                                        | unset               | Private channel whose posts are bank notifications                        |
+| `BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN`                           | `30`                | Circuit breaker for automatic confirmations                               |
+| `BANK_MESSAGE_MAX_AGE_HOURS`                                   | `36`                | Older messages are never confirmed automatically                          |
+| `TELEGRAM_BOT_TOKEN` / `_USERNAME` / `TELEGRAM_WEBHOOK_SECRET` | unset               | Telegram login, notifications and the bank channel (all or none)          |
+| `UPLOAD_RATE_LIMIT_PER_MINUTE`                                 | `10`                | Per-client cap on receipt uploads                                         |
 
 ## Where things live
 

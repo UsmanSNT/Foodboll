@@ -20,13 +20,16 @@ export function InfiniteList<T>({ query, skeleton, empty, children }: Props<T>) 
   const items = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
 
   if (query.isPending) return skeleton;
-  if (query.isError && !query.data) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
+  if (query.isError && !query.data)
+    return <ErrorState error={query.error} onRetry={() => void query.refetch()} />;
   if (items.length === 0) return empty;
 
   return (
     <>
       {children(items)}
-      {query.isFetchNextPageError && <ErrorState error={query.error} onRetry={() => void query.fetchNextPage()} />}
+      {query.isFetchNextPageError && (
+        <ErrorState error={query.error} onRetry={() => void query.fetchNextPage()} />
+      )}
       {query.hasNextPage && !query.isFetchNextPageError && (
         <Button block loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
           {t('adminPeople.loadMore')}

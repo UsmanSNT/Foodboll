@@ -4,7 +4,13 @@ import { Chip } from '../../../ui/Chip';
 import type { UserLanguageFilter } from './api';
 
 /** All, one chip per supported language (in its own name), and the people who never chose one. */
-export function LanguageFilter({ value, onChange }: { readonly value: UserLanguageFilter; readonly onChange: (value: UserLanguageFilter) => void }) {
+export function LanguageFilter({
+  value,
+  onChange,
+}: {
+  readonly value: UserLanguageFilter;
+  readonly onChange: (value: UserLanguageFilter) => void;
+}) {
   const { t } = useI18n();
   return (
     <div className="chips" role="group" aria-label={t('adminPeople.users.filterLabel')}>
@@ -12,7 +18,12 @@ export function LanguageFilter({ value, onChange }: { readonly value: UserLangua
         {t('adminPeople.users.filterAll')}
       </Chip>
       {SUPPORTED_LOCALES.map((locale) => (
-        <Chip key={locale.code} lang={LOCALES[locale.code].intlTag} selected={value === locale.code} onClick={() => onChange(locale.code)}>
+        <Chip
+          key={locale.code}
+          lang={LOCALES[locale.code].intlTag}
+          selected={value === locale.code}
+          onClick={() => onChange(locale.code)}
+        >
           {locale.nativeName}
         </Chip>
       ))}

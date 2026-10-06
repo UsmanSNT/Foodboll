@@ -132,7 +132,10 @@ export const withTranslationField = (
   value: string,
 ): FormState => ({
   ...state,
-  translations: { ...state.translations, [locale]: { ...state.translations[locale], [field]: value } },
+  translations: {
+    ...state.translations,
+    [locale]: { ...state.translations[locale], [field]: value },
+  },
 });
 
 export const withClearedLanguage = (state: FormState, locale: LocaleCode): FormState => ({

@@ -38,9 +38,15 @@ export function SettingsPage() {
           <>
             <section className="stack">
               <h2 className="section-title">{t('settings.region')}</h2>
-              <button type="button" className="card list__item list__item--button" onClick={() => setPicking(true)}>
+              <button
+                type="button"
+                className="card list__item list__item--button"
+                onClick={() => setPicking(true)}
+              >
                 <MapPin size={18} aria-hidden="true" />
-                <span className="grow">{me.data?.homeRegion ? regionLabel(me.data.homeRegion) : t('settings.regionNone')}</span>
+                <span className="grow">
+                  {me.data?.homeRegion ? regionLabel(me.data.homeRegion) : t('settings.regionNone')}
+                </span>
                 <ChevronRight size={16} aria-hidden="true" />
               </button>
             </section>
@@ -62,15 +68,26 @@ export function SettingsPage() {
                     {t('settings.telegram')}
                   </span>
                   <Badge tone={telegram.data?.notificationsEnabled ? 'success' : 'neutral'}>
-                    {telegram.data?.notificationsEnabled ? t('settings.telegramOn') : t('settings.telegramOff')}
+                    {telegram.data?.notificationsEnabled
+                      ? t('settings.telegramOn')
+                      : t('settings.telegramOff')}
                   </Badge>
                 </div>
-                {telegram.data && !telegram.data.linked && <Alert tone="info">{t('settings.telegramLoginNeeded')}</Alert>}
-                {telegram.data?.linked && !telegram.data.notificationsEnabled && telegram.data.botLink && (
-                  <a className="btn btn--primary" href={telegram.data.botLink} target="_blank" rel="noopener noreferrer">
-                    {t('settings.telegramEnable')}
-                  </a>
+                {telegram.data && !telegram.data.linked && (
+                  <Alert tone="info">{t('settings.telegramLoginNeeded')}</Alert>
                 )}
+                {telegram.data?.linked &&
+                  !telegram.data.notificationsEnabled &&
+                  telegram.data.botLink && (
+                    <a
+                      className="btn btn--primary"
+                      href={telegram.data.botLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t('settings.telegramEnable')}
+                    </a>
+                  )}
               </div>
             </section>
           </>

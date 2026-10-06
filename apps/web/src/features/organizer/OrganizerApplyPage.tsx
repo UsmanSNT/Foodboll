@@ -29,7 +29,11 @@ export function OrganizerApplyPage() {
             </li>
           ))}
         </ul>
-        {me.data?.role === 'ADMIN' ? <Alert tone="info">{t('organizer.apply.adminNote')}</Alert> : <ApplyForm />}
+        {me.data?.role === 'ADMIN' ? (
+          <Alert tone="info">{t('organizer.apply.adminNote')}</Alert>
+        ) : (
+          <ApplyForm />
+        )}
         <ApplicationList />
       </div>
     </>

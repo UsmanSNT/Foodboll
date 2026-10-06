@@ -25,7 +25,9 @@ function PayInstructions({ registration }: { readonly registration: Registration
       <section className="card card--pad stack">
         <h2>{t('payment.account')}</h2>
         {instruction.isPending && <Skeleton height={96} />}
-        {instruction.isError && <ErrorState error={instruction.error} onRetry={() => void instruction.refetch()} />}
+        {instruction.isError && (
+          <ErrorState error={instruction.error} onRetry={() => void instruction.refetch()} />
+        )}
         {instruction.data && (
           <>
             <dl className="kv">
@@ -37,7 +39,10 @@ function PayInstructions({ registration }: { readonly registration: Registration
               <dd>{instruction.data.accountHolder}</dd>
             </dl>
             <div className="row row--wrap">
-              <CopyButton value={accountDigits || instruction.data.accountNumber} label={t('payment.accountNumber')} />
+              <CopyButton
+                value={accountDigits || instruction.data.accountNumber}
+                label={t('payment.accountNumber')}
+              />
             </div>
             <p className="prewrap small muted" lang={instruction.data.instructions.locale}>
               {instruction.data.instructions.text}
@@ -53,7 +58,10 @@ function PayInstructions({ registration }: { readonly registration: Registration
             <p className="muted small">{t('payment.referenceHint')}</p>
           </div>
           <div className="reference__row">
-            <strong className="reference__code num" aria-label={payment.referenceCode.split('').join(' ')}>
+            <strong
+              className="reference__code num"
+              aria-label={payment.referenceCode.split('').join(' ')}
+            >
               {payment.referenceCode}
             </strong>
             <CopyButton value={payment.referenceCode} label={t('payment.referenceTitle')} />
@@ -92,7 +100,8 @@ export function PaymentPanel({ registration }: { readonly registration: Registra
             {payment.rejectReason && (
               <>
                 {' '}
-                {t('payment.rejectReasonLabel')}: {t(PAYMENT_REJECT_REASON_LABEL_KEY[payment.rejectReason])}
+                {t('payment.rejectReasonLabel')}:{' '}
+                {t(PAYMENT_REJECT_REASON_LABEL_KEY[payment.rejectReason])}
               </>
             )}
           </Alert>

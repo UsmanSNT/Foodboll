@@ -1,4 +1,8 @@
-import { setOrganizerRegionsInputSchema, type AdminUserDto, type RegionNodeDto } from '@foodboll/contracts';
+import {
+  setOrganizerRegionsInputSchema,
+  type AdminUserDto,
+  type RegionNodeDto,
+} from '@foodboll/contracts';
 import { useMemo, useState } from 'react';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { Alert } from '../../../ui/Alert';
@@ -68,14 +72,26 @@ export function RegionEditor({ user, tree, onSaved }: Props) {
     <div className="stack people-editor">
       <p className="small muted">{t('adminPeople.regions.intro', { name: user.displayName })}</p>
       <RoleNote user={user} empty={selected.size === 0} />
-      <SelectedRegions selected={selected} regions={regions} onRemove={(code) => change(toggleCode(selected, code))} />
+      <SelectedRegions
+        selected={selected}
+        regions={regions}
+        onRemove={(code) => change(toggleCode(selected, code))}
+      />
       {selected.size >= MAX_ORGANIZER_REGIONS && (
-        <Alert tone={valid ? 'info' : 'warning'}>{t('adminPeople.regions.limit', { max: MAX_ORGANIZER_REGIONS })}</Alert>
+        <Alert tone={valid ? 'info' : 'warning'}>
+          {t('adminPeople.regions.limit', { max: MAX_ORGANIZER_REGIONS })}
+        </Alert>
       )}
       <RegionChecklist tree={tree} selected={selected} onChange={change} />
       <div className="people-save stack">
         {save.isError && <ErrorState error={save.error} />}
-        <Button variant="primary" block loading={save.isPending} disabled={!changed || !valid} onClick={submit}>
+        <Button
+          variant="primary"
+          block
+          loading={save.isPending}
+          disabled={!changed || !valid}
+          onClick={submit}
+        >
           {t('common.save')}
         </Button>
       </div>
