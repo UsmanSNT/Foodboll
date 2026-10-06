@@ -117,7 +117,7 @@ export function registerRoutes(
   // ---- Registration & payment ---------------------------------------------------------------
   app.post('/v1/matches/:id/registrations', async (request, reply) => {
     const user = requireUser(request);
-    const registrationId = await applyToMatch(db, user, idParams.parse(request.params).id);
+    const registrationId = await applyToMatch(db, storage, user, idParams.parse(request.params).id);
     return reply.status(201).send(await getRegistrationDto(db, registrationId, request.ctx.locale));
   });
 
@@ -132,13 +132,20 @@ export function registerRoutes(
 
   app.post('/v1/registrations/:id/cancel', async (request) => {
     const { id } = idParams.parse(request.params);
-    await cancelRegistration(db, requireUser(request), id);
+    await cancelRegistration(db, storage, requireUser(request), id);
     return getRegistrationDto(db, id, request.ctx.locale);
   });
 
   app.put(
     '/v1/registrations/:id/receipt',
-    { config: { rateLimit: { max: uploadsPerMinute, timeWindow: '1 minute' } } },
+    {
+      config: { rateLimit: { max: uploadsPerMinute, timeWindow: '1 minute' } },
+      // Authenticate and validate the id BEFORE Fastify reads up to 5 MB of request body.
+      onRequest: async (request) => {
+        requireUser(request);
+        idParams.parse(request.params);
+      },
+    },
     async (request) => {
       const user = requireUser(request);
       const { id } = idParams.parse(request.params);

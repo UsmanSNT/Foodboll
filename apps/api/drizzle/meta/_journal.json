@@ -22,6 +22,13 @@
       "when": 1791199710444,
       "tag": "0002_registrations_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791249374555,
+      "tag": "0003_payment_audit_refund_pending",
+      "breakpoints": true
     }
   ]
 }

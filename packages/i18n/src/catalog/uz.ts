@@ -76,8 +76,8 @@ export const uz: typeof ko = {
     empty: 'Hali hech qaysi matchga yozilmagansiz.',
     cancel: 'Arizani bekor qilish',
     dueAt: 'To‘lov muddati',
-    receiptSelect: 'Chek faylini tanlash',
     receiptHint: 'JPG, PNG, PDF · eng ko‘pi bilan {maxMb} MB',
+    cancelConfirm: 'Bu arizani bekor qilasizmi?',
     freeConfirmed: 'Ishtirok to‘lovi yo‘q, shuning uchun ishtirokingiz darhol tasdiqlandi.',
   },
   content: {
@@ -89,6 +89,7 @@ export const uz: typeof ko = {
     awaiting: 'To‘lov kutilmoqda',
     paid: 'To‘lov tasdiqlandi',
     rejected: 'To‘lov tasdiqlanmadi',
+    refundPending: 'Qaytarish kutilmoqda',
     refunded: 'To‘lov qaytarildi',
     uploadReceipt: 'To‘lov chekini yuklash',
     instructionsTitle: 'To‘lov bo‘yicha ko‘rsatma',
@@ -125,6 +126,10 @@ export const uz: typeof ko = {
     paymentRejected: {
       title: 'To‘lov tasdiqlanmadi',
       body: 'To‘lovni tasdiqlab bo‘lmadi. Sabab: {reason}. Chekni qayta yuklang.',
+    },
+    paymentRefunded: {
+      title: 'To‘lov qaytarildi',
+      body: 'To‘lagan summangiz qaytarildi.',
     },
     participationConfirmed: {
       title: 'Ishtirok tasdiqlandi',
@@ -168,6 +173,8 @@ export const uz: typeof ko = {
     MATCH_STARTED: 'Match allaqachon boshlangan.',
     INVALID_STATE: 'Hozirgi holatda bu amalni bajarib bo‘lmaydi.',
     INVALID_RECEIPT: 'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',
+    CAPACITY_BELOW_REGISTRATIONS:
+      'Ishtirokchilar sonini hozirgi arizalar sonidan kamaytirib bo‘lmaydi.',
   },
   glossary: glossaryMessages('uz'),
 };

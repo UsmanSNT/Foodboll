@@ -72,8 +72,8 @@ export const ko = {
     empty: '신청한 매치가 없습니다.',
     cancel: '신청 취소',
     dueAt: '입금 기한',
-    receiptSelect: '영수증 파일 선택',
     receiptHint: 'JPG, PNG, PDF · 최대 {maxMb}MB',
+    cancelConfirm: '이 신청을 취소할까요?',
     freeConfirmed: '참가비가 없어 바로 참가가 확정되었습니다.',
   },
   content: {
@@ -85,6 +85,7 @@ export const ko = {
     awaiting: '입금 대기',
     paid: '입금 확인 완료',
     rejected: '입금 확인 불가',
+    refundPending: '환불 대기',
     refunded: '환불 완료',
     uploadReceipt: '입금 영수증 업로드',
     instructionsTitle: '입금 안내',
@@ -121,6 +122,10 @@ export const ko = {
     paymentRejected: {
       title: '입금 확인 불가',
       body: '입금을 확인하지 못했습니다. 사유: {reason}. 영수증을 다시 업로드해주세요.',
+    },
+    paymentRefunded: {
+      title: '환불 완료',
+      body: '입금하신 금액이 환불되었습니다.',
     },
     participationConfirmed: {
       title: '참가 확정',
@@ -166,6 +171,7 @@ export const ko = {
     MATCH_STARTED: '이미 시작된 매치입니다.',
     INVALID_STATE: '현재 상태에서는 이 작업을 할 수 없습니다.',
     INVALID_RECEIPT: 'JPG, PNG, PDF 파일만 올릴 수 있습니다.',
+    CAPACITY_BELOW_REGISTRATIONS: '현재 신청 인원보다 적게 모집 인원을 줄일 수 없습니다.',
   },
   glossary: glossaryMessages('ko'),
 };

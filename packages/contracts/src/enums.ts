@@ -13,6 +13,7 @@ export const PAYMENT_STATUSES = [
   'PAYMENT_REVIEW',
   'PAYMENT_CONFIRMED',
   'PAYMENT_REJECTED',
+  'REFUND_PENDING',
   'REFUNDED',
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
@@ -22,8 +23,21 @@ export const PAYMENT_STATUS_LABEL_KEY = {
   PAYMENT_REVIEW: 'payment.pending',
   PAYMENT_CONFIRMED: 'payment.paid',
   PAYMENT_REJECTED: 'payment.rejected',
+  REFUND_PENDING: 'payment.refundPending',
   REFUNDED: 'payment.refunded',
 } as const satisfies Record<PaymentStatus, MessageKey>;
+
+export const PAYMENT_EVENT_TYPES = [
+  'PAYMENT_CREATED',
+  'RECEIPT_UPLOADED',
+  'CONFIRMED',
+  'REJECTED',
+  'REFUND_PENDING',
+  'REFUNDED',
+  'EXPIRED',
+  'RECEIPT_ARCHIVED',
+] as const;
+export type PaymentEventType = (typeof PAYMENT_EVENT_TYPES)[number];
 
 export const REGISTRATION_STATUSES = ['APPLIED', 'CONFIRMED', 'CANCELLED'] as const;
 export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number];
@@ -63,6 +77,7 @@ export const PAYMENT_REJECT_REASON_LABEL_KEY = {
 export const NOTIFICATION_TYPES = [
   'PAYMENT_CONFIRMED',
   'PAYMENT_REJECTED',
+  'PAYMENT_REFUNDED',
   'PARTICIPATION_CONFIRMED',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -75,6 +90,10 @@ export const NOTIFICATION_MESSAGE_KEYS = {
   PAYMENT_REJECTED: {
     title: 'notification.paymentRejected.title',
     body: 'notification.paymentRejected.body',
+  },
+  PAYMENT_REFUNDED: {
+    title: 'notification.paymentRefunded.title',
+    body: 'notification.paymentRefunded.body',
   },
   PARTICIPATION_CONFIRMED: {
     title: 'notification.participationConfirmed.title',

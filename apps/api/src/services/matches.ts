@@ -13,11 +13,11 @@ import {
   type LocalizedText,
   type LocalizedValue,
 } from '@foodboll/i18n';
-import { asc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db, Tx } from '../db/client';
-import { matches, matchTranslations } from '../db/schema';
-import { forbidden, notFound } from '../errors';
+import { matches, matchRegistrations, matchTranslations } from '../db/schema';
+import { AppError, forbidden, notFound } from '../errors';
 import { assertLanguagesEnabled, assertSourceTranslation } from './translations';
 
 type MatchRow = typeof matches.$inferSelect;
@@ -70,13 +70,28 @@ export async function replaceMatch(
     const [existing] = await tx.select().from(matches).where(eq(matches.id, matchId)).for('update');
     if (!existing) throw notFound('MATCH_NOT_FOUND');
     if (actor.role !== 'ADMIN' && existing.organizerId !== actor.id) throw forbidden();
+
+    // Omitting maxPlayers keeps the current capacity; lowering it below the people already
+    // holding a seat would silently over-book the match.
+    const maxPlayers = input.maxPlayers ?? Math.max(existing.maxPlayers, input.playersPerSide * 2);
+    const [{ taken } = { taken: 0 }] = await tx
+      .select({ taken: sql<number>`count(*)::int` })
+      .from(matchRegistrations)
+      .where(
+        and(
+          eq(matchRegistrations.matchId, matchId),
+          inArray(matchRegistrations.status, ['APPLIED', 'CONFIRMED']),
+        ),
+      );
+    if (maxPlayers < taken) throw new AppError('CAPACITY_BELOW_REGISTRATIONS', 409);
+
     await tx
       .update(matches)
       .set({
         sourceLanguage: input.sourceLanguage,
         startsAt: new Date(input.startsAt),
         playersPerSide: input.playersPerSide,
-        maxPlayers: input.maxPlayers ?? input.playersPerSide * 2,
+        maxPlayers,
         feeKrw: input.feeKrw,
         updatedAt: sql`now()`,
       })

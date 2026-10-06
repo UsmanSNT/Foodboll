@@ -21,6 +21,7 @@ export const ERROR_CODES = [
   'MATCH_STARTED',
   'INVALID_STATE',
   'INVALID_RECEIPT',
+  'CAPACITY_BELOW_REGISTRATIONS',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

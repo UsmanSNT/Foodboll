@@ -18,6 +18,7 @@ import {
 import {
   LEGAL_DOCUMENT_TYPES,
   NOTIFICATION_CHANNELS,
+  PAYMENT_EVENT_TYPES,
   PAYMENT_REJECT_REASONS,
   PAYMENT_STATUSES,
   REGISTRATION_STATUSES,
@@ -320,5 +321,31 @@ export const registrationPayments = pgTable(
     ),
     check('registration_payments_amount_positive', sql`${t.amountKrw} > 0`),
     index('registration_payments_status_idx').on(t.status, t.createdAt),
+  ],
+);
+
+/**
+ * Append-only financial audit trail. Rows are never updated or deleted, and deliberately have no
+ * foreign key to registrations so the history survives cleanup of the registration itself.
+ */
+export const paymentEvents = pgTable(
+  'payment_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    registrationId: uuid('registration_id').notNull(),
+    /** Who acted. NULL for system actions (expiry, automatic bank matching). */
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    event: text('event').notNull(),
+    fromStatus: text('from_status'),
+    toStatus: text('to_status'),
+    amountKrw: integer('amount_krw'),
+    detail: jsonb('detail')
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check('payment_events_event_valid', oneOf(t.event, PAYMENT_EVENT_TYPES)),
+    index('payment_events_registration_idx').on(t.registrationId, t.createdAt),
   ],
 );

@@ -59,7 +59,12 @@ export class LocalReceiptStorage implements ReceiptStorage {
   }
 
   async put(bytes: Buffer, contentType: ReceiptType): Promise<string> {
-    this.ready ??= mkdir(this.root, { recursive: true, mode: 0o700 });
+    // Cache the directory creation, but never cache a failure: a missing volume that appears later
+    // must not break uploads until the process restarts.
+    this.ready ??= mkdir(this.root, { recursive: true, mode: 0o700 }).catch((error: unknown) => {
+      this.ready = null;
+      throw error;
+    });
     await this.ready;
     const key = `${randomUUID()}.${EXTENSION[contentType]}`;
     const file = this.pathFor(key);
