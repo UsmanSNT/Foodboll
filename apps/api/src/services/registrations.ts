@@ -21,7 +21,6 @@ import { lapsedHold } from './seats';
 
 export const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
 const PAYMENT_WINDOW_MS = 24 * 3600 * 1000;
-const NOTIFY_CHANNELS = ['PUSH'] as const;
 
 type RegistrationRow = typeof matchRegistrations.$inferSelect;
 type PaymentRow = typeof registrationPayments.$inferSelect;
@@ -282,7 +281,6 @@ export async function applyToMatch(
       await enqueueNotification(tx, {
         userId: user.id,
         type: 'PARTICIPATION_CONFIRMED',
-        channels: NOTIFY_CHANNELS,
       });
     } else {
       const fresh = {
@@ -567,7 +565,7 @@ export async function confirmPaymentInTx(
     detail,
   });
   for (const type of ['PAYMENT_CONFIRMED', 'PARTICIPATION_CONFIRMED'] as const) {
-    await enqueueNotification(tx, { userId: registration.userId, type, channels: NOTIFY_CHANNELS });
+    await enqueueNotification(tx, { userId: registration.userId, type });
   }
 }
 
@@ -610,7 +608,6 @@ export async function rejectPayment(
       await enqueueNotification(tx, {
         userId: registration.userId,
         type: 'PAYMENT_REJECTED',
-        channels: NOTIFY_CHANNELS,
         localizedParams: { reason: `payment.rejectReason.${reason}` },
       });
     } else {
@@ -652,7 +649,6 @@ export async function refundPayment(
     await enqueueNotification(tx, {
       userId: registration.userId,
       type: 'PAYMENT_REFUNDED',
-      channels: NOTIFY_CHANNELS,
     });
   });
 }

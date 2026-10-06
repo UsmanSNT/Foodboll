@@ -146,6 +146,11 @@ export const ko = {
       '{year}년 {month}월 {day}일({weekday, select, 0 {일} 1 {월} 2 {화} 3 {수} 4 {목} 5 {금} 6 {토} other {}}) {hour}:{minute}',
     krw: '{amount}원',
   },
+  telegram: {
+    started: '알림이 켜졌습니다. 앞으로 입금 확인과 참가 확정 소식을 이곳으로 보내드립니다.',
+    stopped: '알림을 껐습니다. 다시 받으려면 /start 를 보내주세요.',
+    loginFirst: '먼저 앱에서 텔레그램으로 로그인한 뒤 다시 /start 를 보내주세요.',
+  },
   form: {
     required: '필수 입력 항목입니다.',
     tooLong: '{max}자 이하로 입력해주세요.',
@@ -171,6 +176,7 @@ export const ko = {
     MATCH_STARTED: '이미 시작된 매치입니다.',
     INVALID_STATE: '현재 상태에서는 이 작업을 할 수 없습니다.',
     INVALID_RECEIPT: 'JPG, PNG, PDF 파일만 올릴 수 있습니다.',
+    TELEGRAM_LOGIN_INVALID: '텔레그램 로그인을 확인하지 못했습니다. 다시 시도해주세요.',
     REGION_NOT_FOUND: '지역을 찾을 수 없습니다.',
     REGION_FORBIDDEN: '이 지역에서는 매치를 등록할 수 없습니다.',
     CAPACITY_BELOW_REGISTRATIONS: '현재 신청 인원보다 적게 모집 인원을 줄일 수 없습니다.',

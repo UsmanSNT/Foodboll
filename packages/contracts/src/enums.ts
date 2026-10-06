@@ -74,6 +74,9 @@ export const PAYMENT_REJECT_REASON_LABEL_KEY = {
   OTHER: 'payment.rejectReason.OTHER',
 } as const satisfies Record<PaymentRejectReason, MessageKey>;
 
+export const IDENTITY_PROVIDERS = ['TELEGRAM', 'DEV'] as const;
+export type IdentityProvider = (typeof IDENTITY_PROVIDERS)[number];
+
 export const NOTIFICATION_TYPES = [
   'PAYMENT_CONFIRMED',
   'PAYMENT_REJECTED',
@@ -101,5 +104,6 @@ export const NOTIFICATION_MESSAGE_KEYS = {
   },
 } as const satisfies Record<NotificationType, { title: MessageKey; body: MessageKey }>;
 
-export const NOTIFICATION_CHANNELS = ['PUSH', 'EMAIL', 'SMS'] as const;
+/** In-app inbox (always) and Telegram (once the user has pressed Start in the bot). */
+export const NOTIFICATION_CHANNELS = ['IN_APP', 'TELEGRAM'] as const;
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];

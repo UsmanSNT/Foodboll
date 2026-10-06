@@ -26,6 +26,25 @@ const envSchema = z.object({
   RECEIPT_DIR: z.string().default('./data/receipts'),
   /** Per-client cap on receipt uploads (large bodies). */
   UPLOAD_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(10),
+  /** Per-client cap on sign-in attempts. */
+  LOGIN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(10),
+  SESSION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+  /** Local development only: enables POST /v1/auth/dev-login. Refused in production. */
+  DEV_LOGIN: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  /** Telegram bot (login widget verification, notifications, bank-message channel). */
+  TELEGRAM_BOT_TOKEN: z.string().min(20).optional(),
+  TELEGRAM_BOT_USERNAME: z
+    .string()
+    .regex(/^[A-Za-z0-9_]{5,32}$/)
+    .optional(),
+  /** Secret Telegram echoes in X-Telegram-Bot-Api-Secret-Token on every webhook call. */
+  TELEGRAM_WEBHOOK_SECRET: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{16,256}$/)
+    .optional(),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
   /** Set when running behind a reverse proxy so client IPs (rate limiting) are correct. */
   TRUST_PROXY: z
@@ -33,6 +52,12 @@ const envSchema = z.object({
     .default('false')
     .transform((value) => value === 'true'),
 });
+
+export interface TelegramConfig {
+  readonly botToken: string;
+  readonly botUsername: string;
+  readonly webhookSecret: string;
+}
 
 export interface AppConfig {
   readonly nodeEnv: 'development' | 'test' | 'production';
@@ -44,6 +69,11 @@ export interface AppConfig {
   readonly jwtIssuer: string;
   readonly jwtAudience: string;
   readonly corsOrigins: readonly string[];
+  readonly loginRateLimitPerMinute: number;
+  readonly sessionDays: number;
+  readonly devLogin: boolean;
+  /** Null unless token, username and webhook secret are all configured. */
+  readonly telegram: TelegramConfig | null;
   readonly matchFeeKrw: number;
   readonly receiptDir: string;
   readonly rateLimitPerMinute: number;
@@ -58,6 +88,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new Error(`Invalid environment configuration: ${problems}`);
   }
   const e = parsed.data;
+  if (e.NODE_ENV === 'production' && e.DEV_LOGIN) {
+    throw new Error(
+      'Invalid environment configuration: DEV_LOGIN must not be enabled in production',
+    );
+  }
+  const telegramParts = [e.TELEGRAM_BOT_TOKEN, e.TELEGRAM_BOT_USERNAME, e.TELEGRAM_WEBHOOK_SECRET];
+  if (telegramParts.some(Boolean) && !telegramParts.every(Boolean)) {
+    throw new Error(
+      'Invalid environment configuration: set TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME and TELEGRAM_WEBHOOK_SECRET together',
+    );
+  }
   return {
     nodeEnv: e.NODE_ENV,
     port: e.PORT,
@@ -68,6 +109,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     jwtIssuer: e.JWT_ISSUER,
     jwtAudience: e.JWT_AUDIENCE,
     corsOrigins: e.CORS_ORIGINS,
+    loginRateLimitPerMinute: e.LOGIN_RATE_LIMIT_PER_MINUTE,
+    sessionDays: e.SESSION_DAYS,
+    devLogin: e.DEV_LOGIN,
+    telegram:
+      e.TELEGRAM_BOT_TOKEN && e.TELEGRAM_BOT_USERNAME && e.TELEGRAM_WEBHOOK_SECRET
+        ? {
+            botToken: e.TELEGRAM_BOT_TOKEN,
+            botUsername: e.TELEGRAM_BOT_USERNAME,
+            webhookSecret: e.TELEGRAM_WEBHOOK_SECRET,
+          }
+        : null,
     matchFeeKrw: e.MATCH_FEE_KRW,
     receiptDir: e.RECEIPT_DIR,
     rateLimitPerMinute: e.RATE_LIMIT_PER_MINUTE,

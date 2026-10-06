@@ -1,7 +1,34 @@
 import type { LocaleCode, LocalizedValue } from '@foodboll/i18n';
-import type { PaymentRejectReason, PaymentStatus, RegistrationStatus, UserRole } from './enums';
+import type {
+  NotificationType,
+  PaymentRejectReason,
+  PaymentStatus,
+  RegistrationStatus,
+  UserRole,
+} from './enums';
 
 export type LocalizedValueDto = LocalizedValue;
+
+export interface AuthTokenDto {
+  /** Bearer token for the Authorization header. */
+  readonly accessToken: string;
+  readonly expiresAt: string;
+  readonly user: MeDto;
+}
+
+export interface NotificationDto {
+  readonly id: string;
+  readonly type: NotificationType;
+  /** Rendered in the reader's current language, whatever language it was first sent in. */
+  readonly title: string;
+  readonly body: string;
+  readonly createdAt: string;
+  readonly readAt: string | null;
+}
+
+export interface NotificationPage extends Page<NotificationDto> {
+  readonly unread: number;
+}
 
 export interface LanguageDto {
   readonly code: LocaleCode;

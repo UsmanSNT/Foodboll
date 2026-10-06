@@ -2,14 +2,14 @@ import type { AdminUserDto, MeDto, Page, UpdateLanguageInput, UserRole } from '@
 import { isLocaleCode, type LocaleCode } from '@foodboll/i18n';
 import { desc, eq, isNull, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
-import type { Db } from '../db/client';
+import type { Db, DbOrTx } from '../db/client';
 import { users } from '../db/schema';
 import { loadRegions } from './regions';
 import { assertLanguagesEnabled } from './translations';
 
 type UserRow = typeof users.$inferSelect;
 
-const toAuthUser = (row: UserRow): AuthUser => ({
+export const toAuthUser = (row: UserRow): AuthUser => ({
   id: row.id,
   role: row.role as UserRole,
   displayName: row.displayName,
@@ -17,7 +17,7 @@ const toAuthUser = (row: UserRow): AuthUser => ({
   homeRegionId: row.homeRegionId,
 });
 
-export async function findUserById(db: Db, id: string): Promise<AuthUser | null> {
+export async function findUserById(db: DbOrTx, id: string): Promise<AuthUser | null> {
   const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
   return row ? toAuthUser(row) : null;
 }

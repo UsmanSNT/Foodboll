@@ -1,4 +1,5 @@
 import type { UserRole } from '@foodboll/contracts';
+import { createHash, createHmac } from 'node:crypto';
 import { mkdtempSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -7,9 +8,14 @@ import type { FastifyInstance } from 'fastify';
 import { SignJWT } from 'jose';
 import { inject } from 'vitest';
 import { buildApp } from '../src/app';
+import type { TelegramClient } from '../src/integrations/telegram';
+import { signAccessToken } from '../src/services/auth';
 import type { AppConfig } from '../src/config';
 import { createDb, type DbHandle } from '../src/db/client';
-import { matches, matchTranslations, users } from '../src/db/schema';
+import { authSessions, matches, matchTranslations, userIdentities, users } from '../src/db/schema';
+
+export const TEST_BOT_TOKEN = '123456789:test-bot-token-for-hmac-verification';
+export const TEST_WEBHOOK_SECRET = 'test-webhook-secret-0123456789';
 
 export const TEST_CONFIG = (databaseUrl: string): AppConfig => ({
   nodeEnv: 'test',
@@ -22,6 +28,14 @@ export const TEST_CONFIG = (databaseUrl: string): AppConfig => ({
   jwtAudience: 'foodboll-api',
   corsOrigins: ['http://localhost:5173'],
   receiptDir: mkdtempSync(path.join(os.tmpdir(), 'foodboll-receipts-')),
+  loginRateLimitPerMinute: 10_000,
+  sessionDays: 30,
+  devLogin: true,
+  telegram: {
+    botToken: TEST_BOT_TOKEN,
+    botUsername: 'foodboll_test_bot',
+    webhookSecret: TEST_WEBHOOK_SECRET,
+  },
   matchFeeKrw: 10_000,
   rateLimitPerMinute: 10_000,
   uploadRateLimitPerMinute: 10_000,
@@ -36,10 +50,14 @@ export interface TestContext {
   close(): Promise<void>;
 }
 
-export async function startTestApp(overrides: Partial<AppConfig> = {}): Promise<TestContext> {
+export async function startTestApp(
+  overrides: Partial<AppConfig> = {},
+  deps: { telegram?: TelegramClient | null } = {},
+): Promise<TestContext> {
   const config = { ...TEST_CONFIG(inject('databaseUrl')), ...overrides };
   const handle = createDb(config.databaseUrl, { max: 4 });
-  const app = buildApp(config, handle.db);
+  // Tests never reach the real Telegram API: default to a recording fake unless overridden.
+  const app = buildApp(config, handle.db, { telegram: deps.telegram ?? null });
   await app.ready();
   return {
     app,
@@ -48,7 +66,7 @@ export async function startTestApp(overrides: Partial<AppConfig> = {}): Promise<
     // `languages` is seed data owned by migrations, so it is kept.
     reset: async () => {
       await handle.pool.query(
-        'truncate table notifications, registration_payments, match_registrations, legal_document_translations, legal_documents, payment_instruction_translations, payment_instructions, match_translations, matches, users cascade',
+        'truncate table telegram_login_replays, auth_sessions, user_identities, notifications, registration_payments, match_registrations, legal_document_translations, legal_documents, payment_instruction_translations, payment_instructions, match_translations, matches, users cascade',
       );
     },
     close: async () => {
@@ -65,8 +83,12 @@ export async function createUser(
     displayName?: string;
     preferredLanguage?: LocaleCode | null;
     deviceLocale?: string | null;
+    /** Create a Telegram identity (so the bot recognises this user). */
+    telegramId?: string;
+    /** The user pressed Start in the bot. */
+    telegramStarted?: boolean;
   } = {},
-): Promise<{ id: string; token: string }> {
+): Promise<{ id: string; token: string; sessionId: string }> {
   const [row] = await ctx.handle.db
     .insert(users)
     .values({
@@ -74,20 +96,43 @@ export async function createUser(
       role: data.role ?? 'PLAYER',
       preferredLanguage: data.preferredLanguage ?? null,
       deviceLocale: data.deviceLocale ?? null,
+      telegramStartedAt: data.telegramStarted ? new Date() : null,
     })
     .returning({ id: users.id });
   if (!row) throw new Error('user insert failed');
-  return { id: row.id, token: await signToken(ctx.config, row.id) };
+  if (data.telegramId) {
+    await ctx.handle.db
+      .insert(userIdentities)
+      .values({ provider: 'TELEGRAM', subject: data.telegramId, userId: row.id });
+  }
+  const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+  const [session] = await ctx.handle.db
+    .insert(authSessions)
+    .values({ userId: row.id, expiresAt })
+    .returning({ id: authSessions.id });
+  if (!session) throw new Error('session insert failed');
+  return {
+    id: row.id,
+    sessionId: session.id,
+    token: await signAccessToken(ctx.config, row.id, session.id, expiresAt),
+  };
 }
 
 export function signToken(
   config: AppConfig,
   subject: string,
-  options: { secret?: string; issuer?: string; audience?: string; expiresIn?: string } = {},
+  options: {
+    secret?: string;
+    issuer?: string;
+    audience?: string;
+    expiresIn?: string;
+    jti?: string;
+  } = {},
 ): Promise<string> {
   return new SignJWT({})
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(subject)
+    .setJti(options.jti ?? crypto.randomUUID())
     .setIssuer(options.issuer ?? config.jwtIssuer)
     .setAudience(options.audience ?? config.jwtAudience)
     .setIssuedAt()
@@ -148,3 +193,40 @@ export const pngBytes = (extra = 16) =>
 export const jpegBytes = () =>
   Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]);
 export const pdfBytes = () => Buffer.from('%PDF-1.4\n%fake\n');
+
+/** Records messages instead of calling Telegram; `fail` lets a test script errors per call. */
+export class FakeTelegram implements TelegramClient {
+  readonly sent: { chatId: string; text: string }[] = [];
+  fail: ((chatId: string, text: string) => Error | null) | null = null;
+  delayMs = 0;
+
+  async sendMessage(chatId: string, text: string): Promise<void> {
+    if (this.delayMs) await new Promise((resolve) => setTimeout(resolve, this.delayMs));
+    const error = this.fail?.(chatId, text) ?? null;
+    if (error) throw error;
+    this.sent.push({ chatId, text });
+  }
+}
+
+/** A Telegram Login Widget payload signed exactly as Telegram signs it. */
+export function telegramLoginPayload(
+  fields: {
+    id: number | string;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    auth_date?: number;
+  },
+  botToken: string = TEST_BOT_TOKEN,
+): Record<string, string | number> {
+  const data: Record<string, string | number> = {
+    ...fields,
+    auth_date: fields.auth_date ?? Math.floor(Date.now() / 1000),
+  };
+  const checkString = Object.entries(data)
+    .map(([key, value]) => `${key}=${value}`)
+    .sort()
+    .join('\n');
+  const secret = createHash('sha256').update(botToken).digest();
+  return { ...data, hash: createHmac('sha256', secret).update(checkString).digest('hex') };
+}

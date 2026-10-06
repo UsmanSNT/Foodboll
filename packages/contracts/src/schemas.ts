@@ -1,6 +1,6 @@
 import { LOCALE_CODES } from '@foodboll/i18n';
 import { z } from 'zod';
-import { PAYMENT_REJECT_REASONS, PAYMENT_STATUSES } from './enums';
+import { PAYMENT_REJECT_REASONS, PAYMENT_STATUSES, USER_ROLES } from './enums';
 
 export const localeCodeSchema = z.enum(LOCALE_CODES);
 
@@ -124,6 +124,33 @@ export const updateLanguageInputSchema = z
 export type UpdateLanguageInput = z.output<typeof updateLanguageInputSchema>;
 
 export const uuidSchema = z.uuid();
+
+/**
+ * Payload of the Telegram Login Widget. Fields are exactly those Telegram signs; the widget sends
+ * numbers from its JS callback and strings through a redirect, so both are accepted.
+ */
+const numeric = z.union([z.number().int().nonnegative(), z.string().regex(/^\d{1,20}$/)]);
+export const telegramLoginInputSchema = z.strictObject({
+  id: numeric,
+  first_name: z.string().max(256).optional(),
+  last_name: z.string().max(256).optional(),
+  username: z.string().max(64).optional(),
+  photo_url: z.string().max(512).optional(),
+  auth_date: numeric,
+  hash: z.string().regex(/^[a-f0-9]{64}$/),
+});
+export type TelegramLoginInput = z.output<typeof telegramLoginInputSchema>;
+
+/** Development-only sign-in (disabled in production by configuration). */
+export const devLoginInputSchema = z.strictObject({
+  name: text(1, 60),
+  role: z.enum(USER_ROLES).default('PLAYER'),
+});
+
+export const markNotificationsReadInputSchema = z.union([
+  z.strictObject({ all: z.literal(true) }),
+  z.strictObject({ ids: z.array(z.uuid()).min(1).max(100) }),
+]);
 
 export const rejectPaymentInputSchema = z.strictObject({
   reason: z.enum(PAYMENT_REJECT_REASONS),

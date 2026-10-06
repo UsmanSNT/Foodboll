@@ -17,6 +17,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import {
   LEGAL_DOCUMENT_TYPES,
+  IDENTITY_PROVIDERS,
   NOTIFICATION_CHANNELS,
   PAYMENT_EVENT_TYPES,
   PAYMENT_REJECT_REASONS,
@@ -110,6 +111,8 @@ export const users = pgTable(
     /** Raw language tag last reported by the user's device; support context only. */
     deviceLocale: text('device_locale'),
     /** Where the user plays; the match feed defaults to it. */
+    /** Set when the user pressed Start in the Telegram bot (so the bot may message them). */
+    telegramStartedAt: timestamp('telegram_started_at', { withTimezone: true }),
     homeRegionId: uuid('home_region_id').references(() => regions.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -308,13 +311,18 @@ export const notifications = pgTable(
     status: text('status').notNull().default('PENDING'),
     createdAt: createdAt(),
     sentAt: timestamp('sent_at', { withTimezone: true }),
+    /** In-app inbox only: when the user opened it. */
+    readAt: timestamp('read_at', { withTimezone: true }),
+    attempts: integer('attempts').notNull().default(0),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+    lastError: text('last_error'),
   },
   (t) => [
     check('notifications_type_valid', oneOf(t.type, NOTIFICATION_TYPES)),
     check('notifications_channel_valid', oneOf(t.channel, NOTIFICATION_CHANNELS)),
     check('notifications_status_valid', oneOf(t.status, ['PENDING', 'SENT', 'FAILED'])),
     index('notifications_pending_idx')
-      .on(t.createdAt)
+      .on(t.channel, t.createdAt)
       .where(sql`${t.status} = 'PENDING'`),
     index('notifications_user_idx').on(t.userId, t.createdAt),
   ],
@@ -403,4 +411,52 @@ export const paymentEvents = pgTable(
     check('payment_events_event_valid', oneOf(t.event, PAYMENT_EVENT_TYPES)),
     index('payment_events_registration_idx').on(t.registrationId, t.createdAt),
   ],
+);
+
+/**
+ * How a user proves who they are. One row per (provider, subject); a user may have several, so a
+ * second sign-in method (Kakao, phone) can be added without touching `users`.
+ */
+export const userIdentities = pgTable(
+  'user_identities',
+  {
+    provider: text('provider').notNull(),
+    /** Provider-side id, e.g. the Telegram user id. */
+    subject: text('subject').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.provider, t.subject] }),
+    check('user_identities_provider_valid', oneOf(t.provider, IDENTITY_PROVIDERS)),
+    index('user_identities_user_idx').on(t.userId),
+  ],
+);
+
+/** Server-side sessions: a token is only valid while its session exists and is not revoked. */
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (t) => [index('auth_sessions_user_idx').on(t.userId)],
+);
+
+/** Telegram login payloads already accepted; a replayed payload is rejected. */
+export const telegramLoginReplays = pgTable(
+  'telegram_login_replays',
+  {
+    telegramUserId: text('telegram_user_id').notNull(),
+    authDate: integer('auth_date').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.telegramUserId, t.authDate] })],
 );

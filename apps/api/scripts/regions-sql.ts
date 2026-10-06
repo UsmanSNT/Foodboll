@@ -23,7 +23,9 @@ lines.push(
     level2.map((r) => `\t(${q(r.code)}, ${q(r.parent ?? '')}, ${r.sortOrder})`).join(',\n') +
     `\n) AS v(code, parent, sort_order) JOIN "regions" p ON p.code = v.parent;`,
 );
-const names = REGION_SEEDS.flatMap((r) => languages.map((l) => `\t(${q(r.code)}, ${q(l)}, ${q(r.names[l])})`));
+const names = REGION_SEEDS.flatMap((r) =>
+  languages.map((l) => `\t(${q(r.code)}, ${q(l)}, ${q(r.names[l])})`),
+);
 lines.push(
   `INSERT INTO "region_translations" ("region_id", "language_code", "name")\n` +
     `SELECT r.id, v.lang, v.name FROM (VALUES\n${names.join(',\n')}\n) AS v(code, lang, name) JOIN "regions" r ON r.code = v.code;`,

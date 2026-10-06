@@ -148,6 +148,12 @@ export const uz: typeof ko = {
       '{day}-{month, select, 1 {yanvar} 2 {fevral} 3 {mart} 4 {aprel} 5 {may} 6 {iyun} 7 {iyul} 8 {avgust} 9 {sentabr} 10 {oktabr} 11 {noyabr} 12 {dekabr} other {}} {year}, {weekday, select, 0 {yakshanba} 1 {dushanba} 2 {seshanba} 3 {chorshanba} 4 {payshanba} 5 {juma} 6 {shanba} other {}}, {hour}:{minute}',
     krw: '₩{amount}',
   },
+  telegram: {
+    started:
+      'Bildirishnomalar yoqildi. Endi to‘lov va ishtirok tasdiqlanishi haqidagi xabarlar shu yerga yuboriladi.',
+    stopped: 'Bildirishnomalar o‘chirildi. Qayta yoqish uchun /start yuboring.',
+    loginFirst: 'Avval ilovada Telegram orqali kiring, so‘ng yana /start yuboring.',
+  },
   form: {
     required: 'Majburiy maydon.',
     tooLong: 'Eng ko‘pi bilan {max} ta belgi kiriting.',
@@ -173,6 +179,7 @@ export const uz: typeof ko = {
     MATCH_STARTED: 'Match allaqachon boshlangan.',
     INVALID_STATE: 'Hozirgi holatda bu amalni bajarib bo‘lmaydi.',
     INVALID_RECEIPT: 'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',
+    TELEGRAM_LOGIN_INVALID: 'Telegram orqali kirishni tasdiqlab bo‘lmadi. Qayta urinib ko‘ring.',
     REGION_NOT_FOUND: 'Hudud topilmadi.',
     REGION_FORBIDDEN: 'Bu hududda match e’lon qilishga ruxsatingiz yo‘q.',
     CAPACITY_BELOW_REGISTRATIONS:

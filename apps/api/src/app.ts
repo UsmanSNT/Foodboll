@@ -10,6 +10,8 @@ import { createContextHook } from './context';
 import type { Db } from './db/client';
 import { AppError, type ErrorDetail } from './errors';
 import { registerRoutes } from './routes';
+import { registerAuthRoutes } from './routes/auth';
+import { createTelegramClient, type TelegramClient } from './integrations/telegram';
 import { LocalReceiptStorage, type ReceiptStorage } from './storage';
 
 function localeForError(request: FastifyRequest) {
@@ -24,8 +26,15 @@ function localeForError(request: FastifyRequest) {
 export function buildApp(
   config: AppConfig,
   db: Db,
-  storage: ReceiptStorage = new LocalReceiptStorage(config.receiptDir),
+  deps: { storage?: ReceiptStorage; telegram?: TelegramClient | null } = {},
 ): FastifyInstance {
+  const storage = deps.storage ?? new LocalReceiptStorage(config.receiptDir);
+  const telegram =
+    deps.telegram !== undefined
+      ? deps.telegram
+      : config.telegram
+        ? createTelegramClient({ token: config.telegram.botToken })
+        : null;
   const app = Fastify({
     logger: { level: config.logLevel, redact: ['req.headers.authorization'] },
     trustProxy: config.trustProxy,
@@ -48,12 +57,13 @@ export function buildApp(
   app.addHook('onRequest', createContextHook(config, db));
   // Registered as a plugin so routes load AFTER the rate-limit plugin, which attaches to routes
   // through an `onRoute` hook and would silently skip any route defined before it.
-  app.register(async (instance) =>
+  app.register(async (instance) => {
+    registerAuthRoutes(instance, { db, config, telegram });
     registerRoutes(instance, db, storage, {
       uploadsPerMinute: config.uploadRateLimitPerMinute,
       matchFeeKrw: config.matchFeeKrw,
-    }),
-  );
+    });
+  });
 
   const send = (
     request: FastifyRequest,
