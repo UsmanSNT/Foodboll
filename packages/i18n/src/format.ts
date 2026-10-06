@@ -18,14 +18,14 @@ const partsFormat = new Intl.DateTimeFormat('en-US', {
 
 const amountFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
-export function formatDateTime(locale: LocaleCode, value: Date | string | number): string {
+function dateFields(value: Date | string | number) {
   const parts = Object.fromEntries(
     partsFormat.formatToParts(new Date(value)).map((part) => [part.type, part.value]),
   );
   const year = Number(parts.year);
   const month = Number(parts.month);
   const day = Number(parts.day);
-  return translate(locale, 'format.dateTime', {
+  return {
     year,
     month,
     day,
@@ -33,9 +33,23 @@ export function formatDateTime(locale: LocaleCode, value: Date | string | number
     weekday: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
     hour: String(parts.hour).padStart(2, '0'),
     minute: String(parts.minute).padStart(2, '0'),
-  });
+  };
+}
+
+export function formatDateTime(locale: LocaleCode, value: Date | string | number): string {
+  return translate(locale, 'format.dateTime', dateFields(value));
 }
 
 export function formatKrw(locale: LocaleCode, amount: number): string {
   return translate(locale, 'format.krw', { amount: amountFormat.format(amount) });
+}
+
+/** `Fri, Dec 11` style date (no year) in Korean time; month and weekday names come from the catalog. */
+export function formatDate(locale: LocaleCode, value: Date | string | number): string {
+  return translate(locale, 'format.date', dateFields(value));
+}
+
+/** Date with the year, no weekday ("Dec 11, 2026"), for things like "member since". */
+export function formatDateLong(locale: LocaleCode, value: Date | string | number): string {
+  return translate(locale, 'format.dateLong', dateFields(value));
 }

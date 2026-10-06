@@ -45,6 +45,7 @@ import {
   confirmPayment,
   getAdminPayment,
   getRegistrationDto,
+  getRegistrationForActor,
   listMyRegistrations,
   listPaymentsForAdmin,
   MAX_RECEIPT_BYTES,
@@ -266,6 +267,15 @@ export function registerRoutes(
       requireUser(request),
       request.ctx.locale,
       paginationSchema.parse(request.query),
+    ),
+  );
+
+  app.get('/v1/registrations/:id', async (request) =>
+    getRegistrationForActor(
+      db,
+      requireUser(request),
+      idParams.parse(request.params).id,
+      request.ctx.locale,
     ),
   );
 

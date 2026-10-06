@@ -42,3 +42,29 @@ export function writeDeviceLocaleSynced(tag: string): void {
 export function readAccessToken(): string | null {
   return read('foodboll.accessToken');
 }
+
+const REGION_KEY = 'foodboll.region';
+/** Stored when the user explicitly chose to browse every region. */
+export const ALL_REGIONS = 'all';
+
+/** The region the user picked on this device: a region code, `all`, or null if never asked. */
+export function readStoredRegion(): string | null {
+  const value = read(REGION_KEY);
+  return value && /^(all|[a-z]+(-[a-z]+)*)$/.test(value) ? value : null;
+}
+
+export function writeStoredRegion(value: string): void {
+  write(REGION_KEY, value);
+}
+
+export function writeAccessToken(token: string): void {
+  write('foodboll.accessToken', token);
+}
+
+export function clearAccessToken(): void {
+  try {
+    window.localStorage.removeItem('foodboll.accessToken');
+  } catch {
+    /* storage unavailable */
+  }
+}

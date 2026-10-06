@@ -234,6 +234,23 @@ describe('receipt upload', () => {
   });
 });
 
+describe('reading one registration', () => {
+  it('returns it to its owner and to admins, and hides it from everyone else', async () => {
+    const { player, admin, matchId } = await paidSetup();
+    const stranger = await createUser(ctx);
+    const reg = (await apply(player.token, matchId)).json();
+
+    for (const token of [player.token, admin.token]) {
+      const res = await get(token, `/v1/registrations/${reg.id}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toMatchObject({ id: reg.id, payment: { status: 'AWAITING_PAYMENT' } });
+    }
+    expect((await get(stranger.token, `/v1/registrations/${reg.id}`)).statusCode).toBe(404);
+    expect((await get(player.token, `/v1/registrations/${crypto.randomUUID()}`)).statusCode).toBe(404);
+    expect((await get(null, `/v1/registrations/${reg.id}`)).statusCode).toBe(401);
+  });
+});
+
 describe('receipt access', () => {
   it('serves the receipt to the owner and admins with locked-down headers, and to nobody else', async () => {
     const { player, admin, matchId } = await paidSetup();

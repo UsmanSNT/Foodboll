@@ -1,31 +1,58 @@
-import { Route, Routes } from 'react-router-dom';
-import { LanguageGate } from './components/LanguageGate';
-import { Layout } from './components/Layout';
+import { useEffect } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import { FeedPage } from './features/feed/FeedPage';
+import { LegalIndexPage, LegalPage } from './features/me/LegalPage';
+import { MePage } from './features/me/MePage';
+import { SettingsPage } from './features/me/SettingsPage';
+import { MatchDetailPage } from './features/match/MatchDetailPage';
+import { NotificationsPage } from './features/notifications/NotificationsPage';
+import { PlayerProfilePage } from './features/players/PlayerProfilePage';
+import { PlayersPage } from './features/players/PlayersPage';
+import { MyMatchesPage } from './features/registrations/MyMatchesPage';
+import { RegistrationPage } from './features/registrations/RegistrationPage';
+import { Layout, StackLayout } from './features/shell/Layout';
+import { NotFoundPage } from './features/shell/NotFoundPage';
+import { LanguageGate, RegionOnboarding } from './features/shell/Onboarding';
 import { useI18n } from './i18n/I18nProvider';
-import { LanguageSettingsPage } from './pages/LanguageSettingsPage';
-import { LegalPage } from './pages/LegalPage';
-import { MatchDetailPage } from './pages/MatchDetailPage';
-import { MatchesPage } from './pages/MatchesPage';
-import { MyPage } from './pages/MyPage';
-import { MyRegistrationsPage } from './pages/MyRegistrationsPage';
-import { PaymentInfoPage } from './pages/PaymentInfoPage';
-import { SettingsPage } from './pages/SettingsPage';
+import { useRegion } from './region/RegionProvider';
+
+/** New screens start at the top, like page loads, instead of keeping the previous scroll offset. */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  return null;
+}
 
 export function App() {
   const { requiresSelection } = useI18n();
+  const { needsOnboarding } = useRegion();
+  const { pathname } = useLocation();
+
   if (requiresSelection) return <LanguageGate />;
+  // Only the home screen asks where you play; a shared link to one match opens straight away.
+  if (needsOnboarding && pathname === '/') return <RegionOnboarding />;
+
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route index element={<MatchesPage />} />
-        <Route path="matches/:id" element={<MatchDetailPage />} />
-        <Route path="me" element={<MyPage />} />
-        <Route path="me/settings" element={<SettingsPage />} />
-        <Route path="me/settings/language" element={<LanguageSettingsPage />} />
-        <Route path="me/registrations" element={<MyRegistrationsPage />} />
-        <Route path="me/payment" element={<PaymentInfoPage />} />
-        <Route path="legal/:type" element={<LegalPage />} />
-      </Route>
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<FeedPage />} />
+          <Route path="players" element={<PlayersPage />} />
+          <Route path="my-matches" element={<MyMatchesPage />} />
+          <Route path="me" element={<MePage />} />
+        </Route>
+        <Route element={<StackLayout />}>
+          <Route path="matches/:id" element={<MatchDetailPage />} />
+          <Route path="registrations/:id" element={<RegistrationPage />} />
+          <Route path="players/:id" element={<PlayerProfilePage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="legal" element={<LegalIndexPage />} />
+          <Route path="legal/:type" element={<LegalPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </>
   );
 }

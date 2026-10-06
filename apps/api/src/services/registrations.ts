@@ -198,6 +198,21 @@ export async function getRegistrationDto(
   return (await toRegistrationDtos(db, [row], locale, now))[0] as RegistrationDto;
 }
 
+/** A registration as its owner (or an admin) sees it; anyone else gets the same 404 as a missing id. */
+export async function getRegistrationForActor(
+  db: Db,
+  actor: AuthUser,
+  registrationId: string,
+  locale: LocaleCode,
+  now: Date = new Date(),
+): Promise<RegistrationDto> {
+  const row = await loadOne(db, registrationId);
+  if (!row || (actor.role !== 'ADMIN' && row.registration.userId !== actor.id)) {
+    throw notFound('REGISTRATION_NOT_FOUND');
+  }
+  return (await toRegistrationDtos(db, [row], locale, now))[0] as RegistrationDto;
+}
+
 /** Locks the registration row so concurrent state changes serialize. */
 async function lockRegistration(db: DbOrTx, registrationId: string) {
   const [locked] = await db

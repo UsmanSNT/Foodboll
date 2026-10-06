@@ -14,10 +14,12 @@ export class ApiError extends Error {
   }
 }
 
+export const UNAUTHORIZED_EVENT = 'foodboll:unauthorized';
+
 const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
 
 interface RequestOptions {
-  readonly method?: 'GET' | 'POST' | 'PUT' | 'PATCH';
+  readonly method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   readonly body?: unknown;
   /** Sends a file as the raw request body (used for receipts). */
   readonly file?: File;
@@ -50,6 +52,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw new ApiError('NETWORK_ERROR', 0);
   }
 
+  if (response.status === 401 && token) {
+    // The session expired or was revoked: let the auth layer sign the user out.
+    window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  }
   if (!response.ok) {
     const parsed = (await response.json().catch(() => null)) as ApiErrorBody | null;
     throw new ApiError(
