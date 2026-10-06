@@ -1,4 +1,5 @@
 import type { LocaleCode } from '../locales';
+import { en } from './en';
 import { ko } from './ko';
 import { uz } from './uz';
 
@@ -11,4 +12,4 @@ type Paths<T, Prefix extends string = ''> = {
 /** Every valid message key, e.g. `'match.apply'`. Typos fail to compile. */
 export type MessageKey = Paths<Catalog>;
 
-export const CATALOGS: Readonly<Record<LocaleCode, Catalog>> = { ko, uz };
+export const CATALOGS: Readonly<Record<LocaleCode, Catalog>> = { ko, uz, en };

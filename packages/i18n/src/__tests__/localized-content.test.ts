@@ -43,35 +43,49 @@ describe('pickLocalized', () => {
 
 describe('missingLocales', () => {
   it('lists locales without usable text', () => {
-    expect(missingLocales({ ko: '입금 계좌' })).toEqual(['uz']);
-    expect(missingLocales({ ko: 'a', uz: 'b' })).toEqual([]);
-    expect(missingLocales({ ko: ' ', uz: 'b' })).toEqual(['ko']);
+    expect(missingLocales({ ko: '입금 계좌' })).toEqual(['uz', 'en']);
+    expect(missingLocales({ ko: 'a', uz: 'b' })).toEqual(['en']);
+    expect(missingLocales({ ko: 'a', uz: 'b', en: 'c' })).toEqual([]);
+    expect(missingLocales({ ko: ' ', uz: 'b', en: 'c' })).toEqual(['ko']);
   });
 });
 
 describe('formatting', () => {
-  it('has a name for every weekday and month in both languages', () => {
-    const words = { ko: new Set<string>(), uz: new Set<string>() };
+  it('has a name for every weekday and month in every language', () => {
+    const words = { ko: new Set<string>(), uz: new Set<string>(), en: new Set<string>() };
     for (let day = 0; day < 366; day++) {
-      for (const code of ['ko', 'uz'] as const) {
+      for (const code of ['ko', 'uz', 'en'] as const) {
         const text = formatDateTime(code, Date.UTC(2026, 0, 1 + day, 12));
         expect(text, `${code} day ${day}`).not.toMatch(/\(\)|, ,|undefined|NaN/);
-        const found = code === 'ko' ? text.match(/\((.)\)/g) : text.match(/[a-z]+/g);
+        const found =
+          code === 'ko'
+            ? text.match(/\((.)\)/g)
+            : code === 'uz'
+              ? text.match(/[a-z]+/g)
+              : text.match(/[A-Za-z]+/g);
         for (const word of found ?? []) words[code].add(word);
       }
     }
     expect(words.ko.size).toBe(7);
     expect(words.uz.size).toBe(12 + 7);
+    expect(words.en.size).toBe(12 + 7);
   });
 
   it('renders dates in Korean time regardless of the host time zone', () => {
-    // 2026-03-01T15:00:00Z is 2026-03-02 00:00 in Seoul (UTC+9, no DST).
+    // 2026-03-01T15:00:00Z is 2026-03-02 00:00 in Seoul (UTC+9, no DST); 2 March 2026 is a Monday.
     expect(formatDateTime('ko', '2026-03-01T15:00:00Z')).toBe('2026년 3월 2일(월) 00:00');
     expect(formatDateTime('uz', '2026-03-01T15:00:00Z')).toBe('2-mart 2026, dushanba, 00:00');
+    expect(formatDateTime('en', '2026-03-01T15:00:00Z')).toBe('Mon, Mar 2, 2026 · 00:00');
+  });
+
+  it('uses a 24-hour clock in English', () => {
+    // 2026-12-31T14:05:00Z is 2026-12-31 23:05 in Seoul; 31 December 2026 is a Thursday.
+    expect(formatDateTime('en', '2026-12-31T14:05:00Z')).toBe('Thu, Dec 31, 2026 · 23:05');
   });
 
   it('formats KRW without decimals', () => {
     expect(formatKrw('ko', 10000)).toBe('10,000원');
     expect(formatKrw('uz', 10000)).toBe('₩10,000');
+    expect(formatKrw('en', 10000)).toBe('₩10,000');
   });
 });

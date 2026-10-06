@@ -55,13 +55,18 @@ describe('notification localization', () => {
 
   it('uses the device language when the user never chose, else Korean', async () => {
     const uzDevice = await createUser(ctx, { deviceLocale: 'uz-UZ' });
-    const unknown = await createUser(ctx, { deviceLocale: 'en-US' });
+    const unknown = await createUser(ctx, { deviceLocale: 'ru-RU' });
+    const enDevice = await createUser(ctx, { deviceLocale: 'en-US' });
     const nothing = await createUser(ctx);
-    for (const u of [uzDevice, unknown, nothing]) {
+    for (const u of [uzDevice, unknown, nothing, enDevice]) {
       await enqueueNotification(ctx.handle.db, { userId: u.id, type: 'PAYMENT_CONFIRMED' });
     }
     expect((await rowsFor(uzDevice.id))[0]?.language_code).toBe('uz');
     expect((await rowsFor(unknown.id))[0]?.language_code).toBe('ko');
+    expect((await rowsFor(enDevice.id))[0]).toMatchObject({
+      language_code: 'en',
+      body: 'Your payment has been confirmed.',
+    });
     expect((await rowsFor(nothing.id))[0]?.language_code).toBe('ko');
   });
 

@@ -28,11 +28,12 @@ const inDays = (n: number, hour = 12) => {
 };
 
 describe('region reference data', () => {
-  it('the database holds exactly REGION_SEEDS (codes, parents, ko/uz names)', async () => {
+  it('the database holds exactly REGION_SEEDS (codes, parents, ko/uz/en names)', async () => {
     const { rows } = await ctx.handle.pool.query(`
       select r.code, p.code as parent, r.sort_order,
              max(t.name) filter (where t.language_code = 'ko') as ko,
-             max(t.name) filter (where t.language_code = 'uz') as uz
+             max(t.name) filter (where t.language_code = 'uz') as uz,
+             max(t.name) filter (where t.language_code = 'en') as en
         from regions r
         left join regions p on p.id = r.parent_id
         join region_translations t on t.region_id = r.id
@@ -43,6 +44,7 @@ describe('region reference data', () => {
       sort_order: s.sortOrder,
       ko: s.names.ko,
       uz: s.names.uz,
+      en: s.names.en,
     })).sort((a, b) => a.code.localeCompare(b.code));
     expect(rows).toEqual(expected);
   });

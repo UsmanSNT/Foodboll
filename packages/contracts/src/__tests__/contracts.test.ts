@@ -86,7 +86,7 @@ describe('matchInputSchema', () => {
   });
 
   it.each([
-    ['unknown language', { translations: { en: { title: 'x' } } }],
+    ['unknown language', { translations: { fr: { title: 'x' } } }],
     ['no translations', { translations: {} }],
     ['empty title', { translations: { ko: { title: '  ' } } }],
     ['NUL byte', { translations: { ko: { title: 'a\u0000b' } } }],
@@ -120,6 +120,7 @@ describe('paymentInstructionInputSchema', () => {
           bankName: 'Kookmin Bank',
           instructions: 'To‘lovni amalga oshirgandan so‘ng chekni yuklang.',
         },
+        en: { bankName: 'Kookmin Bank', instructions: 'Please upload the receipt after paying.' },
       },
     });
     expect(Object.keys(parsed.translations).sort()).toEqual([...LOCALE_CODES].sort());
@@ -138,7 +139,8 @@ describe('paymentInstructionInputSchema', () => {
 describe('updateLanguageInputSchema', () => {
   it('requires at least one field and validates values', () => {
     expect(updateLanguageInputSchema.safeParse({}).success).toBe(false);
-    expect(updateLanguageInputSchema.safeParse({ preferredLanguage: 'en' }).success).toBe(false);
+    expect(updateLanguageInputSchema.safeParse({ preferredLanguage: 'fr' }).success).toBe(false);
+    expect(updateLanguageInputSchema.safeParse({ preferredLanguage: 'en' }).success).toBe(true);
     expect(updateLanguageInputSchema.safeParse({ deviceLocale: 'uz-Latn-UZ' }).success).toBe(true);
     expect(updateLanguageInputSchema.safeParse({ deviceLocale: '<script>' }).success).toBe(false);
     expect(

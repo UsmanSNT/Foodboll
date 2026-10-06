@@ -67,28 +67,64 @@ describe('message catalogs', () => {
   it('translates the product examples exactly', () => {
     const ko = createTranslator('ko').t;
     const uz = createTranslator('uz').t;
-    expect([ko('language.select'), uz('language.select')]).toEqual(['언어 선택', 'Tilni tanlang']);
-    expect([ko('match.apply'), uz('match.apply')]).toEqual(['매치 신청', 'Matchga yozilish']);
-    expect([ko('payment.pending'), uz('payment.pending')]).toEqual([
+    const en = createTranslator('en').t;
+    expect([ko('language.select'), uz('language.select'), en('language.select')]).toEqual([
+      '언어 선택',
+      'Tilni tanlang',
+      'Select language',
+    ]);
+    expect([ko('match.apply'), uz('match.apply'), en('match.apply')]).toEqual([
+      '매치 신청',
+      'Matchga yozilish',
+      'Join match',
+    ]);
+    expect([ko('payment.pending'), uz('payment.pending'), en('payment.pending')]).toEqual([
       '입금 확인 중',
       'To‘lov tekshirilmoqda',
+      'Checking payment',
     ]);
-    expect([ko('payment.uploadReceipt'), uz('payment.uploadReceipt')]).toEqual([
-      '입금 영수증 업로드',
-      'To‘lov chekini yuklash',
-    ]);
-    expect([ko('match.confirmed'), uz('match.confirmed')]).toEqual([
+    expect([
+      ko('payment.uploadReceipt'),
+      uz('payment.uploadReceipt'),
+      en('payment.uploadReceipt'),
+    ]).toEqual(['입금 영수증 업로드', 'To‘lov chekini yuklash', 'Upload payment receipt']);
+    expect([ko('match.confirmed'), uz('match.confirmed'), en('match.confirmed')]).toEqual([
       '참가 확정',
       'Ishtirok tasdiqlandi',
+      'Participation confirmed',
+    ]);
+    expect([ko('match.cancelled'), uz('match.cancelled'), en('match.cancelled')]).toEqual([
+      '취소됨',
+      'Bekor qilindi',
+      'Cancelled',
     ]);
     expect([
       ko('notification.paymentConfirmed.body'),
       uz('notification.paymentConfirmed.body'),
-    ]).toEqual(['입금이 확인되었습니다.', 'To‘lovingiz tasdiqlandi.']);
+      en('notification.paymentConfirmed.body'),
+    ]).toEqual([
+      '입금이 확인되었습니다.',
+      'To‘lovingiz tasdiqlandi.',
+      'Your payment has been confirmed.',
+    ]);
     expect([
       ko('notification.participationConfirmed.body'),
       uz('notification.participationConfirmed.body'),
-    ]).toEqual(['매치 참가가 확정되었습니다.', 'Matchdagi ishtirokingiz tasdiqlandi.']);
+      en('notification.participationConfirmed.body'),
+    ]).toEqual([
+      '매치 참가가 확정되었습니다.',
+      'Matchdagi ishtirokingiz tasdiqlandi.',
+      'Your participation in the match is confirmed.',
+    ]);
+  });
+
+  it('keeps the English catalog plain: no exclamation marks, typographic apostrophes only', () => {
+    for (const [key, message] of flat.en ?? []) {
+      expect(message, `${key} contains an exclamation mark`).not.toContain('!');
+    }
+    expect(createTranslator('en').t('errors.ALREADY_REGISTERED')).toBe(
+      'You’re already registered for this match.',
+    );
   });
 
   it('keeps shared terms consistent with the glossary', () => {
@@ -117,6 +153,7 @@ describe('glossary', () => {
   it('is exposed through the catalog under glossary.*', () => {
     expect(createTranslator('uz').t('glossary.player')).toBe('Futbolchi');
     expect(createTranslator('ko').t('glossary.paymentReceipt')).toBe('입금 영수증');
+    expect(createTranslator('en').t('glossary.paymentReceipt')).toBe('Payment receipt');
   });
 });
 
@@ -125,6 +162,15 @@ describe('translator', () => {
     expect(createTranslator('ko').t('match.formatValue', { size: 5 })).toBe('5v5');
     expect(createTranslator('uz').t('match.formatValue', { size: 5 })).toBe('5x5');
     expect(createTranslator('uz').t('stats.levelValue', { level: 3 })).toBe('3-daraja');
+    expect(createTranslator('en').t('match.formatValue', { size: 5 })).toBe('5v5');
+    expect(createTranslator('en').t('stats.levelValue', { level: 3 })).toBe('Lv. 3');
+    expect(createTranslator('en').t('profile.xpToNext', { xp: 1 })).toBe(
+      '1 experience point to next level',
+    );
+    expect(createTranslator('en').t('profile.xpToNext', { xp: 120 })).toBe(
+      '120 experience points to next level',
+    );
+    expect(createTranslator('en').t('payment.rejectReasonLabel')).toBe('Reason');
   });
 
   it('does not throw on missing parameters and reports the error', () => {

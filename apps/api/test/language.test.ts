@@ -19,6 +19,7 @@ describe('GET /v1/languages', () => {
       items: [
         { code: 'ko', nativeName: '한국어', englishName: 'Korean' },
         { code: 'uz', nativeName: 'O‘zbekcha', englishName: 'Uzbek' },
+        { code: 'en', nativeName: 'English', englishName: 'English' },
       ],
     });
   });
@@ -27,7 +28,7 @@ describe('GET /v1/languages', () => {
     await ctx.handle.pool.query(`update languages set enabled = false where code = 'uz'`);
     try {
       const res = await get('/v1/languages');
-      expect(res.json().items.map((l: { code: string }) => l.code)).toEqual(['ko']);
+      expect(res.json().items.map((l: { code: string }) => l.code)).toEqual(['ko', 'en']);
     } finally {
       await ctx.handle.pool.query(`update languages set enabled = true where code = 'uz'`);
     }
@@ -42,8 +43,13 @@ describe('authentication', () => {
     expect(uz.json()).toEqual({
       error: { code: 'UNAUTHENTICATED', message: 'Tizimga kirish talab qilinadi.' },
     });
-    const ko = await get('/v1/me', { 'accept-language': 'en-US' });
+    const ko = await get('/v1/me', { 'accept-language': 'ru-RU' }); // unsupported: Korean default
     expect(ko.json().error.message).toBe('로그인이 필요합니다.');
+    const en = await get('/v1/me', { 'accept-language': 'en-US' });
+    expect(en.json().error).toEqual({
+      code: 'UNAUTHENTICATED',
+      message: 'Please log in to continue.',
+    });
   });
 
   it('rejects tokens with the wrong secret, issuer, audience, or expiry', async () => {
@@ -124,7 +130,7 @@ describe('user language', () => {
   });
 
   it.each([
-    ['unsupported language', { preferredLanguage: 'en' }],
+    ['unsupported language', { preferredLanguage: 'fr' }],
     ['empty body', {}],
     ['nationality field', { preferredLanguage: 'uz', nationality: 'UZ' }],
     ['bad device locale', { deviceLocale: "uz'; drop table users;--" }],

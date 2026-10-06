@@ -57,7 +57,7 @@ describe('payment instructions', () => {
     const admin = await createUser(ctx, { role: 'ADMIN' });
     const koOnly = { ...bankless, translations: { ko: both.translations.ko } };
     const saved = await put(admin.token, '/v1/admin/payment-instructions', koOnly);
-    expect(saved.json().missingLanguages).toEqual(['uz']);
+    expect(saved.json().missingLanguages).toEqual(['uz', 'en']);
 
     const uz = await createUser(ctx, { preferredLanguage: 'uz' });
     const view = (await get('/v1/payment-instructions/current', bearer(uz.token))).json();
@@ -65,7 +65,15 @@ describe('payment instructions', () => {
     expect(view.accountNumber).toBe('123-456-789012');
 
     const complete = await put(admin.token, '/v1/admin/payment-instructions', both);
-    expect(complete.json().missingLanguages).toEqual([]);
+    expect(complete.json().missingLanguages).toEqual(['en']);
+    const everything = await put(admin.token, '/v1/admin/payment-instructions', {
+      ...both,
+      translations: {
+        ...both.translations,
+        en: { bankName: 'Kookmin Bank', instructions: 'Upload your receipt after paying.' },
+      },
+    });
+    expect(everything.json().missingLanguages).toEqual([]);
   });
 
   it('requires the Korean text and rejects other languages', async () => {
@@ -78,7 +86,7 @@ describe('payment instructions', () => {
     expect(uzOnly.json().error.code).toBe('SOURCE_TRANSLATION_REQUIRED');
     const english = await put(admin.token, '/v1/admin/payment-instructions', {
       ...bankless,
-      translations: { ...both.translations, en: { bankName: 'x', instructions: 'y' } },
+      translations: { ...both.translations, fr: { bankName: 'x', instructions: 'y' } },
     });
     expect(english.statusCode).toBe(400);
   });

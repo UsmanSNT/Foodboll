@@ -8,7 +8,7 @@
  *   3. Add a row to the `languages` table (new SQL migration).
  * See docs/i18n.md.
  */
-export const LOCALE_CODES = ['ko', 'uz'] as const;
+export const LOCALE_CODES = ['ko', 'uz', 'en'] as const;
 
 export type LocaleCode = (typeof LOCALE_CODES)[number];
 
@@ -29,6 +29,9 @@ export const LOCALES = {
   // Uzbek (Latin script). The apostrophe is U+2018 on purpose: an ASCII `'` is an escape
   // character in ICU MessageFormat and must never appear in catalog strings.
   uz: { code: 'uz', nativeName: 'O‘zbekcha', englishName: 'Uzbek', intlTag: 'uz-Latn-UZ' },
+  // English is a first-class locale (not a fallback): the catalog is written for foreign residents
+  // in Korea. Order in `LOCALE_CODES` is the order shown in the language picker.
+  en: { code: 'en', nativeName: 'English', englishName: 'English', intlTag: 'en-US' },
 } as const satisfies Record<LocaleCode, LocaleDescriptor>;
 
 export const SUPPORTED_LOCALES: readonly LocaleDescriptor[] = LOCALE_CODES.map(
