@@ -1,7 +1,9 @@
 import {
   LEGAL_DOCUMENT_TYPES,
   legalDocumentInputSchema,
+  attendanceInputSchema,
   localeCodeSchema,
+  playerSearchQuerySchema,
   matchFeedQuerySchema,
   matchInputSchema,
   regionCodeSchema,
@@ -48,6 +50,13 @@ import {
   rejectPayment,
   uploadReceipt,
 } from '../services/registrations';
+import {
+  getPlayerProfile,
+  getRoster,
+  listMatchPlayers,
+  markAttendance,
+  searchPlayers,
+} from '../services/profiles';
 import { createRegion, listRegionTree, setHomeRegion, setRegionEnabled } from '../services/regions';
 import { buildMe, findUserById, listUsersForAdmin, updateUserLanguage } from '../services/users';
 
@@ -148,6 +157,44 @@ export function registerRoutes(
     const { id } = idParams.parse(request.params);
     await replaceMatch(db, user, id, matchInputSchema.parse(request.body));
     return getMatch(db, id, request.ctx.locale, { viewerId: user.id });
+  });
+
+  // ---- Players ---------------------------------------------------------------------------
+  app.get('/v1/players', async (request) => {
+    requireUser(request);
+    return searchPlayers(db, request.ctx.locale, playerSearchQuerySchema.parse(request.query));
+  });
+
+  app.get('/v1/players/:id', async (request) => {
+    requireUser(request);
+    return getPlayerProfile(db, idParams.parse(request.params).id, request.ctx.locale);
+  });
+
+  app.get('/v1/me/profile', async (request) =>
+    getPlayerProfile(db, requireUser(request).id, request.ctx.locale),
+  );
+
+  app.get('/v1/matches/:id/players', async (request) => {
+    requireUser(request);
+    return {
+      items: await listMatchPlayers(db, idParams.parse(request.params).id, request.ctx.locale),
+    };
+  });
+
+  app.get('/v1/matches/:id/roster', async (request) => ({
+    items: await getRoster(
+      db,
+      requireRole(request, 'ORGANIZER', 'ADMIN'),
+      idParams.parse(request.params).id,
+      request.ctx.locale,
+    ),
+  }));
+
+  app.put('/v1/matches/:id/attendance', async (request) => {
+    const user = requireRole(request, 'ORGANIZER', 'ADMIN');
+    const { id } = idParams.parse(request.params);
+    await markAttendance(db, user, id, attendanceInputSchema.parse(request.body).marks);
+    return { items: await getRoster(db, user, id, request.ctx.locale) };
   });
 
   // ---- Registration & payment ---------------------------------------------------------------

@@ -50,6 +50,13 @@
       "when": 1791250910418,
       "tag": "0006_bank_deposits_reference_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791251059870,
+      "tag": "0007_attendance",
+      "breakpoints": true
     }
   ]
 }

@@ -46,9 +46,11 @@ describe('enum label keys', () => {
 describe('matchInputSchema', () => {
   const base = {
     sourceLanguage: 'ko',
+    regionCode: 'seoul-gangnam',
     startsAt: '2026-11-01T10:00:00+09:00',
+    endsAt: '2026-11-01T12:00:00+09:00',
+    venueName: '강남 풋살파크',
     playersPerSide: 5,
-    feeKrw: 10000,
   };
 
   it('accepts a Korean-only match and nulls blank optional fields', () => {
@@ -66,6 +68,16 @@ describe('matchInputSchema', () => {
     });
   });
 
+  it('accepts the overnight example from the product brief (22:00 to 00:00)', () => {
+    const parsed = matchInputSchema.parse({
+      ...base,
+      startsAt: '2026-12-11T22:00:00+09:00',
+      endsAt: '2026-12-12T00:00:00+09:00',
+      translations: { ko: { title: '안산 금요일 밤 풋살' } },
+    });
+    expect(parsed.venueAddress).toBeNull();
+  });
+
   it('normalizes decomposed Hangul to NFC', () => {
     const decomposed = '매치'.normalize('NFD');
     expect(decomposed).not.toBe('매치');
@@ -80,6 +92,18 @@ describe('matchInputSchema', () => {
     ['NUL byte', { translations: { ko: { title: 'a\u0000b' } } }],
     ['unknown field', { translations: { ko: { title: 'x', nationality: 'UZ' } } }],
     ['bad team size', { playersPerSide: 2, translations: { ko: { title: 'x' } } }],
+    [
+      'ends before it starts',
+      { endsAt: '2026-11-01T09:00:00+09:00', translations: { ko: { title: 'x' } } },
+    ],
+    [
+      'lasts more than 12 hours',
+      { endsAt: '2026-11-01T23:00:00+09:00', translations: { ko: { title: 'x' } } },
+    ],
+    ['blank venue', { venueName: '  ', translations: { ko: { title: 'x' } } }],
+    ['bad region code', { regionCode: 'Seoul/Gangnam', translations: { ko: { title: 'x' } } }],
+    ['price chosen by the organizer', { feeKrw: 1, translations: { ko: { title: 'x' } } }],
+    ['capacity below two full sides', { maxPlayers: 8, translations: { ko: { title: 'x' } } }],
   ])('rejects %s', (_name, patch) => {
     expect(matchInputSchema.safeParse({ ...base, ...patch }).success).toBe(false);
   });

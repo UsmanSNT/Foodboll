@@ -1,4 +1,5 @@
 import type { LocaleCode, LocalizedValue } from '@foodboll/i18n';
+import type { AchievementId, ActivityLevel, LevelProgress } from './progression';
 import type {
   BankDepositReason,
   BankDepositSource,
@@ -221,4 +222,42 @@ export interface BankDepositDto {
   /** The message as received. Contains personal data: admin screens only. */
   readonly rawText: string;
   readonly matchedRegistrationId: string | null;
+}
+
+export interface PlayerStatsDto {
+  readonly matchesPlayed: number;
+  readonly matchesOrganized: number;
+  readonly noShows: number;
+  /** Share of marked confirmed matches the player attended; null until an organizer marked any. */
+  readonly attendanceRate: number | null;
+  readonly last90Days: number;
+  readonly firstMatchAt: string | null;
+  readonly lastMatchAt: string | null;
+  readonly provincesPlayed: number;
+}
+
+/** What other players may see. Never includes contact, payment or account details. */
+export interface PlayerCardDto {
+  readonly id: string;
+  readonly displayName: string;
+  readonly homeRegion: RegionDto | null;
+  readonly level: LevelProgress;
+}
+
+export interface PlayerProfileDto extends PlayerCardDto {
+  readonly role: UserRole;
+  readonly memberSince: string;
+  readonly xp: number;
+  readonly stats: PlayerStatsDto;
+  readonly activity: ActivityLevel;
+  readonly achievements: readonly AchievementId[];
+  /** Most recent attended matches, newest first. */
+  readonly recentMatches: readonly MatchSummaryDto[];
+}
+
+export interface RosterEntryDto {
+  readonly registrationId: string;
+  readonly player: PlayerCardDto;
+  /** Null until the organizer marks attendance. */
+  readonly attended: boolean | null;
 }

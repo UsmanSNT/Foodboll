@@ -72,7 +72,7 @@ const BANK_TOKEN = new RegExp(`^(${BANK_WORDS.join('|')})$`);
 export function normalizeMessage(text: string): string {
   return text
     .normalize('NFKC')
-    .replace(/[​-‍⁠﻿]/g, '')
+    .replace(/[\u200b-\u200d\u2060\ufeff]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 2000);

@@ -347,10 +347,23 @@ export const matchRegistrations = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     status: text('status').notNull().default('APPLIED'),
+    /** Organizer's attendance sheet: null = not marked yet. Only confirmed players are marked. */
+    attended: boolean('attended'),
+    attendanceMarkedAt: timestamp('attendance_marked_at', { withTimezone: true }),
+    attendanceMarkedBy: uuid('attendance_marked_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
+    check(
+      'match_registrations_attendance_confirmed_only',
+      sql`${t.attended} is null or ${t.status} = 'CONFIRMED'`,
+    ),
+    index('match_registrations_attended_idx')
+      .on(t.userId)
+      .where(sql`${t.attended} is not null`),
     check('match_registrations_status_valid', oneOf(t.status, REGISTRATION_STATUSES)),
     unique('match_registrations_match_user_key').on(t.matchId, t.userId),
     index('match_registrations_user_idx').on(t.userId, t.createdAt),

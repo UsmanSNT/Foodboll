@@ -130,6 +130,14 @@ export type UpdateLanguageInput = z.output<typeof updateLanguageInputSchema>;
 
 export const uuidSchema = z.uuid();
 
+/** Organizer's attendance sheet: who actually showed up. Idempotent; can be corrected later. */
+export const attendanceInputSchema = z.strictObject({
+  marks: z
+    .array(z.strictObject({ registrationId: z.uuid(), attended: z.boolean() }))
+    .min(1)
+    .max(100),
+});
+
 /** A bank notification forwarded from the receiving account's phone. */
 export const bankNotificationInputSchema = z.strictObject({
   text: z.string().min(1).max(2000),
@@ -212,4 +220,14 @@ export const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const matchFeedQuerySchema = paginationSchema.extend({
   region: regionCodeSchema.optional(),
   date: dateOnlySchema.optional(),
+});
+
+export const playerSearchQuerySchema = paginationSchema.extend({
+  /** Matches the start of a display name. */
+  q: z
+    .string()
+    .max(60)
+    .transform((value) => value.normalize('NFC').trim())
+    .optional(),
+  region: regionCodeSchema.optional(),
 });
