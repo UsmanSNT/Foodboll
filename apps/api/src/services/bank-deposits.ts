@@ -139,7 +139,7 @@ async function decide(
     );
     if (byName.length > 1) return { status: 'AMBIGUOUS', reason: 'MULTIPLE_CANDIDATES' };
     if (byName.length === 0) {
-      return { status: 'UNMATCHED', reason: sameAmount.length ? 'NO_CANDIDATE' : 'NO_CANDIDATE' };
+      return { status: 'UNMATCHED', reason: 'NO_CANDIDATE' };
     }
     chosen = byName[0];
     method = 'NAME';
