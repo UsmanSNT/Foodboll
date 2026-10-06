@@ -55,7 +55,10 @@ async function uploadReceipt(registrationId: string, token: string): Promise<voi
 }
 
 const KST = 9 * 3600 * 1000;
-/** `daysFromNow` days ahead at `hour:00` Korean time. */
+/**
+ * `daysFromNow` days ahead at `hour:00` Korean time. A start that would already be (almost) over
+ * is moved to the next full hour at least two hours from now, so the seed works at any time of day.
+ */
 function kst(daysFromNow: number, hour: number): Date {
   const base = new Date(Date.now() + KST);
   const day = Date.UTC(
@@ -64,7 +67,10 @@ function kst(daysFromNow: number, hour: number): Date {
     base.getUTCDate() + daysFromNow,
     hour,
   );
-  return new Date(day - KST);
+  const wanted = new Date(day - KST);
+  const earliest = Date.now() + 2 * 3600 * 1000;
+  if (wanted.getTime() >= earliest) return wanted;
+  return new Date(Math.ceil(earliest / 3600_000) * 3600_000);
 }
 
 interface RegionNode {
