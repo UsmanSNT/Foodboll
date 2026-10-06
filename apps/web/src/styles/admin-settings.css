@@ -17,10 +17,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
   min-height: 44px;
-  padding: 0 8px;
+  padding: 0 4px;
+  font-size: var(--text-sm);
 }
 .as-tab__name {
   min-width: 0;
