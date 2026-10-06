@@ -88,6 +88,16 @@ async function releaseLapsedSeats(
     .returning({ id: matchRegistrations.id });
   if (released.length === 0) return [];
 
+  // The seat is gone, so the code is free again for someone else.
+  await db
+    .update(registrationPayments)
+    .set({ referenceCode: null })
+    .where(
+      inArray(
+        registrationPayments.registrationId,
+        released.map((r) => r.id),
+      ),
+    );
   const payments = await db
     .select()
     .from(registrationPayments)
@@ -109,8 +119,32 @@ async function releaseLapsedSeats(
   return payments.map((p) => ({ id: p.registrationId, receiptKey: p.receiptKey }));
 }
 
+const EXPECTING = ['AWAITING_PAYMENT', 'PAYMENT_REVIEW', 'PAYMENT_REJECTED'];
+
+/**
+ * Picks a 4-digit code not used by any payment still expected (years 1900-2100 are skipped so a
+ * code is never confused with a date in a bank message). Serialized by an advisory lock, because
+ * applications to different matches run concurrently and the unique index is only a backstop.
+ */
+async function allocateReferenceCode(tx: DbOrTx): Promise<string> {
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtext('payment_reference_codes'))`);
+  const result = await tx.execute(sql`
+    select lpad(n::text, 4, '0') as code
+      from generate_series(0, 9999) n
+     where n not between 1900 and 2100
+       and not exists (
+         select 1 from registration_payments p
+          where p.reference_code = lpad(n::text, 4, '0')
+            and p.status in ('AWAITING_PAYMENT', 'PAYMENT_REVIEW', 'PAYMENT_REJECTED'))
+     order by random() limit 1`);
+  const code = (result.rows[0] as { code?: string } | undefined)?.code;
+  if (!code) throw new Error('No free payment reference code');
+  return code;
+}
+
 function toPaymentDto(payment: PaymentRow): RegistrationPaymentDto {
   return {
+    referenceCode: EXPECTING.includes(payment.status) ? payment.referenceCode : null,
     status: payment.status as PaymentStatus,
     amountKrw: payment.amountKrw,
     dueAt: payment.dueAt.toISOString(),
@@ -285,6 +319,7 @@ export async function applyToMatch(
     } else {
       const fresh = {
         amountKrw: match.feeKrw,
+        referenceCode: await allocateReferenceCode(tx),
         status: 'AWAITING_PAYMENT',
         dueAt: paymentDeadline(now, match.startsAt),
         receiptKey: null,
@@ -370,11 +405,12 @@ export async function cancelRegistration(
         toStatus: 'REFUND_PENDING',
         amountKrw: payment.amountKrw,
       });
-    } else if (payment?.status === 'PAYMENT_REJECTED') {
+    } else if (payment?.status === 'PAYMENT_REJECTED' || payment?.status === 'AWAITING_PAYMENT') {
+      // Nothing was paid: drop any rejected receipt and free the reference code.
       discard.push(payment.receiptKey);
       await tx
         .update(registrationPayments)
-        .set({ receiptKey: null, receiptContentType: null, updatedAt: now })
+        .set({ receiptKey: null, receiptContentType: null, referenceCode: null, updatedAt: now })
         .where(eq(registrationPayments.id, payment.id));
     }
   });
@@ -544,7 +580,13 @@ export async function confirmPaymentInTx(
   detail: Record<string, unknown> = {},
 ): Promise<void> {
   const { registration, payment } = await lockReviewable(tx, registrationId);
-  if (payment.status !== 'PAYMENT_REVIEW' && payment.status !== 'AWAITING_PAYMENT') {
+  // Automatic bank matching may confirm before any receipt exists, or after an earlier rejection
+  // when the money turns out to have arrived.
+  if (
+    payment.status !== 'PAYMENT_REVIEW' &&
+    payment.status !== 'AWAITING_PAYMENT' &&
+    payment.status !== 'PAYMENT_REJECTED'
+  ) {
     throw invalidState();
   }
   if (registration.status !== 'APPLIED') throw invalidState();

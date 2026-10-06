@@ -17,6 +17,10 @@ import {
 } from 'drizzle-orm/pg-core';
 import {
   LEGAL_DOCUMENT_TYPES,
+  BANK_DEPOSIT_REASONS,
+  BANK_DEPOSIT_SOURCES,
+  BANK_DEPOSIT_STATUSES,
+  BANK_MATCH_METHODS,
   IDENTITY_PROVIDERS,
   NOTIFICATION_CHANNELS,
   PAYMENT_EVENT_TYPES,
@@ -111,6 +115,8 @@ export const users = pgTable(
     /** Raw language tag last reported by the user's device; support context only. */
     deviceLocale: text('device_locale'),
     /** Where the user plays; the match feed defaults to it. */
+    /** Name their bank shows on transfers; one way to recognise their deposit. */
+    depositorName: text('depositor_name'),
     /** Set when the user pressed Start in the Telegram bot (so the bot may message them). */
     telegramStartedAt: timestamp('telegram_started_at', { withTimezone: true }),
     homeRegionId: uuid('home_region_id').references(() => regions.id, { onDelete: 'set null' }),
@@ -120,6 +126,7 @@ export const users = pgTable(
   (t) => [
     check('users_role_valid', oneOf(t.role, USER_ROLES)),
     check('users_display_name_length', sql`char_length(${t.displayName}) between 1 and 100`),
+    check('users_depositor_name_length', sql`char_length(${t.depositorName}) between 1 and 60`),
     check('users_device_locale_length', sql`char_length(${t.deviceLocale}) <= 35`),
     index('users_preferred_language_idx').on(t.preferredLanguage),
   ],
@@ -367,6 +374,8 @@ export const registrationPayments = pgTable(
     status: text('status').notNull().default('AWAITING_PAYMENT'),
     /** An unpaid seat is released after this time. */
     dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+    /** Short code the player types as the transfer memo; unique while a payment is expected. */
+    referenceCode: text('reference_code'),
     receiptKey: text('receipt_key'),
     receiptContentType: text('receipt_content_type'),
     receiptUploadedAt: timestamp('receipt_uploaded_at', { withTimezone: true }),
@@ -384,6 +393,13 @@ export const registrationPayments = pgTable(
     ),
     check('registration_payments_amount_positive', sql`${t.amountKrw} > 0`),
     index('registration_payments_status_idx').on(t.status, t.createdAt),
+    check(
+      'registration_payments_reference_format',
+      sql`${t.referenceCode} is null or ${t.referenceCode} ~ '^[0-9]{4}$'`,
+    ),
+    uniqueIndex('registration_payments_active_reference_idx')
+      .on(t.referenceCode)
+      .where(sql`${t.status} in ('AWAITING_PAYMENT', 'PAYMENT_REVIEW', 'PAYMENT_REJECTED')`),
   ],
 );
 
@@ -405,7 +421,10 @@ export const paymentEvents = pgTable(
     detail: jsonb('detail')
       .notNull()
       .default(sql`'{}'::jsonb`),
-    createdAt: createdAt(),
+    // clock_timestamp(), not now(): events written in one transaction must keep their order.
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .default(sql`clock_timestamp()`),
   },
   (t) => [
     check('payment_events_event_valid', oneOf(t.event, PAYMENT_EVENT_TYPES)),
@@ -459,4 +478,48 @@ export const telegramLoginReplays = pgTable(
     createdAt: createdAt(),
   },
   (t) => [primaryKey({ columns: [t.telegramUserId, t.authDate] })],
+);
+
+/**
+ * Deposits reported by the receiving bank account (forwarded SMS / Telegram channel). Each is
+ * matched to a payment automatically when that is unambiguous; everything else waits for a human.
+ * `raw_text` holds personal data (names, partial account numbers): admin access only.
+ */
+export const bankDeposits = pgTable(
+  'bank_deposits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    source: text('source').notNull(),
+    /** Makes redelivery of the same message a no-op. */
+    dedupeKey: text('dedupe_key').notNull().unique(),
+    rawText: text('raw_text').notNull(),
+    amountKrw: integer('amount_krw'),
+    status: text('status').notNull(),
+    matchMethod: text('match_method'),
+    reason: text('reason'),
+    matchedRegistrationId: uuid('matched_registration_id').references(() => matchRegistrations.id, {
+      onDelete: 'set null',
+    }),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+    processedAt: timestamp('processed_at', { withTimezone: true }).notNull().defaultNow(),
+    resolvedBy: uuid('resolved_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check('bank_deposits_source_valid', oneOf(t.source, BANK_DEPOSIT_SOURCES)),
+    check('bank_deposits_status_valid', oneOf(t.status, BANK_DEPOSIT_STATUSES)),
+    check(
+      'bank_deposits_method_valid',
+      sql`${t.matchMethod} is null or ${oneOf(t.matchMethod, BANK_MATCH_METHODS)}`,
+    ),
+    check(
+      'bank_deposits_reason_valid',
+      sql`${t.reason} is null or ${oneOf(t.reason, BANK_DEPOSIT_REASONS)}`,
+    ),
+    check(
+      'bank_deposits_matched_consistent',
+      sql`(${t.status} = 'MATCHED') = (${t.matchMethod} is not null)`,
+    ),
+    index('bank_deposits_status_idx').on(t.status, t.receivedAt),
+  ],
 );

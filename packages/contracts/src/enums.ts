@@ -36,6 +36,7 @@ export const PAYMENT_EVENT_TYPES = [
   'REFUNDED',
   'EXPIRED',
   'RECEIPT_ARCHIVED',
+  'DEPOSIT_MATCHED',
 ] as const;
 export type PaymentEventType = (typeof PAYMENT_EVENT_TYPES)[number];
 
@@ -76,6 +77,28 @@ export const PAYMENT_REJECT_REASON_LABEL_KEY = {
 
 export const IDENTITY_PROVIDERS = ['TELEGRAM', 'DEV'] as const;
 export type IdentityProvider = (typeof IDENTITY_PROVIDERS)[number];
+
+export const BANK_DEPOSIT_SOURCES = ['WEBHOOK', 'TELEGRAM'] as const;
+export type BankDepositSource = (typeof BANK_DEPOSIT_SOURCES)[number];
+
+export const BANK_DEPOSIT_STATUSES = ['MATCHED', 'AMBIGUOUS', 'UNMATCHED', 'IGNORED'] as const;
+export type BankDepositStatus = (typeof BANK_DEPOSIT_STATUSES)[number];
+
+export const BANK_MATCH_METHODS = ['REFERENCE', 'NAME', 'MANUAL'] as const;
+export type BankMatchMethod = (typeof BANK_MATCH_METHODS)[number];
+
+/** Why a deposit was not confirmed automatically. Codes, so the admin UI can localize them. */
+export const BANK_DEPOSIT_REASONS = [
+  'AMOUNT_MISMATCH',
+  'NO_CANDIDATE',
+  'MULTIPLE_CANDIDATES',
+  'STALE_MESSAGE',
+  'RATE_GUARD',
+  'STATE_CHANGED',
+  'NOT_PARSED',
+  'MANUAL',
+] as const;
+export type BankDepositReason = (typeof BANK_DEPOSIT_REASONS)[number];
 
 export const NOTIFICATION_TYPES = [
   'PAYMENT_CONFIRMED',

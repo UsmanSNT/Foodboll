@@ -19,6 +19,7 @@ import {
   revokeAllSessions,
   revokeSession,
 } from '../services/auth';
+import { ingestBankMessage } from '../services/bank-deposits';
 import { listInbox, markInboxRead } from '../services/notifications';
 import { handleTelegramUpdate } from '../services/telegram-bot';
 import { buildMe } from '../services/users';
@@ -112,10 +113,18 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDeps): v
       throw new AppError('UNAUTHENTICATED', 401);
     }
     try {
+      const chatId = config.bank.telegramChatId;
       await handleTelegramUpdate(
         {
           db,
           client: deps.telegram,
+          bankChannel: chatId
+            ? {
+                chatId,
+                ingest: (input) =>
+                  ingestBankMessage(db, config.bank, { source: 'TELEGRAM', ...input }),
+              }
+            : null,
           onError: (error) => request.log.warn({ err: error }, 'telegram reply failed'),
         },
         request.body,

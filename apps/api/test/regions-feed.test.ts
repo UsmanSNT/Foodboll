@@ -2,7 +2,14 @@ import { REGION_SEEDS } from '@foodboll/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { applyToMatch } from '../src/services/registrations';
 import { LocalReceiptStorage } from '../src/storage';
-import { bearer, createUser, insertMatch, startTestApp, type TestContext } from './helpers';
+import {
+  authUser,
+  bearer,
+  createUser,
+  insertMatch,
+  startTestApp,
+  type TestContext,
+} from './helpers';
 
 let ctx: TestContext;
 beforeAll(async () => {
@@ -153,12 +160,7 @@ describe('match feed', () => {
     const storage = new LocalReceiptStorage(ctx.config.receiptDir);
     const players = await Promise.all(Array.from({ length: 4 }, () => createUser(ctx)));
     for (const p of players) {
-      await applyToMatch(
-        ctx.handle.db,
-        storage,
-        { id: p.id, role: 'PLAYER', displayName: 'x', preferredLanguage: null, homeRegionId: null },
-        matchId,
-      );
+      await applyToMatch(ctx.handle.db, storage, authUser(p), matchId);
     }
     const anon = (await get('/v1/matches')).json().items[0];
     expect(anon).toMatchObject({ maxPlayers: 6, registeredCount: 4, spotsLeft: 2, viewer: null });

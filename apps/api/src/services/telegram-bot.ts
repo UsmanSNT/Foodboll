@@ -5,22 +5,35 @@ import type { Db } from '../db/client';
 import { userIdentities, users } from '../db/schema';
 import type { TelegramClient } from '../integrations/telegram';
 
+const messageSchema = z.object({
+  message_id: z.number().int().optional(),
+  /** Unix time Telegram received the message. */
+  date: z.number().int().optional(),
+  text: z.string().max(4096).optional(),
+  from: z.object({ id: z.number().int(), language_code: z.string().max(35).optional() }).optional(),
+  chat: z.object({ id: z.number().int(), type: z.string() }),
+});
+
 /** The slice of a Telegram Update the bot reads. Unknown fields are ignored on purpose. */
 const updateSchema = z.object({
-  message: z
-    .object({
-      text: z.string().max(4096).optional(),
-      from: z
-        .object({ id: z.number().int(), language_code: z.string().max(35).optional() })
-        .optional(),
-      chat: z.object({ id: z.number().int(), type: z.string() }),
-    })
-    .optional(),
+  message: messageSchema.optional(),
+  channel_post: messageSchema.optional(),
 });
+
+export interface BankChannel {
+  /** The one channel whose posts are bank notifications. */
+  readonly chatId: string;
+  readonly ingest: (input: {
+    text: string;
+    receivedAt: Date;
+    externalId: string;
+  }) => Promise<unknown>;
+}
 
 export interface BotDeps {
   readonly db: Db;
   readonly client: TelegramClient;
+  readonly bankChannel?: BankChannel | null;
   readonly onError?: (error: unknown) => void;
 }
 
@@ -33,6 +46,22 @@ export interface BotDeps {
  */
 export async function handleTelegramUpdate(deps: BotDeps, update: unknown): Promise<void> {
   const parsed = updateSchema.safeParse(update);
+
+  // Bank notifications arrive as posts in one private channel. Only `channel_post` from exactly
+  // that channel counts: group messages (anyone can write) and edits are never trusted.
+  const post = parsed.success ? parsed.data.channel_post : undefined;
+  if (post) {
+    const bank = deps.bankChannel;
+    if (bank && post.chat.type === 'channel' && String(post.chat.id) === bank.chatId && post.text) {
+      await bank.ingest({
+        text: post.text,
+        receivedAt: new Date((post.date ?? Math.floor(Date.now() / 1000)) * 1000),
+        externalId: `${post.chat.id}:${post.message_id ?? post.date ?? 'x'}`,
+      });
+    }
+    return;
+  }
+
   const message = parsed.success ? parsed.data.message : undefined;
   if (!message?.from || message.chat.type !== 'private' || !message.text) return;
 

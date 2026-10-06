@@ -1,5 +1,9 @@
 import type { LocaleCode, LocalizedValue } from '@foodboll/i18n';
 import type {
+  BankDepositReason,
+  BankDepositSource,
+  BankDepositStatus,
+  BankMatchMethod,
   NotificationType,
   PaymentRejectReason,
   PaymentStatus,
@@ -63,6 +67,8 @@ export interface MeDto {
   readonly preferredLanguage: LocaleCode | null;
   /** Language used for this response. */
   readonly effectiveLanguage: LocaleCode;
+  /** Name shown on the player's bank transfers; helps match deposits when no memo is typed. */
+  readonly depositorName: string | null;
   /** Where the user plays; the feed defaults to it. */
   readonly homeRegion: RegionDto | null;
 }
@@ -172,6 +178,11 @@ export interface RegistrationPaymentDto {
   readonly amountKrw: number;
   /** Seat is released automatically if no receipt is uploaded by this time. */
   readonly dueAt: string;
+  /**
+   * 4-digit code the player puts in the transfer's sender memo so the deposit is recognised
+   * automatically. Present while a payment is expected.
+   */
+  readonly referenceCode: string | null;
   readonly hasReceipt: boolean;
   /** Code of the latest rejection; localize with PAYMENT_REJECT_REASON_LABEL_KEY. */
   readonly rejectReason: PaymentRejectReason | null;
@@ -197,4 +208,17 @@ export interface AdminPaymentDto {
   readonly registrationStatus: RegistrationStatus;
   readonly payment: RegistrationPaymentDto;
   readonly receiptUploadedAt: string | null;
+}
+
+export interface BankDepositDto {
+  readonly id: string;
+  readonly source: BankDepositSource;
+  readonly status: BankDepositStatus;
+  readonly matchMethod: BankMatchMethod | null;
+  readonly reason: BankDepositReason | null;
+  readonly amountKrw: number | null;
+  readonly receivedAt: string;
+  /** The message as received. Contains personal data: admin screens only. */
+  readonly rawText: string;
+  readonly matchedRegistrationId: string | null;
 }

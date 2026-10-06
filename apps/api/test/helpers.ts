@@ -11,10 +11,13 @@ import { buildApp } from '../src/app';
 import type { TelegramClient } from '../src/integrations/telegram';
 import { signAccessToken } from '../src/services/auth';
 import type { AppConfig } from '../src/config';
+import type { AuthUser } from '../src/context';
 import { createDb, type DbHandle } from '../src/db/client';
 import { authSessions, matches, matchTranslations, userIdentities, users } from '../src/db/schema';
 
 export const TEST_BOT_TOKEN = '123456789:test-bot-token-for-hmac-verification';
+export const TEST_BANK_SECRET = 'bank-webhook-secret-0123456789-abcdefghij';
+export const TEST_BANK_CHAT_ID = '-1001234567890';
 export const TEST_WEBHOOK_SECRET = 'test-webhook-secret-0123456789';
 
 export const TEST_CONFIG = (databaseUrl: string): AppConfig => ({
@@ -29,6 +32,13 @@ export const TEST_CONFIG = (databaseUrl: string): AppConfig => ({
   corsOrigins: ['http://localhost:5173'],
   receiptDir: mkdtempSync(path.join(os.tmpdir(), 'foodboll-receipts-')),
   loginRateLimitPerMinute: 10_000,
+  bank: {
+    webhookSecret: TEST_BANK_SECRET,
+    allowedSenders: [],
+    telegramChatId: TEST_BANK_CHAT_ID,
+    autoConfirmLimitPer10Min: 30,
+    maxMessageAgeHours: 36,
+  },
   sessionDays: 30,
   devLogin: true,
   telegram: {
@@ -66,7 +76,7 @@ export async function startTestApp(
     // `languages` is seed data owned by migrations, so it is kept.
     reset: async () => {
       await handle.pool.query(
-        'truncate table telegram_login_replays, auth_sessions, user_identities, notifications, registration_payments, match_registrations, legal_document_translations, legal_documents, payment_instruction_translations, payment_instructions, match_translations, matches, users cascade',
+        'truncate table bank_deposits, telegram_login_replays, auth_sessions, user_identities, notifications, registration_payments, match_registrations, legal_document_translations, legal_documents, payment_instruction_translations, payment_instructions, match_translations, matches, users cascade',
       );
     },
     close: async () => {
@@ -229,4 +239,16 @@ export function telegramLoginPayload(
     .join('\n');
   const secret = createHash('sha256').update(botToken).digest();
   return { ...data, hash: createHmac('sha256', secret).update(checkString).digest('hex') };
+}
+
+/** A service-level actor for tests that call services directly instead of going over HTTP. */
+export function authUser(user: { id: string }, role: AuthUser['role'] = 'PLAYER'): AuthUser {
+  return {
+    id: user.id,
+    role,
+    displayName: 'Test',
+    preferredLanguage: null,
+    homeRegionId: null,
+    depositorName: null,
+  };
 }

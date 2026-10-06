@@ -11,6 +11,7 @@ import type { Db } from './db/client';
 import { AppError, type ErrorDetail } from './errors';
 import { registerRoutes } from './routes';
 import { registerAuthRoutes } from './routes/auth';
+import { registerBankRoutes } from './routes/bank';
 import { createTelegramClient, type TelegramClient } from './integrations/telegram';
 import { LocalReceiptStorage, type ReceiptStorage } from './storage';
 
@@ -59,6 +60,7 @@ export function buildApp(
   // through an `onRoute` hook and would silently skip any route defined before it.
   app.register(async (instance) => {
     registerAuthRoutes(instance, { db, config, telegram });
+    registerBankRoutes(instance, db, config);
     registerRoutes(instance, db, storage, {
       uploadsPerMinute: config.uploadRateLimitPerMinute,
       matchFeeKrw: config.matchFeeKrw,

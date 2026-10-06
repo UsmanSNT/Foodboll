@@ -1,6 +1,11 @@
 import { LOCALE_CODES } from '@foodboll/i18n';
 import { z } from 'zod';
-import { PAYMENT_REJECT_REASONS, PAYMENT_STATUSES, USER_ROLES } from './enums';
+import {
+  BANK_DEPOSIT_STATUSES,
+  PAYMENT_REJECT_REASONS,
+  PAYMENT_STATUSES,
+  USER_ROLES,
+} from './enums';
 
 export const localeCodeSchema = z.enum(LOCALE_CODES);
 
@@ -124,6 +129,27 @@ export const updateLanguageInputSchema = z
 export type UpdateLanguageInput = z.output<typeof updateLanguageInputSchema>;
 
 export const uuidSchema = z.uuid();
+
+/** A bank notification forwarded from the receiving account's phone. */
+export const bankNotificationInputSchema = z.strictObject({
+  text: z.string().min(1).max(2000),
+  /** When the phone received it. Defaults to now. */
+  receivedAt: z.iso.datetime({ offset: true }).optional(),
+  /** Sending number/name, used to drop messages that are not from the bank. */
+  sender: z.string().max(64).optional(),
+  /** Id from the forwarding app, makes retries idempotent. */
+  messageId: z.string().max(128).optional(),
+});
+export type BankNotificationInput = z.output<typeof bankNotificationInputSchema>;
+
+export const assignDepositInputSchema = z.strictObject({ registrationId: z.uuid() });
+
+export const depositStatusFilterSchema = z.enum(BANK_DEPOSIT_STATUSES);
+
+/** The name the player's bank shows on a transfer (used when they cannot type a reference). */
+export const depositorNameInputSchema = z.strictObject({
+  depositorName: text(1, 60).nullable(),
+});
 
 /**
  * Payload of the Telegram Login Widget. Fields are exactly those Telegram signs; the widget sends

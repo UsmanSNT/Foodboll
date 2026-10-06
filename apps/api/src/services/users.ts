@@ -15,6 +15,7 @@ export const toAuthUser = (row: UserRow): AuthUser => ({
   displayName: row.displayName,
   preferredLanguage: isLocaleCode(row.preferredLanguage) ? row.preferredLanguage : null,
   homeRegionId: row.homeRegionId,
+  depositorName: row.depositorName,
 });
 
 export async function findUserById(db: DbOrTx, id: string): Promise<AuthUser | null> {
@@ -33,6 +34,7 @@ export async function buildMe(db: Db, user: AuthUser, locale: LocaleCode): Promi
     role: user.role,
     preferredLanguage: user.preferredLanguage,
     effectiveLanguage: locale,
+    depositorName: user.depositorName,
     homeRegion,
   };
 }
@@ -93,4 +95,12 @@ export async function listUsersForAdmin(
     limit: params.limit,
     offset: params.offset,
   };
+}
+
+/** Saves (or clears) the name the player's bank shows on their transfers. */
+export async function setDepositorName(db: Db, userId: string, name: string | null): Promise<void> {
+  await db
+    .update(users)
+    .set({ depositorName: name, updatedAt: sql`now()` })
+    .where(eq(users.id, userId));
 }

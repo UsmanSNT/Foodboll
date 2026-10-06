@@ -29,6 +29,30 @@ const envSchema = z.object({
   /** Per-client cap on sign-in attempts. */
   LOGIN_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(10),
   SESSION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+  /** Shared secret the phone's SMS-forwarding app sends with each bank notification. */
+  BANK_WEBHOOK_SECRET: z
+    .string()
+    .min(32, 'BANK_WEBHOOK_SECRET must be at least 32 characters')
+    .optional(),
+  /** Comma-separated sender numbers/names accepted by the webhook (empty = accept any). */
+  BANK_SMS_SENDERS: z
+    .string()
+    .default('')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  /** Private Telegram channel where the bank's messages are forwarded (negative id for channels). */
+  TELEGRAM_BANK_CHAT_ID: z
+    .string()
+    .regex(/^-?\d{1,20}$/)
+    .optional(),
+  /** Safety valve: at most this many automatic confirmations per 10 minutes, then humans review. */
+  BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN: z.coerce.number().int().min(1).default(30),
+  /** Messages older than this are never confirmed automatically (guards against replays). */
+  BANK_MESSAGE_MAX_AGE_HOURS: z.coerce.number().int().min(1).max(168).default(36),
   /** Local development only: enables POST /v1/auth/dev-login. Refused in production. */
   DEV_LOGIN: z
     .enum(['true', 'false'])
@@ -59,6 +83,15 @@ export interface TelegramConfig {
   readonly webhookSecret: string;
 }
 
+export interface BankConfig {
+  /** Null disables the HTTP webhook (the Telegram channel may still be used). */
+  readonly webhookSecret: string | null;
+  readonly allowedSenders: readonly string[];
+  readonly telegramChatId: string | null;
+  readonly autoConfirmLimitPer10Min: number;
+  readonly maxMessageAgeHours: number;
+}
+
 export interface AppConfig {
   readonly nodeEnv: 'development' | 'test' | 'production';
   readonly port: number;
@@ -74,6 +107,7 @@ export interface AppConfig {
   readonly devLogin: boolean;
   /** Null unless token, username and webhook secret are all configured. */
   readonly telegram: TelegramConfig | null;
+  readonly bank: BankConfig;
   readonly matchFeeKrw: number;
   readonly receiptDir: string;
   readonly rateLimitPerMinute: number;
@@ -120,6 +154,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
             webhookSecret: e.TELEGRAM_WEBHOOK_SECRET,
           }
         : null,
+    bank: {
+      webhookSecret: e.BANK_WEBHOOK_SECRET ?? null,
+      allowedSenders: e.BANK_SMS_SENDERS,
+      telegramChatId: e.TELEGRAM_BANK_CHAT_ID ?? null,
+      autoConfirmLimitPer10Min: e.BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN,
+      maxMessageAgeHours: e.BANK_MESSAGE_MAX_AGE_HOURS,
+    },
     matchFeeKrw: e.MATCH_FEE_KRW,
     receiptDir: e.RECEIPT_DIR,
     rateLimitPerMinute: e.RATE_LIMIT_PER_MINUTE,

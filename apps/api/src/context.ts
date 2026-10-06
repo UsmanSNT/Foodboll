@@ -19,6 +19,7 @@ export interface AuthUser {
   readonly displayName: string;
   readonly preferredLanguage: LocaleCode | null;
   readonly homeRegionId: string | null;
+  readonly depositorName: string | null;
 }
 
 export interface RequestContext {
@@ -85,7 +86,10 @@ export function createContextHook(config: AppConfig, db: Db) {
   }
 
   return async function contextHook(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const auth = await authenticate(request.headers.authorization);
+    // Machine-to-machine endpoints (Telegram, bank forwarder) authenticate with their own secret
+    // in the Authorization header; it is not a user token and must not be parsed as one.
+    const machine = request.url.startsWith('/v1/integrations/');
+    const auth = machine ? null : await authenticate(request.headers.authorization);
     const user = auth?.user ?? null;
     const locale = negotiateLocale(request, user);
     request.ctx = { user, sessionId: auth?.sessionId ?? null, locale };

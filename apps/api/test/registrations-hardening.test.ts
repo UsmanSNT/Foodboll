@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import type { AuthUser } from '../src/context';
 import {
   applyToMatch,
   cancelRegistration,
@@ -15,6 +14,7 @@ import {
 } from '../src/services/registrations';
 import { LocalReceiptStorage } from '../src/storage';
 import {
+  authUser,
   bearer,
   createUser,
   insertMatch,
@@ -36,13 +36,7 @@ beforeEach(async () => {
   mkdirSync(ctx.config.receiptDir, { recursive: true });
 });
 
-const asUser = (u: { id: string }, role: AuthUser['role'] = 'PLAYER'): AuthUser => ({
-  id: u.id,
-  role,
-  displayName: 'T',
-  preferredLanguage: null,
-  homeRegionId: null,
-});
+const asUser = authUser;
 const files = () => readdirSync(ctx.config.receiptDir).length;
 const db = () => ctx.handle.db;
 const hours = (n: number) => n * 3600 * 1000;
