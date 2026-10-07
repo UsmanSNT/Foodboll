@@ -1061,7 +1061,9 @@ describe('bank deposits: the queue', () => {
     const [unknown, known] = screen.getAllByRole('article') as [HTMLElement, HTMLElement];
     expect(within(unknown).getByText('Unknown amount')).toBeInTheDocument();
     expect(
-      within(unknown).getByText('This message doesn’t look like a deposit notice.'),
+      within(unknown).getByText(
+        'The message couldn’t be read as a deposit with one clear amount. Check the original text.',
+      ),
     ).toBeInTheDocument();
     expect(within(unknown).queryByRole('button')).not.toBeInTheDocument();
     // A deposit ignored by mistake can still be assigned, but not ignored again.

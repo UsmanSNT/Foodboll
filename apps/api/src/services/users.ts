@@ -103,10 +103,15 @@ export async function listUsersForAdmin(
   };
 }
 
-/** Saves (or clears) the name the player's bank shows on their transfers. */
+/** Saves (or clears) the name the player's bank shows on their transfers; a change resets its verification. */
 export async function setDepositorName(db: Db, userId: string, name: string | null): Promise<void> {
   await db
     .update(users)
-    .set({ depositorName: name, updatedAt: sql`now()` })
+    .set({
+      depositorName: name,
+      // A different name has not proven anything yet.
+      depositorNameVerified: sql`case when ${users.depositorName} is not distinct from ${name} then ${users.depositorNameVerified} else false end`,
+      updatedAt: sql`now()`,
+    })
     .where(eq(users.id, userId));
 }

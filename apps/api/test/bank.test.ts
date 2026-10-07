@@ -171,7 +171,11 @@ describe('automatic confirmation', () => {
   });
 
   it('falls back to the depositor name when no memo was typed', async () => {
-    const { registrationId } = await paying({ depositorName: 'Karimov Aziz' });
+    const { player, registrationId } = await paying({ depositorName: 'Karimov Aziz' });
+    // Only a name already proven by an earlier code-matched deposit may confirm on its own.
+    await ctx.handle.pool.query('update users set depositor_name_verified = true where id = $1', [
+      player.id,
+    ]);
     const res = await post({ text: sms({ who: 'KARIMOV AZIZ' }) });
     expect(res.json().status).toBe('MATCHED');
     expect((await deposits())[0]?.match_method).toBe('NAME');

@@ -7,7 +7,7 @@ import type {
   Page,
 } from '@foodboll/contracts';
 import { createHash, randomUUID } from 'node:crypto';
-import { and, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { BankConfig } from '../config';
 import type { Db, DbOrTx } from '../db/client';
@@ -15,6 +15,7 @@ import { bankDeposits, matchRegistrations, registrationPayments, users } from '.
 import { AppError, notFound } from '../errors';
 import {
   containsName,
+  normalizeName,
   containsReference,
   normalizeMessage,
   parseBankMessage,
@@ -91,6 +92,35 @@ async function recentAutoConfirmations(db: DbOrTx, now: Date): Promise<number> {
   return row?.n ?? 0;
 }
 
+/** True when another account has saved the same depositor name (compared normalized). */
+async function sharesName(tx: DbOrTx, userId: string, depositorName: string): Promise<boolean> {
+  const wanted = normalizeName(depositorName);
+  const rows = await tx
+    .select({ depositorName: users.depositorName })
+    .from(users)
+    .where(and(isNotNull(users.depositorName), ne(users.id, userId)));
+  return rows.some((r) => r.depositorName !== null && normalizeName(r.depositorName) === wanted);
+}
+
+/**
+ * Marks the user's saved name as proven when the alert that settled their payment carried it as
+ * whole token(s); from then on that name may confirm deposits without a code.
+ */
+async function proveDepositorName(
+  tx: DbOrTx,
+  registrationId: string,
+  parsed: ParsedDeposit,
+): Promise<void> {
+  const [row] = await tx
+    .select({ userId: users.id, depositorName: users.depositorName })
+    .from(matchRegistrations)
+    .innerJoin(users, eq(users.id, matchRegistrations.userId))
+    .where(eq(matchRegistrations.id, registrationId));
+  if (row?.depositorName && containsName(parsed.residual, row.depositorName)) {
+    await tx.update(users).set({ depositorNameVerified: true }).where(eq(users.id, row.userId));
+  }
+}
+
 /**
  * Decides which payment (if any) a deposit settles. Confirms only when exactly one payment fits,
  * the amount is exact, and the registration is still live; everything else goes to a human.
@@ -108,9 +138,11 @@ async function decide(
   const expecting = await tx
     .select({
       registrationId: matchRegistrations.id,
+      userId: users.id,
       amountKrw: registrationPayments.amountKrw,
       referenceCode: registrationPayments.referenceCode,
       depositorName: users.depositorName,
+      depositorNameVerified: users.depositorNameVerified,
     })
     .from(registrationPayments)
     .innerJoin(matchRegistrations, eq(matchRegistrations.id, registrationPayments.registrationId))
@@ -132,6 +164,14 @@ async function decide(
   if (byReference.length > 1) return { status: 'AMBIGUOUS', reason: 'MULTIPLE_CANDIDATES' };
   if (byReference.length === 1) {
     chosen = byReference[0];
+    // A stray 4-digit number must not outweigh a different player's name in the same alert.
+    const rival = expecting.some(
+      (p) =>
+        p.userId !== chosen?.userId &&
+        p.depositorName !== null &&
+        containsName(parsed.residual, p.depositorName),
+    );
+    if (rival) return { status: 'AMBIGUOUS', reason: 'MULTIPLE_CANDIDATES' };
   } else {
     const sameAmount = expecting.filter((p) => p.amountKrw === parsed.amountKrw);
     const byName = sameAmount.filter(
@@ -143,6 +183,19 @@ async function decide(
     }
     chosen = byName[0];
     method = 'NAME';
+    // A name shared by several accounts (in any state) identifies nobody.
+    if (chosen?.depositorName && (await sharesName(tx, chosen.userId, chosen.depositorName))) {
+      return { status: 'AMBIGUOUS', reason: 'MULTIPLE_CANDIDATES' };
+    }
+    // Anyone can type any name: only a name already seen on a deposit that was matched by code
+    // (or by an admin) may confirm on its own. Otherwise a human sees the likely registration.
+    if (chosen && !chosen.depositorNameVerified) {
+      return {
+        status: 'AMBIGUOUS',
+        reason: 'NAME_UNVERIFIED',
+        registrationId: chosen.registrationId,
+      };
+    }
   }
   if (!chosen) return { status: 'UNMATCHED', reason: 'NO_CANDIDATE' };
   if (chosen.amountKrw !== parsed.amountKrw)
@@ -169,9 +222,19 @@ export async function ingestBankMessage(
   if (!normalized.includes('입금')) {
     return { depositId: null, status: 'DROPPED', reason: null, duplicate: false };
   }
-  const bucket =
-    input.externalId ?? String(Math.floor(input.receivedAt.getTime() / TEN_MINUTES_MS));
-  const dedupeKey = `${createHash('sha256').update(`${input.source}\n${normalized}`).digest('hex')}:${bucket}`;
+  const parsed = parseBankMessage(normalized);
+  // An alert that prints its own date and time identifies itself (a retry hours later is still
+  // the same message); only one that does not falls back to a window of the server clock.
+  const printed = parsed.kind === 'DEPOSIT' && parsed.occurredAt !== null;
+  const digest = createHash('sha256')
+    .update(
+      `${input.source}\n${normalized}${printed && !input.externalId ? `\n${new Date(input.receivedAt.getTime() + KST_OFFSET_MS).getUTCFullYear()}` : ''}`,
+    )
+    .digest('hex');
+  const discriminator =
+    input.externalId ??
+    (printed ? null : String(Math.floor(input.receivedAt.getTime() / TEN_MINUTES_MS)));
+  const dedupeKey = discriminator === null ? digest : `${digest}:${discriminator}`;
 
   return db.transaction(async (tx) => {
     // Serialize concurrent deliveries of the same message (forwarder retries).
@@ -189,11 +252,15 @@ export async function ingestBankMessage(
       };
     }
 
-    const parsed = parseBankMessage(normalized);
     const depositId = randomUUID();
     let decision: Decision;
     if (parsed.kind === 'IGNORED') {
-      decision = { status: 'IGNORED', reason: 'NOT_PARSED' };
+      // It says 입금 but no single amount could be read: a human must look. Everything else
+      // (withdrawals, notices, empty) is not a deposit and stays out of the queue.
+      decision =
+        parsed.reason === 'NO_AMOUNT' || parsed.reason === 'AMBIGUOUS_AMOUNT'
+          ? { status: 'UNMATCHED', reason: 'NOT_PARSED' }
+          : { status: 'IGNORED', reason: 'NOT_PARSED' };
     } else {
       decision = await decide(tx, parsed, input, bank, now);
       if (decision.status === 'MATCHED' && decision.registrationId) {
@@ -209,6 +276,9 @@ export async function ingestBankMessage(
             amountKrw: parsed.amountKrw,
             detail: { depositId, method: decision.method },
           });
+          if (decision.method === 'REFERENCE') {
+            await proveDepositorName(tx, decision.registrationId, parsed);
+          }
         } catch (error) {
           // The payment changed under us (cancelled, confirmed by an admin...): leave it to a human.
           if (!(error instanceof AppError)) throw error;
@@ -311,6 +381,8 @@ export async function assignDeposit(
       amountKrw: deposit.amountKrw,
       detail: { depositId, method: 'MANUAL' },
     });
+    const parsed = parseBankMessage(deposit.rawText);
+    if (parsed.kind === 'DEPOSIT') await proveDepositorName(tx, registrationId, parsed);
     const [updated] = await tx
       .update(bankDeposits)
       .set({
@@ -338,7 +410,12 @@ export async function ignoreDeposit(
     await lockUnresolved(tx, depositId);
     const [updated] = await tx
       .update(bankDeposits)
-      .set({ status: 'IGNORED', reason: 'MANUAL', resolvedBy: admin.id })
+      .set({
+        status: 'IGNORED',
+        reason: 'MANUAL',
+        matchedRegistrationId: null,
+        resolvedBy: admin.id,
+      })
       .where(eq(bankDeposits.id, depositId))
       .returning();
     if (!updated) throw new Error('Deposit update returned no row');

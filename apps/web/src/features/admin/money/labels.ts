@@ -99,6 +99,7 @@ export const DEPOSIT_REASON_LABEL_KEY = {
   RATE_GUARD: 'adminDeposits.reason.RATE_GUARD',
   STATE_CHANGED: 'adminDeposits.reason.STATE_CHANGED',
   NOT_PARSED: 'adminDeposits.reason.NOT_PARSED',
+  NAME_UNVERIFIED: 'adminDeposits.reason.NAME_UNVERIFIED',
   MANUAL: 'adminDeposits.reason.MANUAL',
 } as const satisfies Record<BankDepositReason, MessageKey>;
 

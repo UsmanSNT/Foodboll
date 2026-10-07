@@ -29,19 +29,35 @@ Requires Node 22, pnpm 10 and Docker (for PostgreSQL).
 ```bash
 pnpm install
 pnpm db:up                                   # PostgreSQL 16 on :5432
-cp apps/api/.env.example apps/api/.env       # set JWT_SECRET (>= 32 chars); DEV_LOGIN=true for local sign-in
+cp apps/api/.env.example apps/api/.env       # set JWT_SECRET (>= 32 chars); uncomment DEV_LOGIN=true for local sign-in
 pnpm db:migrate
 pnpm --filter @foodboll/api dev              # API on :3000
 pnpm --filter @foodboll/web dev              # web on :5173 (proxies /api -> :3000)
 ```
 
+The API reads `apps/api/.env` from its working directory when it exists (the `pnpm` scripts above
+run there); variables already set in the environment win. Production should use real environment
+variables only.
+
 Sign-in is **Telegram Login** (set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` and
 `TELEGRAM_WEBHOOK_SECRET`, see `docs/payments.md`). For local development only, `DEV_LOGIN=true`
-enables a name-only sign-in; the API refuses to start with it in production.
+enables a name-only sign-in (commented out in `.env.example`); the API refuses to start with it
+unless `NODE_ENV` is explicitly `development` or `test`. Without a role it creates players and
+never changes an existing user's role.
+
+### Running in production
+
+Run the API under a restart supervisor (systemd, a Docker restart policy): a lost database
+connection fails the requests that were using it but other crash modes remain. Behind a reverse
+proxy set `TRUST_PROXY` to a hop count or a list of proxy IPs/CIDRs; `true` trusts every
+`X-Forwarded-For` hop, so clients could spoof their address for rate limiting. Logs never contain
+SQL parameters, bank messages or authorization headers. Players are notified (in the app and,
+once they pressed Start, in Telegram) when the time or place of a match they joined changes;
+payment deadlines are not moved by an edit.
 
 ### Demo data
 
-With the API running and `DEV_LOGIN=true`, fill an empty database with organizers, players, matches in
+With the API running (`NODE_ENV=development`, `DEV_LOGIN=true`), fill an empty database with organizers, players, matches in
 several cities, confirmed payments and two past matches with attendance:
 
 ```bash

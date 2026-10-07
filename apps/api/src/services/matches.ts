@@ -17,9 +17,10 @@ import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
 import { matches, matchRegistrations, matchTranslations } from '../db/schema';
 import { AppError, forbidden, notFound } from '../errors';
+import { enqueueNotification } from './notifications';
 import { assertCanPublishIn } from './organizers';
 import { findRegionByCode, loadRegions, regionScopeIds } from './regions';
-import { loadSeatCounts, loadViewerRegistrations } from './seats';
+import { lapsedHold, loadSeatCounts, loadViewerRegistrations } from './seats';
 import { assertLanguagesEnabled, assertSourceTranslation } from './translations';
 
 type MatchRow = typeof matches.$inferSelect;
@@ -94,6 +95,7 @@ export async function replaceMatch(
     if (!existing) throw notFound('MATCH_NOT_FOUND');
     if (actor.role !== 'ADMIN' && existing.organizerId !== actor.id) throw forbidden();
     if (existing.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
+    if (new Date(input.startsAt) <= now) throw invalidField('startsAt', 'too_small');
     const region = await findRegionByCode(tx, input.regionCode);
     // An organizer may not move a match into a region they are not responsible for.
     await assertCanPublishIn(tx, actor, region.id);
@@ -101,24 +103,26 @@ export async function replaceMatch(
     // Omitting maxPlayers keeps the current capacity; lowering it below the people already
     // holding a seat would silently over-book the match.
     const maxPlayers = input.maxPlayers ?? Math.max(existing.maxPlayers, input.playersPerSide * 2);
-    const [{ taken } = { taken: 0 }] = await tx
-      .select({ taken: sql<number>`count(*)::int` })
-      .from(matchRegistrations)
-      .where(
-        and(
-          eq(matchRegistrations.matchId, matchId),
-          inArray(matchRegistrations.status, ['APPLIED', 'CONFIRMED']),
-        ),
-      );
+    // Same count as everywhere else: lapsed (expired, unpaid) holds do not occupy a seat.
+    const taken = (await loadSeatCounts(tx, [matchId], now)).get(matchId) ?? 0;
     if (maxPlayers < taken) throw new AppError('CAPACITY_BELOW_REGISTRATIONS', 409);
+
+    const startsAt = new Date(input.startsAt);
+    const endsAt = new Date(input.endsAt);
+    const detailsChanged =
+      startsAt.getTime() !== existing.startsAt.getTime() ||
+      endsAt.getTime() !== existing.endsAt.getTime() ||
+      input.venueName !== existing.venueName ||
+      (input.venueAddress ?? null) !== (existing.venueAddress ?? null) ||
+      region.id !== existing.regionId;
 
     await tx
       .update(matches)
       .set({
         regionId: region.id,
         sourceLanguage: input.sourceLanguage,
-        startsAt: new Date(input.startsAt),
-        endsAt: new Date(input.endsAt),
+        startsAt,
+        endsAt,
         venueName: input.venueName,
         venueAddress: input.venueAddress,
         playersPerSide: input.playersPerSide,
@@ -128,6 +132,24 @@ export async function replaceMatch(
       .where(eq(matches.id, matchId));
     await tx.delete(matchTranslations).where(eq(matchTranslations.matchId, matchId));
     await tx.insert(matchTranslations).values(translationRows(matchId, input));
+
+    // Players who hold a seat are told when the time or place moved. Payment deadlines are left
+    // as they are: each player's window was set when they registered.
+    if (detailsChanged) {
+      const holders = await tx
+        .select({ userId: matchRegistrations.userId })
+        .from(matchRegistrations)
+        .where(
+          and(
+            eq(matchRegistrations.matchId, matchId),
+            inArray(matchRegistrations.status, ['APPLIED', 'CONFIRMED']),
+            sql`not (${matchRegistrations.status} = 'APPLIED' and ${lapsedHold(now)})`,
+          ),
+        );
+      for (const holder of holders) {
+        await enqueueNotification(tx, { userId: holder.userId, type: 'MATCH_CHANGED' });
+      }
+    }
   });
 }
 

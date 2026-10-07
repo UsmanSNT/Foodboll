@@ -78,6 +78,13 @@
       "when": 1791335808967,
       "tag": "0010_bank_name_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791358966208,
+      "tag": "0011_match_changed_notification",
+      "breakpoints": true
     }
   ]
 }

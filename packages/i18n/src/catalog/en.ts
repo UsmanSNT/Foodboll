@@ -204,6 +204,10 @@ export const en: typeof ko = {
       title: 'Participation confirmed',
       body: 'Your participation in the match is confirmed.',
     },
+    matchChanged: {
+      title: 'Match details changed',
+      body: 'The time or place of a match you joined has changed. Please check the match page.',
+    },
   },
   legal: {
     terms: 'Terms of service',

@@ -11,7 +11,13 @@ import { isLocaleCode, type LocaleCode } from '@foodboll/i18n';
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
-import { matches, matchRegistrations, registrationPayments, users } from '../db/schema';
+import {
+  bankDeposits,
+  matches,
+  matchRegistrations,
+  registrationPayments,
+  users,
+} from '../db/schema';
 import { AppError, notFound } from '../errors';
 import { contentTypeForKey, sniffReceiptType, type ReceiptStorage } from '../storage';
 import { loadMatchSummaries } from './matches';
@@ -56,20 +62,25 @@ function effectiveStatus(
  */
 async function releaseLapsedSeats(
   db: DbOrTx,
-  matchId: string,
+  /** Null releases lapsed holds of every match (bounded by `limit`). */
+  matchId: string | null,
   now: Date,
+  limit?: number,
 ): Promise<{ id: string; receiptKey: string | null }[]> {
-  const candidates = await db
+  const candidateQuery = db
     .select({ id: matchRegistrations.id })
     .from(matchRegistrations)
     .where(
       and(
-        eq(matchRegistrations.matchId, matchId),
+        matchId === null ? undefined : eq(matchRegistrations.matchId, matchId),
         eq(matchRegistrations.status, 'APPLIED'),
         lapsedHold(now),
       ),
-    )
-    .for('update', { skipLocked: true });
+    );
+  const candidates = await (limit === undefined ? candidateQuery : candidateQuery.limit(limit)).for(
+    'update',
+    { skipLocked: true },
+  );
   if (candidates.length === 0) return [];
 
   const released = await db
@@ -126,8 +137,7 @@ const EXPECTING = ['AWAITING_PAYMENT', 'PAYMENT_REVIEW', 'PAYMENT_REJECTED'];
  * code is never confused with a date in a bank message). Serialized by an advisory lock, because
  * applications to different matches run concurrently and the unique index is only a backstop.
  */
-async function allocateReferenceCode(tx: DbOrTx): Promise<string> {
-  await tx.execute(sql`select pg_advisory_xact_lock(hashtext('payment_reference_codes'))`);
+async function drawReferenceCode(tx: DbOrTx): Promise<string | undefined> {
   const result = await tx.execute(sql`
     select lpad(n::text, 4, '0') as code
       from generate_series(0, 9999) n
@@ -137,7 +147,28 @@ async function allocateReferenceCode(tx: DbOrTx): Promise<string> {
           where p.reference_code = lpad(n::text, 4, '0')
             and p.status in ('AWAITING_PAYMENT', 'PAYMENT_REVIEW', 'PAYMENT_REJECTED'))
      order by random() limit 1`);
-  const code = (result.rows[0] as { code?: string } | undefined)?.code;
+  return (result.rows[0] as { code?: string } | undefined)?.code;
+}
+
+/**
+ * Codes of lapsed holds stay allocated until their seat is physically released, which normally
+ * happens when someone applies to the same match. Only when the pool looks exhausted are lapsed
+ * holds of any match released (bounded, skipping rows others hold), so the hot path stays a
+ * single draw.
+ */
+async function allocateReferenceCode(
+  tx: DbOrTx,
+  now: Date,
+  /** Where the receipt files of reclaimed holds go; without it nothing is reclaimed. */
+  staleReceipts?: (string | null)[],
+): Promise<string> {
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtext('payment_reference_codes'))`);
+  const first = await drawReferenceCode(tx);
+  if (first) return first;
+  if (!staleReceipts) throw new Error('No free payment reference code');
+  const released = await releaseLapsedSeats(tx, null, now, 500);
+  staleReceipts.push(...released.map((r) => r.receiptKey));
+  const code = await drawReferenceCode(tx);
   if (!code) throw new Error('No free payment reference code');
   return code;
 }
@@ -334,7 +365,7 @@ export async function applyToMatch(
     } else {
       const fresh = {
         amountKrw: match.feeKrw,
-        referenceCode: await allocateReferenceCode(tx),
+        referenceCode: await allocateReferenceCode(tx, now, staleReceipts),
         status: 'AWAITING_PAYMENT',
         dueAt: paymentDeadline(now, match.startsAt),
         receiptKey: null,
@@ -640,6 +671,30 @@ export async function confirmPayment(
   });
 }
 
+/**
+ * True when a bank deposit settled this payment since it was last (re)created, so the money is in
+ * the account and "close without refund" would silently keep it.
+ */
+async function hasMatchedDeposit(tx: DbOrTx, registrationId: string): Promise<boolean> {
+  const result = await tx.execute(sql`
+    select 1 from payment_events d
+     where d.registration_id = ${registrationId}
+       and d.event = 'DEPOSIT_MATCHED'
+       and d.created_at > coalesce((
+         select max(c.created_at) from payment_events c
+          where c.registration_id = d.registration_id
+            and (c.event = 'PAYMENT_CREATED'
+                 or (c.event = 'REJECTED' and c.detail ->> 'revoked' = 'true'))), '-infinity')
+     limit 1`);
+  return result.rows.length > 0;
+}
+
+/**
+ * Admin rejection. Besides sending a receipt back (PAYMENT_REVIEW) and closing a cancelled,
+ * unpaid registration (REFUND_PENDING), it revokes a CONFIRMED payment, e.g. one a bank alert
+ * confirmed for the wrong person: the registration returns to APPLIED with a fresh code and
+ * deadline, and a bank deposit that confirmed it goes back to the admin queue.
+ */
 export async function rejectPayment(
   db: Db,
   admin: AuthUser,
@@ -648,14 +703,39 @@ export async function rejectPayment(
   now: Date = new Date(),
 ): Promise<void> {
   await db.transaction(async (tx) => {
+    // Lock order matches assignDeposit (deposit first, then registration).
+    const [peek] = await tx
+      .select({ status: registrationPayments.status })
+      .from(registrationPayments)
+      .where(eq(registrationPayments.registrationId, registrationId));
+    const linked =
+      peek?.status === 'PAYMENT_CONFIRMED'
+        ? await tx
+            .select({ id: bankDeposits.id })
+            .from(bankDeposits)
+            .where(
+              and(
+                eq(bankDeposits.matchedRegistrationId, registrationId),
+                eq(bankDeposits.status, 'MATCHED'),
+              ),
+            )
+            .orderBy(asc(bankDeposits.id))
+            .for('update')
+        : [];
+
     const { registration, payment } = await lockReviewable(tx, registrationId);
     const [match] = await tx.select().from(matches).where(eq(matches.id, registration.matchId));
     if (!match) throw new Error('Registration references a missing match');
+    let detail: Record<string, unknown> = { reason };
 
     if (payment.status === 'REFUND_PENDING') {
-      // Cancelled registration and no money ever arrived: close it out. The player was already
-      // told they cancelled, so there is nothing to ask them to re-upload.
-      await movePayment(tx, payment, 'PAYMENT_REJECTED', admin.id, now, { rejectReason: reason });
+      // Cancelled registration: close it out. The player was already told they cancelled, so
+      // there is nothing to ask them to re-upload. Money that a deposit settled must be refunded.
+      if (await hasMatchedDeposit(tx, registrationId)) throw invalidState();
+      await movePayment(tx, payment, 'PAYMENT_REJECTED', admin.id, now, {
+        rejectReason: reason,
+        referenceCode: null,
+      });
     } else if (payment.status === 'PAYMENT_REVIEW' && registration.status === 'APPLIED') {
       await movePayment(tx, payment, 'PAYMENT_REJECTED', admin.id, now, {
         rejectReason: reason,
@@ -667,6 +747,47 @@ export async function rejectPayment(
         type: 'PAYMENT_REJECTED',
         localizedParams: { reason: `payment.rejectReason.${reason}` },
       });
+    } else if (payment.status === 'PAYMENT_CONFIRMED' && registration.status === 'CONFIRMED') {
+      if (match.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
+      if (registration.attendanceMarkedAt !== null) throw invalidState();
+      await movePayment(tx, payment, 'PAYMENT_REJECTED', admin.id, now, {
+        rejectReason: reason,
+        referenceCode: await allocateReferenceCode(tx, now),
+        dueAt: paymentDeadline(now, match.startsAt),
+      });
+      await tx
+        .update(matchRegistrations)
+        .set({ status: 'APPLIED', updatedAt: now })
+        .where(eq(matchRegistrations.id, registrationId));
+      if (linked.length > 0) {
+        await tx
+          .update(bankDeposits)
+          .set({
+            status: 'UNMATCHED',
+            matchMethod: null,
+            reason: 'STATE_CHANGED',
+            matchedRegistrationId: null,
+            resolvedBy: null,
+            processedAt: now,
+          })
+          .where(
+            inArray(
+              bankDeposits.id,
+              linked.map((d) => d.id),
+            ),
+          );
+        // The name may have been "proven" by this very (wrong) deposit.
+        await tx
+          .update(users)
+          .set({ depositorNameVerified: false, updatedAt: now })
+          .where(eq(users.id, registration.userId));
+      }
+      await enqueueNotification(tx, {
+        userId: registration.userId,
+        type: 'PAYMENT_REJECTED',
+        localizedParams: { reason: `payment.rejectReason.${reason}` },
+      });
+      detail = { reason, revoked: true, depositIds: linked.map((d) => d.id) };
     } else {
       throw invalidState();
     }
@@ -677,7 +798,7 @@ export async function rejectPayment(
       fromStatus: payment.status,
       toStatus: 'PAYMENT_REJECTED',
       amountKrw: payment.amountKrw,
-      detail: { reason },
+      detail,
     });
   });
 }

@@ -42,7 +42,9 @@ export const adminDepositsKo = {
     RATE_GUARD: '짧은 시간에 자동 확인이 많아 이 건은 사람이 확인하도록 남겨두었습니다.',
     STATE_CHANGED:
       '확인하는 사이 결제 상태가 바뀌었습니다. 예를 들어 취소되었거나 이미 확인되었을 수 있어요.',
-    NOT_PARSED: '입금 알림으로 보이지 않는 문자입니다.',
+    NOT_PARSED: '문자에서 입금 금액 하나를 명확히 읽지 못했습니다. 원문을 확인해 주세요.',
+    NAME_UNVERIFIED:
+      '입금자명이 신청자의 저장된 이름과 일치하지만, 아직 이 이름으로 확인된 입금이 없습니다. 맞는 신청이면 연결해 주세요.',
     MANUAL: '관리자가 무시한 입금입니다.',
   },
   method: {
@@ -123,7 +125,9 @@ export const adminDepositsUz: typeof adminDepositsKo = {
       'Qisqa vaqtda juda ko‘p to‘lov avtomatik tasdiqlandi, shuning uchun buni odam ko‘rib chiqadi.',
     STATE_CHANGED:
       'To‘lov tekshirilayotganda o‘zgarib qoldi, masalan, bekor qilingan yoki allaqachon tasdiqlangan.',
-    NOT_PARSED: 'Bu xabar pul kelgani haqidagi xabarga o‘xshamaydi.',
+    NOT_PARSED: 'Xabardan o‘tkazma summasini aniq o‘qib bo‘lmadi. Asl matnni tekshiring.',
+    NAME_UNVERIFIED:
+      'Jo‘natuvchi ismi arizachining saqlangan ismiga mos, lekin bu ism bilan hali tasdiqlangan o‘tkazma yo‘q. Ariza to‘g‘ri bo‘lsa, biriktiring.',
     MANUAL: 'Administrator e’tiborsiz qoldirgan.',
   },
   method: {
@@ -203,7 +207,10 @@ export const adminDepositsEn: typeof adminDepositsKo = {
       'Many payments were confirmed automatically in a short time, so this one waits for a person.',
     STATE_CHANGED:
       'The payment changed while it was being matched, for example it was cancelled or already confirmed.',
-    NOT_PARSED: 'This message doesn’t look like a deposit notice.',
+    NOT_PARSED:
+      'The message couldn’t be read as a deposit with one clear amount. Check the original text.',
+    NAME_UNVERIFIED:
+      'The sender name matches the applicant’s saved name, but no deposit has been verified under that name yet. Assign it if it is the right registration.',
     MANUAL: 'Ignored by an admin.',
   },
   method: {

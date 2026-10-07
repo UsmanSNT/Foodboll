@@ -1,0 +1,2 @@
+ALTER TABLE "notifications" DROP CONSTRAINT "notifications_type_valid";--> statement-breakpoint
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_type_valid" CHECK ("notifications"."type" in ('PAYMENT_CONFIRMED', 'PAYMENT_REJECTED', 'PAYMENT_REFUNDED', 'PARTICIPATION_CONFIRMED', 'ORGANIZER_APPROVED', 'ORGANIZER_REJECTED', 'MATCH_CHANGED'));

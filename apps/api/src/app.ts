@@ -30,10 +30,16 @@ function localeForError(request: FastifyRequest) {
  * its stack header, and pg errors carry `detail`/`where` with row values. Only the type, code,
  * the first line of the message (cut at "Failed query:") and the stack frames are kept.
  */
-export function serializeError(error: unknown): Record<string, unknown> {
-  if (!(error instanceof Error)) return { type: typeof error };
+export function serializeError(error: unknown): {
+  type: string;
+  message: string;
+  stack: string;
+  [key: string]: unknown;
+} {
+  if (!(error instanceof Error)) return { type: typeof error, message: '', stack: '' };
   const cause = error.cause instanceof Error ? error.cause : undefined;
-  const code = (error as { code?: unknown }).code ?? (cause as { code?: unknown } | undefined)?.code;
+  const code =
+    (error as { code?: unknown }).code ?? (cause as { code?: unknown } | undefined)?.code;
   const isQuery = error.message.startsWith('Failed query:');
   const message = isQuery ? 'Failed query' : (error.message.split('\n')[0] ?? '');
   const frames = (error.stack ?? '')
@@ -48,10 +54,23 @@ export function serializeError(error: unknown): Record<string, unknown> {
   };
 }
 
+/** Fastify's typings lack the hop-count form, so it is expressed as a function. */
+function fastifyTrustProxy(
+  value: AppConfig['trustProxy'],
+): boolean | string[] | ((address: string, hop: number) => boolean) {
+  if (typeof value === 'number') return (_address, hop) => hop < value;
+  return typeof value === 'boolean' ? value : [...value];
+}
+
 export function buildApp(
   config: AppConfig,
   db: Db,
-  deps: { storage?: ReceiptStorage; telegram?: TelegramClient | null } = {},
+  deps: {
+    storage?: ReceiptStorage;
+    telegram?: TelegramClient | null;
+    /** Where log lines go instead of stdout (tests). */
+    logStream?: { write(line: string): void };
+  } = {},
 ): FastifyInstance {
   const storage = deps.storage ?? new LocalReceiptStorage(config.receiptDir);
   const telegram =
@@ -65,8 +84,9 @@ export function buildApp(
       level: config.logLevel,
       redact: ['req.headers.authorization', 'req.headers.cookie'],
       serializers: { err: serializeError },
+      ...(deps.logStream && { stream: deps.logStream }),
     },
-    trustProxy: config.trustProxy as boolean | number | string[],
+    trustProxy: fastifyTrustProxy(config.trustProxy),
     bodyLimit: 1_048_576,
     // Reject `__proto__` / `constructor` keys in JSON bodies instead of silently accepting them.
     onProtoPoisoning: 'error',

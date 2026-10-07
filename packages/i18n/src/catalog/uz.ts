@@ -204,6 +204,10 @@ export const uz: typeof ko = {
       title: 'Ishtirok tasdiqlandi',
       body: 'Matchdagi ishtirokingiz tasdiqlandi.',
     },
+    matchChanged: {
+      title: 'Match ma‘lumotlari o‘zgardi',
+      body: 'Yozilgan matchingizning vaqti yoki joyi o‘zgargan. Match sahifasida tekshirib ko‘ring.',
+    },
   },
   legal: {
     terms: 'Foydalanish shartlari',

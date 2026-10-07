@@ -193,7 +193,8 @@ export type TelegramLoginInput = z.output<typeof telegramLoginInputSchema>;
 /** Development-only sign-in (disabled in production by configuration). */
 export const devLoginInputSchema = z.strictObject({
   name: text(1, 60),
-  role: z.enum(USER_ROLES).default('PLAYER'),
+  /** Omitted: new users become PLAYER and an existing user's role is left alone. */
+  role: z.enum(USER_ROLES).optional(),
 });
 
 export const markNotificationsReadInputSchema = z.union([
@@ -230,7 +231,19 @@ export const setHomeRegionInputSchema = z.strictObject({
 });
 
 /** `YYYY-MM-DD`, interpreted in Korean time. */
-export const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const dateOnlySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((value) => {
+    // A real calendar day in a sane range: "2027-02-31" and year 0001 are rejected here instead of
+    // reaching PostgreSQL, which cannot represent every date the regex admits.
+    const [y = 0, m = 0, d = 0] = value.split('-').map(Number);
+    if (y < 2000 || y > 2100) return false;
+    const parsed = new Date(Date.UTC(y, m - 1, d));
+    return (
+      parsed.getUTCFullYear() === y && parsed.getUTCMonth() === m - 1 && parsed.getUTCDate() === d
+    );
+  }, 'Not a valid date');
 
 export const matchFeedQuerySchema = paginationSchema.extend({
   region: regionCodeSchema.optional(),
@@ -239,11 +252,7 @@ export const matchFeedQuerySchema = paginationSchema.extend({
 
 export const playerSearchQuerySchema = paginationSchema.extend({
   /** Matches the start of a display name. */
-  q: z
-    .string()
-    .max(60)
-    .transform((value) => value.normalize('NFC').trim())
-    .optional(),
+  q: text(0, 60).optional(),
   region: regionCodeSchema.optional(),
 });
 

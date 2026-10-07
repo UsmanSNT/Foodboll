@@ -70,14 +70,18 @@ const FILLER_TOKEN =
 const BANK_TOKEN = new RegExp(`^(${BANK_WORDS.join('|')})$`);
 
 export function normalizeMessage(text: string): string {
-  return text
-    .normalize('NFKC')
-    .replace(/[\u200b-\u200d\u2060\ufeff]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 2000);
+  return (
+    text
+      .normalize('NFKC')
+      // eslint-disable-next-line no-control-regex -- NUL is exactly what is being removed
+      .replace(/[\u0000\u200b-\u200d\u2060\ufeff]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 2000)
+  );
 }
 
+const WON_AMOUNT = /^(?:\d{1,3}(?:,\d{3})+|\d+)$/;
 const toInt = (digits: string): number => Number(digits.replaceAll(',', ''));
 
 export function parseBankMessage(raw: string): ParseResult {
@@ -86,11 +90,15 @@ export function parseBankMessage(raw: string): ParseResult {
 
   // Withdrawals, card payments and cancellations are never deposits. When in doubt, ignore:
   // a missed deposit costs a human a click; a wrong confirmation costs money.
-  if (/(출금|지출|결제|승인|취소|환불)/.test(text))
+  // 입출금 is an account type ("입출금통장"), not a withdrawal.
+  if (/(출금|지출|결제|승인|취소|환불)/.test(text.replaceAll('입출금', ' ')))
     return { kind: 'IGNORED', reason: 'WITHDRAWAL' };
   if (!text.includes('입금') || /입금\s*(예정|요청|안내|대기|기한|마감)/.test(text)) {
     return { kind: 'IGNORED', reason: 'NOT_A_DEPOSIT' };
   }
+
+  // The receiving account's own last digits ("입금통장(1234)", "계좌(1234)") are not a memo.
+  text = text.replace(/(?:통장|계좌)\s*\(\s*\d+\s*\)/g, ' ');
 
   // Date and time ("04/12 15:30", "2026.04.12 15:30:10", "15:30").
   let occurredAt: ParsedDeposit['occurredAt'] = null;
@@ -111,7 +119,7 @@ export function parseBankMessage(raw: string): ParseResult {
   }
   text = text
     .replace(/\d{4}[./-]\d{1,2}[./-]\d{1,2}/g, ' ')
-    .replace(/\d{1,2}[./]\d{1,2}(?!\d)/g, ' ')
+    .replace(/(?<![\d,.])\d{1,2}[./]\d{1,2}(?![\d,])/g, ' ')
     .replace(/\d{1,2}:\d{2}(?::\d{2})?/g, ' ');
 
   // Balance ("잔액 1,234,567원"): removed so it is never mistaken for the amount.
@@ -130,14 +138,17 @@ export function parseBankMessage(raw: string): ParseResult {
 
   // The amount is the number tied to the word 입금 ("입금 10,000원", "10,000원 입금", "입금액 10,000").
   const patterns = [
-    /입금\s*(?:금액|액)?\s*:?\s*([\d,]+)\s*원?/g,
-    /([\d,]+)\s*원\s*(?:을|이|가)?\s*입금/g,
+    /입금\s*(?:금액|액)?\s*:?\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*원?/g,
+    /(\d+(?:,\d+)*(?:\.\d+)?)\s*원\s*(?:을|이|가)?\s*입금/g,
   ];
   const found = new Map<number, string>();
   for (const pattern of patterns) {
     for (const match of text.matchAll(pattern)) {
       const digits = match[1] ?? '';
       if (!/\d/.test(digits)) continue;
+      // Decimals or odd thousands grouping ("10,00", "1,0000", "10,000.50") are not a plain won
+      // amount: reading them as one would silently change the sum, so a human decides.
+      if (!WON_AMOUNT.test(digits)) return { kind: 'IGNORED', reason: 'AMBIGUOUS_AMOUNT' };
       const amount = toInt(digits);
       if (Number.isSafeInteger(amount) && amount > 0 && amount <= MAX_AMOUNT_KRW) {
         found.set(amount, match[0]);
@@ -180,8 +191,31 @@ export function containsReference(residual: string, code: string): boolean {
   return new RegExp(`(?<!\\d)${code}(?!\\d)`).test(residual);
 }
 
-/** True when the declared depositor name appears in the message (names under 3 chars are too weak). */
-export function containsName(residual: string, depositorName: string): boolean {
+/** Shortest normalized name that may identify a payer: 3 for Hangul names, 4 for anything else. */
+export function isUsableDepositorName(depositorName: string): boolean {
   const name = normalizeName(depositorName);
-  return name.length >= 3 && normalizeName(residual).includes(name);
+  return name.length >= (/[\uac00-\ud7a3]/.test(name) ? 3 : 4);
+}
+
+/**
+ * True when the declared depositor name appears in the message as whole token(s), never inside a
+ * longer word or number. "KARIMOV AZIZ" matches the tokens "KARIMOV AZIZ" or "KARIMOVAZIZ", but
+ * "홍길동" does not match "홍길동생" and a short name never matches by accident.
+ */
+export function containsName(residual: string, depositorName: string): boolean {
+  if (!isUsableDepositorName(depositorName)) return false;
+  const name = normalizeName(depositorName);
+  const tokens = residual
+    .split(/\s+/)
+    .map(normalizeName)
+    .filter((t) => t !== '');
+  for (let start = 0; start < tokens.length; start += 1) {
+    let joined = '';
+    for (let end = start; end < tokens.length; end += 1) {
+      joined += tokens[end];
+      if (joined === name) return true;
+      if (joined.length >= name.length) break;
+    }
+  }
+  return false;
 }

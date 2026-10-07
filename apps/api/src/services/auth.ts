@@ -121,11 +121,18 @@ export async function loginWithTelegram(
 export async function devLogin(
   db: Db,
   config: AppConfig,
-  input: { name: string; role: AuthUser['role'] },
+  input: { name: string; role?: AuthUser['role'] | undefined },
 ): Promise<AuthUser> {
   if (!config.devLogin) throw new AppError('NOT_FOUND', 404);
-  const user = await userForIdentity(db, 'DEV', input.name.toLowerCase(), input.name, input.role);
-  if (user.role !== input.role) {
+  const user = await userForIdentity(
+    db,
+    'DEV',
+    input.name.toLowerCase(),
+    input.name,
+    input.role ?? 'PLAYER',
+  );
+  // A role is only changed when one was sent, so a name-only sign-in never demotes anyone.
+  if (input.role && user.role !== input.role) {
     await db.update(users).set({ role: input.role }).where(eq(users.id, user.id));
     return { ...user, role: input.role };
   }

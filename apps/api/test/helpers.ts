@@ -62,12 +62,15 @@ export interface TestContext {
 
 export async function startTestApp(
   overrides: Partial<AppConfig> = {},
-  deps: { telegram?: TelegramClient | null } = {},
+  deps: { telegram?: TelegramClient | null; logStream?: { write(line: string): void } } = {},
 ): Promise<TestContext> {
   const config = { ...TEST_CONFIG(inject('databaseUrl')), ...overrides };
   const handle = createDb(config.databaseUrl, { max: 4 });
   // Tests never reach the real Telegram API: default to a recording fake unless overridden.
-  const app = buildApp(config, handle.db, { telegram: deps.telegram ?? null });
+  const app = buildApp(config, handle.db, {
+    telegram: deps.telegram ?? null,
+    ...(deps.logStream && { logStream: deps.logStream }),
+  });
   await app.ready();
   return {
     app,

@@ -199,6 +199,10 @@ export const ko = {
       title: '참가 확정',
       body: '매치 참가가 확정되었습니다.',
     },
+    matchChanged: {
+      title: '매치 정보 변경',
+      body: '신청하신 매치의 일정 또는 장소가 변경되었습니다. 매치 페이지에서 확인해 주세요.',
+    },
   },
   legal: {
     terms: '이용약관',

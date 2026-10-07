@@ -111,6 +111,7 @@ export const NOTIFICATION_TYPES = [
   'PARTICIPATION_CONFIRMED',
   'ORGANIZER_APPROVED',
   'ORGANIZER_REJECTED',
+  'MATCH_CHANGED',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -138,6 +139,10 @@ export const NOTIFICATION_MESSAGE_KEYS = {
   PARTICIPATION_CONFIRMED: {
     title: 'notification.participationConfirmed.title',
     body: 'notification.participationConfirmed.body',
+  },
+  MATCH_CHANGED: {
+    title: 'notification.matchChanged.title',
+    body: 'notification.matchChanged.body',
   },
 } as const satisfies Record<NotificationType, { title: MessageKey; body: MessageKey }>;
 
