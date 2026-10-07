@@ -6,7 +6,8 @@ Uzbek (`uz`) and English (`en`) ship first; more languages are added by configur
 forking the product.
 
 - **Players** pick their city or district and see the matches announced there (by day), join with
-  one tap, pay a flat fee by bank transfer that is **confirmed automatically**, and build a public
+  one tap (they can cancel their own registration only while more than 5 hours remain before the
+  match; later they contact the organizer), pay a flat fee by bank transfer that is **confirmed automatically**, and build a public
   player page (matches played, activity, level, achievements).
 - **Organizers** are community members approved for a province or district. They announce matches in
   their own languages, mark attendance and can cancel a match (admins can cancel any match). They are never asked to check payments.

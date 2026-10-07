@@ -114,6 +114,10 @@ export const en: typeof ko = {
     heading: 'Your registration',
     cancelDone: 'Registration cancelled',
     cancelWarnPaid: 'If you already paid, the team will handle your refund.',
+    cancelRule:
+      'You can cancel only while more than 5 hours remain before the match. A paid registration cancelled in time is refunded by the team.',
+    cancelClosed:
+      'Registration can no longer be cancelled: less than 5 hours before the match. If you cannot come, contact the organizer.',
     uploaded: 'Receipt uploaded',
     title: 'My registrations',
     applied: 'We’ve received your registration. After you pay, upload your payment receipt.',
@@ -351,6 +355,8 @@ export const en: typeof ko = {
     MATCH_FULL: 'This match is full.',
     MATCH_CANCELLED: 'This match was cancelled.',
     MATCH_STARTED: 'This match has already started.',
+    CANCELLATION_CLOSED:
+      'Registration can no longer be cancelled: less than 5 hours before the match. If you can’t come, contact the organizer.',
     INVALID_STATE: 'This action isn’t available right now.',
     INVALID_RECEIPT: 'Only JPG, PNG or PDF files can be uploaded.',
     TELEGRAM_LOGIN_INVALID: 'We couldn’t verify your Telegram login. Please try again.',

@@ -1,11 +1,12 @@
-import type {
-  AdminPaymentDto,
-  Page,
-  PaymentRejectReason,
-  PaymentStatus,
-  RegistrationDto,
-  RegistrationPaymentDto,
-  RegistrationStatus,
+import {
+  isPlayerCancellationOpen,
+  type AdminPaymentDto,
+  type Page,
+  type PaymentRejectReason,
+  type PaymentStatus,
+  type RegistrationDto,
+  type RegistrationPaymentDto,
+  type RegistrationStatus,
 } from '@foodboll/contracts';
 import { isLocaleCode, type LocaleCode } from '@foodboll/i18n';
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
@@ -432,6 +433,10 @@ export async function cancelRegistration(
     if (effectiveStatus(registration, payment, now) === 'CANCELLED') throw invalidState();
     const [match] = await tx.select().from(matches).where(eq(matches.id, registration.matchId));
     if (!match || match.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
+    // Players cannot back out in the last hours; only the organizer can cancel the whole match.
+    if (!isPlayerCancellationOpen(match.startsAt, now)) {
+      throw new AppError('CANCELLATION_CLOSED', 409);
+    }
 
     await tx
       .update(matchRegistrations)

@@ -145,6 +145,16 @@ who really paid either has their payment found by that assign or uploads a recei
 statement. Closing a cancelled payment (`REFUND_PENDING`) _without refund_ is refused when a bank
 deposit settled it: the money is in the account, use **refund**.
 
+### Player cancellation cutoff
+
+A player can cancel their own registration (`POST /v1/registrations/:id/cancel`) only while MORE
+than `PLAYER_CANCELLATION_CUTOFF_HOURS` (5, in `@foodboll/contracts`) remain before kick-off,
+compared at the exact instant: 5 h 1 min is allowed, exactly 5 h or less is refused with
+`409 CANCELLATION_CLOSED`; a started match still answers `409 MATCH_STARTED`. A paid registration
+cancelled in time goes to `REFUND_PENDING` and the team refunds it. Inside the cutoff the web app
+hides the cancel button and tells the player to contact the organizer. This does not affect
+cancelling the whole match below, nor the automatic release of lapsed unpaid seats.
+
 ### Cancelling a match (refunds)
 
 An organizer (of that match) or an admin cancels with `POST /v1/matches/:id/cancel`. It works only

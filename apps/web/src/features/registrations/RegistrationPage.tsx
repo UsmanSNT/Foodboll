@@ -1,5 +1,5 @@
 import type { RegistrationDto } from '@foodboll/contracts';
-import { PAYMENT_STATUS_LABEL_KEY } from '@foodboll/contracts';
+import { isPlayerCancellationOpen, PAYMENT_STATUS_LABEL_KEY } from '@foodboll/contracts';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../api/client';
@@ -18,6 +18,7 @@ import { PageHeader } from '../../ui/PageHeader';
 import { Sheet } from '../../ui/Sheet';
 import { ListSkeleton } from '../../ui/Skeleton';
 import { useToast } from '../../ui/Toast';
+import { useNow } from '../organizer/home/useNow';
 import { MatchFacts } from '../match/MatchFacts';
 import { PaymentPanel } from './PaymentPanel';
 import { Stepper } from './Stepper';
@@ -47,6 +48,7 @@ function CancelRegistration({ registration }: { readonly registration: Registrat
       </Button>
       <Sheet open={open} title={t('registration.cancelConfirm')} onClose={() => setOpen(false)}>
         <div className="stack">
+          <p className="muted">{t('registration.cancelRule')}</p>
           {paid && <Alert tone="warning">{t('registration.cancelWarnPaid')}</Alert>}
           {cancel.isError && <ErrorState error={cancel.error} />}
           <Button
@@ -79,6 +81,7 @@ export function RegistrationPage() {
   const { openLogin } = useLoginGate();
   const { id = '' } = useParams();
   const query = useRegistration(id);
+  const now = useNow();
 
   const header = <PageHeader back title={t('registration.heading')} />;
 
@@ -179,9 +182,13 @@ export function RegistrationPage() {
           <PaymentPanel registration={registration} />
         )}
 
-        {!cancelled && !hasStarted(registration.match) && (
-          <CancelRegistration registration={registration} />
-        )}
+        {!cancelled &&
+          !hasStarted(registration.match, now) &&
+          (isPlayerCancellationOpen(registration.match.startsAt, now) ? (
+            <CancelRegistration registration={registration} />
+          ) : (
+            <Alert tone="info">{t('registration.cancelClosed')}</Alert>
+          ))}
       </div>
     </>
   );

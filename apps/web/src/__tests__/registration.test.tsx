@@ -245,7 +245,14 @@ describe('cancelling', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Cancel registration' }));
     const dialog = await screen.findByRole('dialog', { name: 'Cancel this registration?' });
-    expect(within(dialog).queryByText(/refund/)).not.toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        'You can cancel only while more than 5 hours remain before the match. A paid registration cancelled in time is refunded by the team.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByText('If you already paid, the team will handle your refund.'),
+    ).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Cancel registration' }));
 
     await waitFor(() => expect(api.find('POST', '/v1/registrations/r1/cancel')).toBeDefined());
@@ -288,6 +295,54 @@ describe('cancelling', () => {
     renderApp('/registrations/r1');
     await screen.findByText('4307');
     expect(screen.queryByRole('button', { name: 'Cancel registration' })).not.toBeInTheDocument();
+  });
+});
+
+describe('the cancellation cutoff', () => {
+  // The fixture match starts 2030-05-04T13:00:00Z.
+  const closedNote =
+    'Registration can no longer be cancelled: less than 5 hours before the match. If you cannot come, contact the organizer.';
+  const openAt = async (iso: string) => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date(iso));
+    serve(registration());
+    renderApp('/registrations/r1');
+    await screen.findByText('4307');
+  };
+  afterEach(() => vi.useRealTimers());
+
+  it('offers cancelling with 5 hours and 1 minute left', async () => {
+    await openAt('2030-05-04T07:59:00.000Z');
+    expect(screen.getByRole('button', { name: 'Cancel registration' })).toBeInTheDocument();
+    expect(screen.queryByText(closedNote)).not.toBeInTheDocument();
+  });
+
+  it('hides cancelling and explains why with exactly 5 hours left', async () => {
+    await openAt('2030-05-04T08:00:00.000Z');
+    expect(screen.queryByRole('button', { name: 'Cancel registration' })).not.toBeInTheDocument();
+    expect(screen.getByText(closedNote)).toBeInTheDocument();
+  });
+
+  it('hides cancelling with 4 hours 59 minutes left', async () => {
+    await openAt('2030-05-04T08:01:00.000Z');
+    expect(screen.queryByRole('button', { name: 'Cancel registration' })).not.toBeInTheDocument();
+    expect(screen.getByText(closedNote)).toBeInTheDocument();
+  });
+
+  it('shows the localized error if the server still refuses', async () => {
+    serve(registration());
+    api.handlers['/v1/registrations/r1/cancel'] = () =>
+      json({ error: { code: 'CANCELLATION_CLOSED', message: 'x' } }, 409);
+    const user = userEvent.setup();
+    renderApp('/registrations/r1');
+    await user.click(await screen.findByRole('button', { name: 'Cancel registration' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Cancel this registration?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel registration' }));
+    expect(
+      await within(dialog).findByText(
+        'Registration can no longer be cancelled: less than 5 hours before the match. If you can’t come, contact the organizer.',
+      ),
+    ).toBeInTheDocument();
   });
 });
 

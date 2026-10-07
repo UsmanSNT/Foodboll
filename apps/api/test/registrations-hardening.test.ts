@@ -401,3 +401,73 @@ describe('receipt storage', () => {
     rmSync(base, { recursive: true, force: true });
   });
 });
+
+describe('the player cancellation cutoff (5 hours)', () => {
+  const startsAt = new Date(Date.now() + hours(48));
+  const at = (msBeforeStart: number) => new Date(startsAt.getTime() - msBeforeStart);
+
+  async function applied(paid: boolean) {
+    const organizer = await createUser(ctx, { role: 'ORGANIZER' });
+    const player = await createUser(ctx);
+    const matchId = await insertMatch(ctx, organizer.id, { startsAt });
+    const applyAt = at(hours(6));
+    const regId = await applyToMatch(db(), storage, asUser(player), matchId, applyAt);
+    if (paid) await uploadReceipt(db(), storage, asUser(player), regId, pngBytes(), applyAt);
+    return { player, regId };
+  }
+  const status = async (regId: string) =>
+    (await ctx.handle.pool.query('select status from match_registrations where id = $1', [regId]))
+      .rows[0].status;
+
+  it.each([false, true])('allows cancelling 5h01m before the start (paid: %s)', async (paid) => {
+    const { player, regId } = await applied(paid);
+    await cancelRegistration(db(), storage, asUser(player), regId, at(hours(5) + 60_000));
+    expect(await status(regId)).toBe('CANCELLED');
+    expect((await payment(regId)).status).toBe(paid ? 'REFUND_PENDING' : 'AWAITING_PAYMENT');
+  });
+
+  it('allows cancelling 5h and 1ms before the start', async () => {
+    const { player, regId } = await applied(false);
+    await cancelRegistration(db(), storage, asUser(player), regId, at(hours(5) + 1));
+    expect(await status(regId)).toBe('CANCELLED');
+  });
+
+  it.each([
+    ['exactly 5h', hours(5)],
+    ['4h59m', hours(5) - 60_000],
+    ['1ms before the start', 1],
+  ])('refuses with CANCELLATION_CLOSED %s before the start', async (_label, before) => {
+    for (const paid of [false, true]) {
+      const { player, regId } = await applied(paid);
+      await expect(
+        cancelRegistration(db(), storage, asUser(player), regId, at(before)),
+      ).rejects.toMatchObject({ code: 'CANCELLATION_CLOSED', status: 409 });
+      expect(await status(regId)).not.toBe('CANCELLED');
+      if (paid) expect((await payment(regId)).status).toBe('PAYMENT_REVIEW');
+    }
+  });
+
+  it('keeps MATCH_STARTED once the match has started', async () => {
+    const { player, regId } = await applied(false);
+    await expect(
+      cancelRegistration(db(), storage, asUser(player), regId, startsAt),
+    ).rejects.toMatchObject({ code: 'MATCH_STARTED', status: 409 });
+  });
+
+  it('answers over HTTP with 409 CANCELLATION_CLOSED in the request language', async () => {
+    const organizer = await createUser(ctx, { role: 'ORGANIZER' });
+    const player = await createUser(ctx);
+    const matchId = await insertMatch(ctx, organizer.id, {
+      startsAt: new Date(Date.now() + hours(4)),
+    });
+    const regId = await applyToMatch(db(), storage, asUser(player), matchId);
+    const res = await ctx.app.inject({
+      method: 'POST',
+      url: `/v1/registrations/${regId}/cancel`,
+      headers: { ...bearer(player.token), 'accept-language': 'en' },
+    });
+    expect(res.statusCode).toBe(409);
+    expect(res.json().error.code).toBe('CANCELLATION_CLOSED');
+    expect(res.json().error.message).toContain('5 hours');
+  });
+});

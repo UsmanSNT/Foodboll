@@ -114,6 +114,10 @@ export const uz: typeof ko = {
     cancelDone: 'Ariza bekor qilindi',
     cancelWarnPaid:
       'Agar allaqachon to‘lagan bo‘lsangiz, pulni qaytarishni administratorlar hal qiladi.',
+    cancelRule:
+      'Arizani faqat match boshlanishiga 5 soatdan ko‘p vaqt qolganda bekor qilish mumkin. To‘lov qilingan ariza o‘z vaqtida bekor qilinsa, pulni jamoamiz qaytaradi.',
+    cancelClosed:
+      'Match boshlanishiga 5 soatdan kam vaqt qolgani uchun arizani endi bekor qilib bo‘lmaydi. Kela olmasangiz, tashkilotchi bilan bog‘laning.',
     uploaded: 'Chek yuklandi',
     title: 'Mening arizalarim',
     applied: 'Arizangiz qabul qilindi. To‘lovni amalga oshirib, chekni yuklang.',
@@ -353,6 +357,8 @@ export const uz: typeof ko = {
     MATCH_FULL: 'Joylar to‘lgan.',
     MATCH_CANCELLED: 'Bu match bekor qilingan.',
     MATCH_STARTED: 'Match allaqachon boshlangan.',
+    CANCELLATION_CLOSED:
+      'Match boshlanishiga 5 soatdan kam vaqt qolgani uchun arizani endi bekor qilib bo‘lmaydi. Kela olmasangiz, tashkilotchi bilan bog‘laning.',
     INVALID_STATE: 'Hozirgi holatda bu amalni bajarib bo‘lmaydi.',
     INVALID_RECEIPT: 'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',
     TELEGRAM_LOGIN_INVALID: 'Telegram orqali kirishni tasdiqlab bo‘lmadi. Qayta urinib ko‘ring.',

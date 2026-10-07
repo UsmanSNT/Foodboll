@@ -109,6 +109,10 @@ export const ko = {
     heading: '내 신청',
     cancelDone: '신청을 취소했어요',
     cancelWarnPaid: '이미 입금하셨다면 환불은 담당자가 처리합니다.',
+    cancelRule:
+      '경기 시작 5시간보다 더 많이 남았을 때만 취소할 수 있습니다. 입금 후 기한 내에 취소하면 담당자가 환불해 드립니다.',
+    cancelClosed:
+      '경기 시작 5시간 전부터는 신청을 취소할 수 없습니다. 참석이 어려우시면 운영자에게 문의해주세요.',
     uploaded: '영수증을 올렸어요',
     title: '내 신청 내역',
     applied: '신청이 접수되었습니다. 입금 후 영수증을 업로드해주세요.',
@@ -344,6 +348,8 @@ export const ko = {
     MATCH_FULL: '모집이 마감되었습니다.',
     MATCH_CANCELLED: '취소된 매치입니다.',
     MATCH_STARTED: '이미 시작된 매치입니다.',
+    CANCELLATION_CLOSED:
+      '경기 시작 5시간 전부터는 신청을 취소할 수 없습니다. 참석이 어려우시면 운영자에게 문의해주세요.',
     INVALID_STATE: '현재 상태에서는 이 작업을 할 수 없습니다.',
     INVALID_RECEIPT: 'JPG, PNG, PDF 파일만 올릴 수 있습니다.',
     TELEGRAM_LOGIN_INVALID: '텔레그램 로그인을 확인하지 못했습니다. 다시 시도해주세요.',
