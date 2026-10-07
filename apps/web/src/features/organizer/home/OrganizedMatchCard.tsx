@@ -5,6 +5,7 @@ import { Badge } from '../../../ui/Badge';
 import { ButtonLink } from '../../../ui/Button';
 import { ClipboardCheck, MapPin } from '../../../ui/icons';
 import { SpotsMeter } from '../../match/MatchCard';
+import { CancelMatchButton } from '../CancelMatchButton';
 
 /** One announced match with the three things an organizer does with it: roster, edit, view. */
 export function OrganizedMatchCard({
@@ -16,7 +17,8 @@ export function OrganizedMatchCard({
 }) {
   const { t, formatDate } = useI18n();
   const started = hasStarted(match, now);
-  const live = started && !hasEnded(match, now);
+  const cancelled = match.cancelledAt !== null;
+  const live = started && !cancelled && !hasEnded(match, now);
   const label = (action: string) =>
     t('organizer.home.actionLabel', { action, title: match.title.text });
 
@@ -33,6 +35,7 @@ export function OrganizedMatchCard({
               {match.title.text}
             </h3>
             {live && <Badge tone="info">{t('organizer.home.live')}</Badge>}
+            {cancelled && <Badge tone="danger">{t('match.cancelled')}</Badge>}
           </div>
           <p className="match-card__meta">
             <MapPin size={14} aria-hidden="true" />
@@ -40,24 +43,31 @@ export function OrganizedMatchCard({
               {match.venueName} · {regionLabel(match.region)}
             </span>
           </p>
-          <div className="row row--between">
-            <SpotsMeter match={match} />
-            <span className="match-card__price num">
-              {t('feed.joinedCount', { registered: match.registeredCount, max: match.maxPlayers })}
-            </span>
-          </div>
+          {!cancelled && (
+            <div className="row row--between">
+              <SpotsMeter match={match} />
+              <span className="match-card__price num">
+                {t('feed.joinedCount', {
+                  registered: match.registeredCount,
+                  max: match.maxPlayers,
+                })}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <div className="organizer-match__actions">
-        <ButtonLink
-          variant={started ? 'primary' : 'secondary'}
-          to={`/organizer/matches/${match.id}/roster`}
-          aria-label={label(t('organizer.home.roster'))}
-        >
-          <ClipboardCheck size={18} aria-hidden="true" />
-          {t('organizer.home.roster')}
-        </ButtonLink>
-        {!started && (
+        {!cancelled && (
+          <ButtonLink
+            variant={started ? 'primary' : 'secondary'}
+            to={`/organizer/matches/${match.id}/roster`}
+            aria-label={label(t('organizer.home.roster'))}
+          >
+            <ClipboardCheck size={18} aria-hidden="true" />
+            {t('organizer.home.roster')}
+          </ButtonLink>
+        )}
+        {!started && !cancelled && (
           <ButtonLink
             to={`/organizer/matches/${match.id}/edit`}
             aria-label={label(t('organizer.home.edit'))}
@@ -65,6 +75,7 @@ export function OrganizedMatchCard({
             {t('organizer.home.edit')}
           </ButtonLink>
         )}
+        {!started && !cancelled && <CancelMatchButton matchId={match.id} title={match.title} />}
         <ButtonLink
           variant="ghost"
           to={`/matches/${match.id}`}

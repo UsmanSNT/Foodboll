@@ -11,7 +11,7 @@ import {
   type UserRole,
 } from '@foodboll/contracts';
 import type { LocaleCode } from '@foodboll/i18n';
-import { and, asc, desc, eq, ilike, inArray, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, isNotNull, isNull, lt, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
 import { matches, matchRegistrations, regions, users } from '../db/schema';
@@ -52,12 +52,24 @@ export async function loadPlayerStats(
       .from(matchRegistrations)
       .innerJoin(matches, eq(matches.id, matchRegistrations.matchId))
       .innerJoin(regions, eq(regions.id, matches.regionId))
-      .where(and(inArray(matchRegistrations.userId, ids), isNotNull(attended)))
+      .where(
+        and(
+          inArray(matchRegistrations.userId, ids),
+          isNotNull(attended),
+          isNull(matches.cancelledAt),
+        ),
+      )
       .groupBy(matchRegistrations.userId),
     db
       .select({ userId: matches.organizerId, n: sql<number>`count(*)::int` })
       .from(matches)
-      .where(and(inArray(matches.organizerId, ids), lt(matches.endsAt, now)))
+      .where(
+        and(
+          inArray(matches.organizerId, ids),
+          lt(matches.endsAt, now),
+          isNull(matches.cancelledAt),
+        ),
+      )
       .groupBy(matches.organizerId),
   ]);
 
@@ -134,7 +146,13 @@ export async function getPlayerProfile(
       .select({ matchId: matchRegistrations.matchId })
       .from(matchRegistrations)
       .innerJoin(matches, eq(matches.id, matchRegistrations.matchId))
-      .where(and(eq(matchRegistrations.userId, playerId), eq(matchRegistrations.attended, true)))
+      .where(
+        and(
+          eq(matchRegistrations.userId, playerId),
+          eq(matchRegistrations.attended, true),
+          isNull(matches.cancelledAt),
+        ),
+      )
       .orderBy(desc(matches.startsAt))
       .limit(5),
   ]);
@@ -281,6 +299,7 @@ export async function markAttendance(
     const [locked] = await tx.select().from(matches).where(eq(matches.id, matchId)).for('update');
     if (!locked) throw notFound('MATCH_NOT_FOUND');
     if (actor.role !== 'ADMIN' && locked.organizerId !== actor.id) throw forbidden();
+    if (locked.cancelledAt) throw new AppError('MATCH_CANCELLED', 409);
     if (locked.startsAt > now) throw new AppError('MATCH_NOT_STARTED', 409);
     if (now.getTime() - locked.endsAt.getTime() > ATTENDANCE_WINDOW_MS)
       throw new AppError('INVALID_STATE', 409);

@@ -41,6 +41,17 @@ export const organizerKo = {
     emptyTitle: '확정된 선수가 아직 없어요',
     emptyText: '참가가 확정된 선수가 여기에 표시됩니다.',
   },
+  cancel: {
+    button: '매치 취소',
+    title: '이 매치를 취소할까요?',
+    notifyAll: '신청한 모든 선수에게 매치가 취소되었다는 알림이 전송됩니다.',
+    refundPaid:
+      '입금한 선수는 환불 대기로 표시되며, 환불은 관리자나 주최자가 선수에게 직접 연락해 처리합니다.',
+    irreversible: '취소는 되돌릴 수 없고, 이후 이 매치는 수정하거나 신청받을 수 없습니다.',
+    confirm: '매치 취소하기',
+    keep: '매치 유지',
+    done: '매치를 취소했어요',
+  },
   apply: {
     title: '주최자 신청',
     pointCity: '커뮤니티 멤버라면 누구나 내가 사는 도시나 구에서 매치를 열 수 있어요.',
@@ -111,6 +122,18 @@ export const organizerUz: typeof organizerKo = {
       'Davomatni belgilash muddati tugagan. Belgilarni o‘yin tugaganidan keyin {days} kun ichida o‘zgartirish mumkin.',
     emptyTitle: 'Tasdiqlangan futbolchilar hali yo‘q',
     emptyText: 'Ishtiroki tasdiqlangan futbolchilar shu yerda ko‘rinadi.',
+  },
+  cancel: {
+    button: 'Matchni bekor qilish',
+    title: 'Bu matchni bekor qilasizmi?',
+    notifyAll: 'Yozilgan barcha futbolchilarga matchning bekor qilingani haqida xabar yuboriladi.',
+    refundPaid:
+      'To‘lov qilgan futbolchilar “qaytarish kutilmoqda” deb belgilanadi; pulni qaytarishni administrator yoki tashkilotchi futbolchi bilan bevosita bog‘lanib hal qiladi.',
+    irreversible:
+      'Bekor qilishni qaytarib bo‘lmaydi: matchni endi tahrirlab ham, unga yozilib ham bo‘lmaydi.',
+    confirm: 'Ha, matchni bekor qilish',
+    keep: 'Matchni qoldirish',
+    done: 'Match bekor qilindi',
   },
   apply: {
     title: 'Tashkilotchi bo‘lish',
@@ -185,6 +208,17 @@ export const organizerEn: typeof organizerKo = {
       'The attendance window has closed. Marks can be changed for {days} days after the match ends.',
     emptyTitle: 'No confirmed players yet',
     emptyText: 'Players appear here once their participation is confirmed.',
+  },
+  cancel: {
+    button: 'Cancel match',
+    title: 'Cancel this match?',
+    notifyAll: 'Everyone who joined is notified that the match was cancelled.',
+    refundPaid:
+      'Players who paid are marked as waiting for a refund. An admin or organizer arranges each refund with the player directly.',
+    irreversible: 'This can’t be undone. The match can no longer be edited or joined.',
+    confirm: 'Yes, cancel the match',
+    keep: 'Keep the match',
+    done: 'The match was cancelled',
   },
   apply: {
     title: 'Become an organizer',

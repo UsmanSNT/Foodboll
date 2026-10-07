@@ -1,4 +1,4 @@
-import type { MatchTranslationsDto, RegionNodeDto } from '@foodboll/contracts';
+import type { LocalizedValueDto, MatchTranslationsDto, RegionNodeDto } from '@foodboll/contracts';
 import type { LocaleCode } from '@foodboll/i18n';
 import type { ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
@@ -35,6 +35,14 @@ function initialState(
   return state.regionCode !== null && !findRegion(tree, state.regionCode)
     ? { ...state, regionCode: null }
     : state;
+}
+
+/** The saved title in the reader's language, else in the language it was written in. */
+function savedTitle(saved: MatchTranslationsDto, locale: LocaleCode): LocalizedValueDto {
+  const own = saved.translations[locale]?.title;
+  if (own) return { text: own, locale, isFallback: false };
+  const source = saved.sourceLanguage;
+  return { text: saved.translations[source]?.title ?? '', locale: source, isFallback: true };
 }
 
 /** Announce a new match (`/organizer/matches/new`) or edit one (`/organizer/matches/:id/edit`). */
@@ -98,13 +106,16 @@ export function MatchFormPage() {
     );
   }
 
+  const title = saved.data && savedTitle(saved.data, locale);
   return (
     <MatchForm
       matchId={id}
       initial={initialState(saved.data, tree.data.items, regions, locale)}
       tree={tree.data.items}
       regions={regions}
-      locked={saved.data ? hasStarted(saved.data) : false}
+      locked={saved.data ? hasStarted(saved.data) || saved.data.cancelledAt !== null : false}
+      cancelled={saved.data !== undefined && saved.data.cancelledAt !== null}
+      {...(title && { title })}
     />
   );
 }

@@ -1,4 +1,4 @@
-import type { RegionNodeDto } from '@foodboll/contracts';
+import type { LocalizedValueDto, RegionNodeDto } from '@foodboll/contracts';
 import type { LocaleCode } from '@foodboll/i18n';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { Button } from '../../../ui/Button';
 import { ErrorState } from '../../../ui/ErrorState';
 import { Sheet } from '../../../ui/Sheet';
 import { useToast } from '../../../ui/Toast';
+import { CancelMatchButton } from '../CancelMatchButton';
 import { useSaveMatch } from './api';
 import { ContentFields } from './ContentFields';
 import { PageHeader } from '../../../ui/PageHeader';
@@ -35,14 +36,26 @@ interface MatchFormProps {
   readonly initial: FormState;
   readonly tree: readonly RegionNodeDto[];
   readonly regions: readonly RegionGroup[];
-  /** A match that has started can no longer be changed. */
+  /** A match that has started or was cancelled can no longer be changed. */
   readonly locked: boolean;
+  /** The reason it is locked is that it was cancelled (otherwise it has started). */
+  readonly cancelled?: boolean;
+  /** Title of the match being edited, shown when confirming its cancellation. */
+  readonly title?: LocalizedValueDto;
 }
 
 const NO_ERRORS: FieldMessages = {};
 const INVALID_CONTROL = '[aria-invalid="true"], [data-invalid="true"]';
 
-export function MatchForm({ matchId, initial, tree, regions, locked }: MatchFormProps) {
+export function MatchForm({
+  matchId,
+  initial,
+  tree,
+  regions,
+  locked,
+  cancelled = false,
+  title,
+}: MatchFormProps) {
   const { t } = useI18n();
   const toast = useToast();
   const navigate = useNavigate();
@@ -136,7 +149,11 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
         onSubmit={submit}
         onKeyDown={ignoreEnter}
       >
-        {locked && <Alert tone="warning">{t('matchForm.startedNotice')}</Alert>}
+        {locked && (
+          <Alert tone="warning">
+            {t(cancelled ? 'matchForm.cancelledNotice' : 'matchForm.startedNotice')}
+          </Alert>
+        )}
 
         <FormGroup legend={t('matchForm.where.legend')} disabled={locked}>
           <RegionField
@@ -198,6 +215,15 @@ export function MatchForm({ matchId, initial, tree, regions, locked }: MatchForm
         </FormGroup>
 
         <Alert tone="info">{t('matchForm.feeNote')}</Alert>
+
+        {matchId !== undefined && !locked && title && (
+          <CancelMatchButton
+            block
+            matchId={matchId}
+            title={title}
+            onCancelled={() => void navigate('/organizer')}
+          />
+        )}
 
         <div className="cta-bar">
           <div className="cta-bar__inner stack">

@@ -24,6 +24,8 @@ export interface EnqueueNotification {
   readonly params?: MessageParams;
   /** Parameters that are themselves catalog messages, rendered in the reader's language. */
   readonly localizedParams?: Readonly<Record<string, MessageKey>>;
+  /** Plain values that depend on the reader's language (e.g. a title), chosen once it is known. */
+  readonly paramsFor?: (locale: LocaleCode) => MessageParams;
 }
 
 /** What is stored so a notification can be re-rendered later in any language. */
@@ -76,7 +78,7 @@ export async function enqueueNotification(
     deviceLanguages: user.deviceLocale ? [user.deviceLocale] : [],
   });
   const stored: StoredParams = {
-    values: { ...input.params } as Record<string, string | number>,
+    values: { ...input.params, ...input.paramsFor?.(locale) } as Record<string, string | number>,
     keys: { ...input.localizedParams },
   };
   const { title, body } = renderText(input.type, locale, stored);

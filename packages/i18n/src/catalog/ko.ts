@@ -71,6 +71,7 @@ export const ko = {
     title: '설정',
   },
   match: {
+    cancelledBanner: '이 매치는 취소되었습니다. 입금하셨다면 환불해 드립니다.',
     free: '무료',
     kst: '한국 시간',
     venue: '장소',
@@ -102,6 +103,8 @@ export const ko = {
     maxPlayers: '모집 인원',
   },
   registration: {
+    matchCancelled:
+      '이 매치가 취소되어 신청도 취소되었습니다. 입금하셨다면 환불해 드리며, 담당자가 연락드립니다.',
     keep: '신청 유지',
     heading: '내 신청',
     cancelDone: '신청을 취소했어요',
@@ -200,6 +203,10 @@ export const ko = {
     participationConfirmed: {
       title: '참가 확정',
       body: '매치 참가가 확정되었습니다.',
+    },
+    matchCancelled: {
+      title: '매치 취소',
+      body: '“{title}” 매치가 취소되었습니다. 입금하셨다면 환불해 드리며, 담당자가 연락드립니다.',
     },
     matchChanged: {
       title: '매치 정보 변경',
@@ -335,6 +342,7 @@ export const ko = {
     RECEIPT_NOT_FOUND: '업로드된 영수증이 없습니다.',
     ALREADY_REGISTERED: '이미 신청한 매치입니다.',
     MATCH_FULL: '모집이 마감되었습니다.',
+    MATCH_CANCELLED: '취소된 매치입니다.',
     MATCH_STARTED: '이미 시작된 매치입니다.',
     INVALID_STATE: '현재 상태에서는 이 작업을 할 수 없습니다.',
     INVALID_RECEIPT: 'JPG, PNG, PDF 파일만 올릴 수 있습니다.',

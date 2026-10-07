@@ -2,9 +2,9 @@ import type { MatchSummaryDto, Page } from '@foodboll/contracts';
 import { hasEnded } from '../../../lib/match';
 
 export interface OrganizedMatches {
-  /** Not over yet (a match in progress still belongs here), soonest first. */
+  /** Not over yet (a match in progress still belongs here), soonest first. Cancelled matches are in `past`. */
   readonly upcoming: readonly MatchSummaryDto[];
-  /** Finished, newest first. */
+  /** Finished or cancelled, newest first. */
   readonly past: readonly MatchSummaryDto[];
 }
 
@@ -20,10 +20,10 @@ export function splitOrganizedMatches(
   for (const page of pages) for (const match of page.items) byId.set(match.id, match);
   const all = [...byId.values()];
   const upcoming = all
-    .filter((match) => !hasEnded(match, now))
+    .filter((match) => match.cancelledAt === null && !hasEnded(match, now))
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const past = all
-    .filter((match) => hasEnded(match, now))
+    .filter((match) => match.cancelledAt !== null || hasEnded(match, now))
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
   return { upcoming, past };
 }

@@ -166,9 +166,13 @@ export function RegistrationPage() {
 
         {cancelled ? (
           <>
-            <Alert tone="info">
-              {lapsed ? t('payment.expiredNote') : t('registration.cancelDone')}
-            </Alert>
+            {registration.match.cancelledAt !== null ? (
+              <Alert tone="warning">{t('registration.matchCancelled')}</Alert>
+            ) : (
+              <Alert tone="info">
+                {lapsed ? t('payment.expiredNote') : t('registration.cancelDone')}
+              </Alert>
+            )}
             {hasRefundStatus(payment?.status) && <PaymentPanel registration={registration} />}
           </>
         ) : (

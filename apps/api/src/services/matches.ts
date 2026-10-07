@@ -12,12 +12,14 @@ import {
   type LocaleCode,
   type LocalizedText,
 } from '@foodboll/i18n';
-import { and, asc, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, lt, sql } from 'drizzle-orm';
 import type { AuthUser } from '../context';
 import type { Db, DbOrTx } from '../db/client';
-import { matches, matchRegistrations, matchTranslations } from '../db/schema';
+import { matches, matchRegistrations, matchTranslations, registrationPayments } from '../db/schema';
 import { AppError, forbidden, notFound } from '../errors';
 import { enqueueNotification } from './notifications';
+import { recordPaymentEvent } from './payment-audit';
+import type { ReceiptStorage } from '../storage';
 import { assertCanPublishIn } from './organizers';
 import { findRegionByCode, loadRegions, regionScopeIds } from './regions';
 import { lapsedHold, loadSeatCounts, loadViewerRegistrations } from './seats';
@@ -94,6 +96,7 @@ export async function replaceMatch(
     const [existing] = await tx.select().from(matches).where(eq(matches.id, matchId)).for('update');
     if (!existing) throw notFound('MATCH_NOT_FOUND');
     if (actor.role !== 'ADMIN' && existing.organizerId !== actor.id) throw forbidden();
+    if (existing.cancelledAt) throw new AppError('MATCH_CANCELLED', 409);
     if (existing.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
     if (new Date(input.startsAt) <= now) throw invalidField('startsAt', 'too_small');
     const region = await findRegionByCode(tx, input.regionCode);
@@ -151,6 +154,119 @@ export async function replaceMatch(
       }
     }
   });
+}
+
+/**
+ * Cancels a match for good (its organizer or an admin), in one transaction under the match lock
+ * that also serializes applications, edits and attendance:
+ *
+ * - every live registration (applied or confirmed) becomes CANCELLED;
+ * - money that may have arrived (confirmed or under review) becomes REFUND_PENDING with an audit
+ *   event, so it shows on the admin refund screen; unpaid or rejected payments are just closed
+ *   and their reference code is freed (as when a player cancels);
+ * - every affected player is notified, in their own language. A hold whose payment window had
+ *   already lapsed is closed silently: that player was told their seat was released.
+ *
+ * Refunds themselves are arranged by people (the app holds no phone numbers); an admin marks them
+ * as refunded afterwards.
+ */
+export async function cancelMatch(
+  db: Db,
+  storage: ReceiptStorage,
+  actor: AuthUser,
+  matchId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  const discard: string[] = [];
+  await db.transaction(async (tx) => {
+    const [match] = await tx.select().from(matches).where(eq(matches.id, matchId)).for('update');
+    if (!match) throw notFound('MATCH_NOT_FOUND');
+    if (actor.role !== 'ADMIN' && match.organizerId !== actor.id) throw forbidden();
+    if (match.cancelledAt) throw new AppError('MATCH_CANCELLED', 409);
+    if (match.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
+
+    await tx
+      .update(matches)
+      .set({ cancelledAt: now, cancelledBy: actor.id, updatedAt: now })
+      .where(eq(matches.id, matchId));
+
+    // Registrations are locked after the match, in a fixed order, so a player cancelling at the
+    // same moment either finishes first (and is skipped here) or waits and then sees the match
+    // cancelled.
+    const live = await tx
+      .select({ registration: matchRegistrations })
+      .from(matchRegistrations)
+      .where(
+        and(
+          eq(matchRegistrations.matchId, matchId),
+          inArray(matchRegistrations.status, ['APPLIED', 'CONFIRMED']),
+        ),
+      )
+      .orderBy(asc(matchRegistrations.id))
+      .for('update', { of: matchRegistrations });
+    if (live.length === 0) return;
+
+    const payments = await tx
+      .select()
+      .from(registrationPayments)
+      .where(
+        inArray(
+          registrationPayments.registrationId,
+          live.map((r) => r.registration.id),
+        ),
+      );
+    const paymentOf = new Map(payments.map((p) => [p.registrationId, p]));
+
+    const rows = (await loadTranslations(tx, [matchId])).get(matchId) ?? [];
+    const titles = textOf(rows, 'title');
+    const source = match.sourceLanguage as LocaleCode;
+
+    for (const { registration } of live) {
+      const payment = paymentOf.get(registration.id);
+      const lapsed =
+        registration.status === 'APPLIED' &&
+        (payment?.status === 'AWAITING_PAYMENT' || payment?.status === 'PAYMENT_REJECTED') &&
+        payment.dueAt < now;
+
+      await tx
+        .update(matchRegistrations)
+        .set({ status: 'CANCELLED', updatedAt: now })
+        .where(eq(matchRegistrations.id, registration.id));
+
+      if (payment?.status === 'PAYMENT_CONFIRMED' || payment?.status === 'PAYMENT_REVIEW') {
+        await tx
+          .update(registrationPayments)
+          .set({ status: 'REFUND_PENDING', referenceCode: null, updatedAt: now })
+          .where(eq(registrationPayments.id, payment.id));
+        await recordPaymentEvent(tx, {
+          registrationId: registration.id,
+          actorId: actor.id,
+          event: 'REFUND_PENDING',
+          fromStatus: payment.status,
+          toStatus: 'REFUND_PENDING',
+          amountKrw: payment.amountKrw,
+          detail: { reason: 'MATCH_CANCELLED', matchId },
+        });
+      } else if (payment?.status === 'AWAITING_PAYMENT' || payment?.status === 'PAYMENT_REJECTED') {
+        if (payment.receiptKey) discard.push(payment.receiptKey);
+        await tx
+          .update(registrationPayments)
+          .set({ receiptKey: null, receiptContentType: null, referenceCode: null, updatedAt: now })
+          .where(eq(registrationPayments.id, payment.id));
+      }
+
+      if (!lapsed) {
+        await enqueueNotification(tx, {
+          userId: registration.userId,
+          type: 'MATCH_CANCELLED',
+          paramsFor: (locale) => ({
+            title: pickLocalized(titles, locale, source)?.text ?? '',
+          }),
+        });
+      }
+    }
+  });
+  await Promise.allSettled(discard.map((key) => storage.delete(key)));
 }
 
 async function loadTranslations(db: DbOrTx, matchIds: readonly string[]) {
@@ -242,6 +358,7 @@ function summaryOf(row: MatchRow, h: Hydrated, locale: LocaleCode): MatchSummary
     feeKrw: row.feeKrw,
     sourceLanguage,
     title,
+    cancelledAt: row.cancelledAt?.toISOString() ?? null,
     viewer: h.viewer.get(row.id) ?? null,
   };
 }
@@ -311,7 +428,7 @@ export async function listUpcomingMatches(
   options: ViewOptions = {},
 ): Promise<Page<MatchSummaryDto>> {
   const now = options.now ?? new Date();
-  const conditions = [gte(matches.startsAt, now)];
+  const conditions = [gte(matches.startsAt, now), isNull(matches.cancelledAt)];
   if (query.region)
     conditions.push(inArray(matches.regionId, await regionScopeIds(db, query.region)));
   if (query.date) {
@@ -402,6 +519,7 @@ export async function getMatchTranslations(
   );
   return {
     sourceLanguage: row.sourceLanguage as LocaleCode,
+    cancelledAt: row.cancelledAt?.toISOString() ?? null,
     regionCode: region.code,
     startsAt: row.startsAt.toISOString(),
     endsAt: row.endsAt.toISOString(),

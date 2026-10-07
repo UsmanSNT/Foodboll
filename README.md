@@ -9,7 +9,7 @@ forking the product.
   one tap, pay a flat fee by bank transfer that is **confirmed automatically**, and build a public
   player page (matches played, activity, level, achievements).
 - **Organizers** are community members approved for a province or district. They announce matches in
-  their own languages and mark attendance. They are never asked to check payments.
+  their own languages, mark attendance and can cancel a match (admins can cancel any match). They are never asked to check payments.
 - **Admins** handle the exceptions: unmatched deposits, receipts, organizer applications, payment
   instructions and legal documents.
 
@@ -87,6 +87,6 @@ registration with automatic bank-transfer confirmation and a receipt fallback, p
 levels, attendance and achievements, and the player, organizer and admin screens.
 
 Not implemented / needs a decision before launch (details in `docs/payments.md` and
-`docs/i18n.md#open-items`): cancelling a match (with refunds), the real bank's message formats for the
+`docs/i18n.md#open-items`): the real bank's message formats for the
 parser, native review of Uzbek text, legal text and business registration, object storage for
 receipts, retention and purge jobs for bank messages, teams, and a push channel other than Telegram.

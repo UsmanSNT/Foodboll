@@ -59,6 +59,7 @@ function RegistrationCard({ registration }: { readonly registration: Registratio
             <Badge tone="accent">{t('match.badgePay')}</Badge>
           )}
         </div>
+        {match.cancelledAt !== null && <p className="small muted">{t('match.cancelledBanner')}</p>}
       </div>
     </Link>
   );

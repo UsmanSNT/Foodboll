@@ -90,6 +90,8 @@ export interface MatchSummaryDto {
   readonly feeKrw: number;
   readonly sourceLanguage: LocaleCode;
   readonly title: LocalizedValueDto;
+  /** When the match was cancelled (ISO 8601), or null while it is on. */
+  readonly cancelledAt: string | null;
   /** The signed-in user's own registration for this match, if any. */
   readonly viewer: { readonly registrationId: string; readonly status: RegistrationStatus } | null;
 }
@@ -134,6 +136,8 @@ export interface LegalDocumentDto {
 /** Raw per-language texts of a match, for the organizer's editor. */
 export interface MatchTranslationsDto {
   readonly sourceLanguage: LocaleCode;
+  /** Set once the match was cancelled; it can no longer be edited. */
+  readonly cancelledAt: string | null;
   readonly regionCode: string;
   readonly startsAt: string;
   readonly endsAt: string;

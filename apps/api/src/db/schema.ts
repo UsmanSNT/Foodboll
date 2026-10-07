@@ -158,6 +158,9 @@ export const matches = pgTable(
     /** Registration capacity. */
     maxPlayers: smallint('max_players').notNull().default(10),
     feeKrw: integer('fee_krw').notNull(),
+    /** Set when the organizer or an admin cancelled the match; the match is then closed for good. */
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelledBy: uuid('cancelled_by').references(() => users.id, { onDelete: 'restrict' }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

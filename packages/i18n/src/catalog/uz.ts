@@ -75,6 +75,7 @@ export const uz: typeof ko = {
     title: 'Sozlamalar',
   },
   match: {
+    cancelledBanner: 'Bu match bekor qilindi. Agar to‘lov qilgan bo‘lsangiz, pulingiz qaytariladi.',
     free: 'Bepul',
     kst: 'Koreya vaqti',
     venue: 'Joy',
@@ -106,6 +107,8 @@ export const uz: typeof ko = {
     maxPlayers: 'Ishtirokchilar soni',
   },
   registration: {
+    matchCancelled:
+      'Bu match bekor qilingani uchun yozilishingiz ham bekor bo‘ldi. Agar to‘lov qilgan bo‘lsangiz, pulingiz qaytariladi; jamoamiz siz bilan bog‘lanadi.',
     keep: 'Joyimni saqlab qolish',
     heading: 'Mening arizam',
     cancelDone: 'Ariza bekor qilindi',
@@ -206,6 +209,10 @@ export const uz: typeof ko = {
     participationConfirmed: {
       title: 'Ishtirok tasdiqlandi',
       body: 'Matchdagi ishtirokingiz tasdiqlandi.',
+    },
+    matchCancelled: {
+      title: 'Match bekor qilindi',
+      body: '“{title}” matchi bekor qilindi. Agar to‘lov qilgan bo‘lsangiz, pulingiz qaytariladi; jamoamiz siz bilan bog‘lanadi.',
     },
     matchChanged: {
       title: 'Match ma‘lumotlari o‘zgardi',
@@ -344,6 +351,7 @@ export const uz: typeof ko = {
     RECEIPT_NOT_FOUND: 'Chek yuklanmagan.',
     ALREADY_REGISTERED: 'Siz bu matchga allaqachon yozilgansiz.',
     MATCH_FULL: 'Joylar to‘lgan.',
+    MATCH_CANCELLED: 'Bu match bekor qilingan.',
     MATCH_STARTED: 'Match allaqachon boshlangan.',
     INVALID_STATE: 'Hozirgi holatda bu amalni bajarib bo‘lmaydi.',
     INVALID_RECEIPT: 'Faqat JPG, PNG yoki PDF fayl yuklash mumkin.',

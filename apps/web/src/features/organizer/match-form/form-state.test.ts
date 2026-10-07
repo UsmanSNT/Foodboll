@@ -55,6 +55,7 @@ describe('translations', () => {
 describe('stateFromMatch', () => {
   const saved: MatchTranslationsDto = {
     sourceLanguage: 'ko',
+    cancelledAt: null,
     regionCode: 'seoul-gangnam',
     // 22:00-00:00 on 4 May in Seoul.
     startsAt: '2030-05-04T13:00:00.000Z',

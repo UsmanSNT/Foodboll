@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { hasEnded } from '../../../lib/match';
 import { Button } from '../../../ui/Button';
 import { EmptyState } from '../../../ui/EmptyState';
 import { ErrorState } from '../../../ui/ErrorState';
@@ -36,9 +37,10 @@ export function OrganizedMatches() {
   const list = tab === 'upcoming' ? upcoming : past;
 
   // The API lists the newest match first, so upcoming matches come before any finished one: once a
-  // finished match has loaded, every upcoming match is on screen. Until then keep loading, so
-  // "soonest first" is true however many matches are announced.
-  const upcomingComplete = !hasNextPage || past.length > 0;
+  // finished match has loaded, every upcoming match is on screen. (A cancelled match that has not
+  // started yet is listed under Past but does not count: later ones may still be upcoming.) Until
+  // then keep loading, so "soonest first" is true however many matches are announced.
+  const upcomingComplete = !hasNextPage || past.some((match) => hasEnded(match, now));
   const loadMoreUpcoming = !upcomingComplete && !isFetchingNextPage && !isFetchNextPageError;
   useEffect(() => {
     if (loadMoreUpcoming) void fetchNextPage();

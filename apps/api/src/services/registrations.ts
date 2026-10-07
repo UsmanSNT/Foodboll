@@ -286,6 +286,7 @@ export async function applyToMatch(
     // The match row is the lock that serializes seat allocation, so capacity cannot be exceeded.
     const [match] = await tx.select().from(matches).where(eq(matches.id, matchId)).for('update');
     if (!match) throw notFound('MATCH_NOT_FOUND');
+    if (match.cancelledAt) throw new AppError('MATCH_CANCELLED', 409);
     if (match.startsAt <= now) throw new AppError('MATCH_STARTED', 409);
 
     const released = await releaseLapsedSeats(tx, matchId, now);

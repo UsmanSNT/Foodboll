@@ -2,11 +2,12 @@ import type { LocalizedValueDto, MatchDto, RegistrationDto } from '@foodboll/con
 import { LOCALES } from '@foodboll/i18n';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError } from '../../api/client';
-import { useApiMutation, useMatch, useMatchPlayers } from '../../api/queries';
+import { useApiMutation, useMatch, useMatchPlayers, useMe } from '../../api/queries';
 import { useAuth } from '../../auth/AuthProvider';
 import { useLoginGate } from '../../auth/useRequireLogin';
 import { useI18n } from '../../i18n/I18nProvider';
 import { hasStarted, mapSearchUrl } from '../../lib/match';
+import { Alert } from '../../ui/Alert';
 import { Avatar } from '../../ui/Avatar';
 import { Button, ButtonLink } from '../../ui/Button';
 import { EmptyState } from '../../ui/EmptyState';
@@ -14,6 +15,7 @@ import { ErrorState } from '../../ui/ErrorState';
 import { Calendar, ChevronRight, MapPin } from '../../ui/icons';
 import { PageHeader } from '../../ui/PageHeader';
 import { ListSkeleton } from '../../ui/Skeleton';
+import { CancelMatchButton } from '../organizer/CancelMatchButton';
 import { MatchFacts } from './MatchFacts';
 import { SpotsMeter } from './MatchCard';
 
@@ -87,7 +89,15 @@ function JoinBar({ match }: { readonly match: MatchDto }) {
   const fee = match.feeKrw === 0 ? t('match.free') : formatKrw(match.feeKrw);
 
   let action: React.ReactNode;
-  if (registered) {
+  if (match.cancelledAt !== null) {
+    // A cancelled match is closed for everyone; players who paid follow the refund on their
+    // registration page, which the banner points to.
+    action = (
+      <Button size="lg" block disabled>
+        {t('match.cancelled')}
+      </Button>
+    );
+  } else if (registered) {
     action = (
       <ButtonLink
         variant="primary"
@@ -158,6 +168,7 @@ export function MatchDetailPage() {
   const { signedIn } = useAuth();
   const { id = '' } = useParams();
   const match = useMatch(id);
+  const isAdmin = useMe().data?.role === 'ADMIN';
 
   if (match.isPending) {
     return (
@@ -190,11 +201,22 @@ export function MatchDetailPage() {
   }
 
   const m = match.data;
+  const cancelled = m.cancelledAt !== null;
   const mapQuery = m.venueAddress ?? m.venueName;
   return (
     <>
       <PageHeader back plain title={t('nav.matches')} />
       <div className="page page--with-cta">
+        {cancelled && (
+          <>
+            <Alert tone="danger">{t('match.cancelledBanner')}</Alert>
+            {m.viewer && (
+              <ButtonLink block to={`/registrations/${m.viewer.registrationId}`}>
+                {t('match.viewRegistration')}
+              </ButtonLink>
+            )}
+          </>
+        )}
         <section className="card card--pad stack match-hero">
           <h1 lang={m.title.locale}>{m.title.text}</h1>
           {m.title.isFallback && (
@@ -242,7 +264,11 @@ export function MatchDetailPage() {
         <ContentSection title={t('match.rules')} value={m.rules} />
         <ContentSection title={t('match.cancellationPolicy')} value={m.cancellationPolicy} />
 
-        {signedIn && <Attendees matchId={m.id} />}
+        {signedIn && !cancelled && <Attendees matchId={m.id} />}
+
+        {isAdmin && !cancelled && !hasStarted(m) && (
+          <CancelMatchButton block matchId={m.id} title={m.title} />
+        )}
       </div>
       <JoinBar match={m} />
     </>

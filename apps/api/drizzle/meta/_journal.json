@@ -85,6 +85,13 @@
       "when": 1791358966208,
       "tag": "0011_match_changed_notification",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791362477794,
+      "tag": "0012_match_cancellation",
+      "breakpoints": true
     }
   ]
 }

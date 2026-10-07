@@ -2,6 +2,7 @@
 export const matchFormKo = {
   titleNew: '매치 등록',
   titleEdit: '매치 수정',
+  cancelledNotice: '취소된 매치는 수정할 수 없어요.',
   startedNotice: '이미 시작된 매치는 수정할 수 없어요.',
   created: '매치를 등록했어요',
   saved: '변경 사항을 저장했어요',
@@ -90,6 +91,7 @@ export const matchFormKo = {
 export const matchFormUz: typeof matchFormKo = {
   titleNew: 'Match qo‘shish',
   titleEdit: 'Matchni tahrirlash',
+  cancelledNotice: 'Bekor qilingan matchni tahrirlab bo‘lmaydi.',
   startedNotice: 'Boshlangan matchni tahrirlab bo‘lmaydi.',
   created: 'Match e’lon qilindi',
   saved: 'O‘zgarishlar saqlandi',
@@ -181,6 +183,7 @@ export const matchFormUz: typeof matchFormKo = {
 export const matchFormEn: typeof matchFormKo = {
   titleNew: 'Create match',
   titleEdit: 'Edit match',
+  cancelledNotice: 'A cancelled match can’t be edited.',
   startedNotice: 'A match that has already started can’t be edited.',
   created: 'Match created',
   saved: 'Changes saved',

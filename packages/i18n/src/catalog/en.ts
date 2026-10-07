@@ -76,6 +76,7 @@ export const en: typeof ko = {
     title: 'Settings',
   },
   match: {
+    cancelledBanner: 'This match was cancelled. If you paid, your payment will be refunded.',
     free: 'Free',
     kst: 'Korea time',
     venue: 'Venue',
@@ -107,6 +108,8 @@ export const en: typeof ko = {
     maxPlayers: 'Max players',
   },
   registration: {
+    matchCancelled:
+      'This match was cancelled, so your registration was cancelled too. If you paid, your payment will be refunded; the team will contact you.',
     keep: 'Keep my spot',
     heading: 'Your registration',
     cancelDone: 'Registration cancelled',
@@ -205,6 +208,10 @@ export const en: typeof ko = {
     participationConfirmed: {
       title: 'Participation confirmed',
       body: 'Your participation in the match is confirmed.',
+    },
+    matchCancelled: {
+      title: 'Match cancelled',
+      body: 'The match “{title}” was cancelled. If you paid, your payment will be refunded; the team will contact you.',
     },
     matchChanged: {
       title: 'Match details changed',
@@ -342,6 +349,7 @@ export const en: typeof ko = {
     RECEIPT_NOT_FOUND: 'No receipt has been uploaded.',
     ALREADY_REGISTERED: 'You’re already registered for this match.',
     MATCH_FULL: 'This match is full.',
+    MATCH_CANCELLED: 'This match was cancelled.',
     MATCH_STARTED: 'This match has already started.',
     INVALID_STATE: 'This action isn’t available right now.',
     INVALID_RECEIPT: 'Only JPG, PNG or PDF files can be uploaded.',

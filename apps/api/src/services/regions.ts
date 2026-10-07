@@ -6,7 +6,7 @@ import {
   type LocaleCode,
   type LocalizedText,
 } from '@foodboll/i18n';
-import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 import type { Db, DbOrTx } from '../db/client';
 import { matches, regions, regionTranslations, users } from '../db/schema';
 import { AppError, notFound } from '../errors';
@@ -111,7 +111,7 @@ export async function listRegionTree(
       await db
         .select({ regionId: matches.regionId, n: sql<number>`count(*)::int` })
         .from(matches)
-        .where(gte(matches.startsAt, now))
+        .where(and(gte(matches.startsAt, now), isNull(matches.cancelledAt)))
         .groupBy(matches.regionId)
     ).map((r) => [r.regionId, r.n]),
   );

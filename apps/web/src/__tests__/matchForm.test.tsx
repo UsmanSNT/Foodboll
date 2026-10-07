@@ -731,6 +731,7 @@ describe('leaving the form', () => {
 describe('editing a match', () => {
   // 22:00-00:00 on Saturday 4 May 2030 in Seoul, stored in UTC.
   const saved = {
+    cancelledAt: null,
     sourceLanguage: 'uz',
     regionCode: 'gyeonggi-ansan',
     startsAt: '2030-05-04T13:00:00.000Z',
@@ -843,6 +844,49 @@ describe('editing a match', () => {
       if (original === undefined) delete process.env.TZ;
       else process.env.TZ = original;
     }
+  });
+
+  it('offers to cancel the match, only after a confirmation that spells out the consequences', async () => {
+    openAs('ORGANIZER', [GYEONGGI]);
+    api.handlers['/v1/matches/m1/translations'] = () => json(saved);
+    api.handlers['/v1/matches/m1/cancel'] = () =>
+      json(matchDetail({ id: 'm1', cancelledAt: '2030-05-01T00:00:00.000Z' }));
+    const user = userEvent.setup();
+    renderApp('/organizer/matches/m1/edit');
+
+    await user.click(await screen.findByRole('button', { name: /^Cancel match/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Cancel this match?' });
+    expect(
+      within(dialog).getByText('Everyone who joined is notified that the match was cancelled.'),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText(/marked as waiting for a refund/)).toBeInTheDocument();
+    expect(api.find('POST', '/v1/matches/m1/cancel')).toBeUndefined();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Keep the match' }));
+    expect(api.find('POST', '/v1/matches/m1/cancel')).toBeUndefined();
+
+    await user.click(screen.getByRole('button', { name: /^Cancel match/ }));
+    await user.click(
+      within(await screen.findByRole('dialog', { name: 'Cancel this match?' })).getByRole(
+        'button',
+        {
+          name: 'Yes, cancel the match',
+        },
+      ),
+    );
+    expect(await screen.findByText('Organizer home marker')).toBeInTheDocument();
+    expect(api.find('POST', '/v1/matches/m1/cancel')).toBeDefined();
+  });
+
+  it('does not allow changing or cancelling a match that was already cancelled', async () => {
+    openAs('ORGANIZER', [GYEONGGI]);
+    api.handlers['/v1/matches/m1/translations'] = () =>
+      json({ ...saved, cancelledAt: '2030-05-01T00:00:00.000Z' });
+    renderApp('/organizer/matches/m1/edit');
+
+    expect(await screen.findByText('A cancelled match can’t be edited.')).toBeInTheDocument();
+    expect(submitButton('Save changes')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /^Cancel match/ })).not.toBeInTheDocument();
   });
 
   it('does not allow changing a match that has already started', async () => {

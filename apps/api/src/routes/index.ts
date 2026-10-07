@@ -28,6 +28,7 @@ import { AppError } from '../errors';
 import { listEnabledLanguages } from '../services/languages';
 import { publishLegalDocument, getCurrentLegalDocument } from '../services/legal';
 import {
+  cancelMatch,
   createMatch,
   getMatch,
   getMatchTranslations,
@@ -172,6 +173,13 @@ export function registerRoutes(
     const user = requireRole(request, 'ORGANIZER', 'ADMIN');
     const { id } = idParams.parse(request.params);
     await replaceMatch(db, user, id, matchInputSchema.parse(request.body));
+    return getMatch(db, id, request.ctx.locale, { viewerId: user.id });
+  });
+
+  app.post('/v1/matches/:id/cancel', async (request) => {
+    const user = requireRole(request, 'ORGANIZER', 'ADMIN');
+    const { id } = idParams.parse(request.params);
+    await cancelMatch(db, storage, user, id);
     return getMatch(db, id, request.ctx.locale, { viewerId: user.id });
   });
 

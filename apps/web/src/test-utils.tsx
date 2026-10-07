@@ -116,6 +116,7 @@ export function matchSummary(overrides: Record<string, unknown> = {}) {
     feeKrw: 10000,
     sourceLanguage: 'ko',
     title: localized('Gangnam Friday futsal'),
+    cancelledAt: null,
     viewer: null,
     ...overrides,
   };

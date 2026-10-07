@@ -145,6 +145,32 @@ who really paid either has their payment found by that assign or uploads a recei
 statement. Closing a cancelled payment (`REFUND_PENDING`) _without refund_ is refused when a bank
 deposit settled it: the money is in the account, use **refund**.
 
+### Cancelling a match (refunds)
+
+An organizer (of that match) or an admin cancels with `POST /v1/matches/:id/cancel`. It works only
+before kick-off and only once (`409 MATCH_STARTED` / `409 MATCH_CANCELLED`). In one transaction,
+under the match lock that also serializes applications, edits and attendance:
+
+| Registration / payment before                                      | After                                                                                                                                            |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `CONFIRMED` + `PAYMENT_CONFIRMED`, or `APPLIED` + `PAYMENT_REVIEW` | registration `CANCELLED`, payment **`REFUND_PENDING`**, reference code freed, a `REFUND_PENDING` audit event (`detail.reason = MATCH_CANCELLED`) |
+| `APPLIED` + `AWAITING_PAYMENT` / `PAYMENT_REJECTED`                | registration `CANCELLED`, receipt dropped and reference code freed, as when a player cancels (nothing was paid)                                  |
+| `CONFIRMED` in a free match (no payment row)                       | registration `CANCELLED`                                                                                                                         |
+
+Every affected player gets a `MATCH_CANCELLED` notification in their own language (in-app, and in
+Telegram if they pressed Start): the match was cancelled, a payment will be refunded and the team
+will contact them. A hold whose payment window had already lapsed is closed silently. The match
+stays readable (`cancelledAt` is set on `MatchDto` / `MatchSummaryDto`) and shows a banner and the
+refund message in the app, but it leaves the feed and the region counts, refuses applications,
+edits and attendance, and no longer counts towards anyone's statistics or XP.
+
+**The app does not move money and holds no phone numbers.** `REFUND_PENDING` is a to-do list: the
+payments appear on the **Refunds to process** tab of the admin payments screen. Admins and organizers contact those
+players by phone (outside the app, for example through the community's own channels), send the
+money back from the receiving account, and then press **refund** on the admin screen, which marks the
+payment `REFUNDED` and tells the player. Reconcile these returns against the bank statement like any
+other transaction.
+
 ## Threat model and honest limits
 
 - **Spoofed messages.** Anyone can send an SMS that _looks_ like a bank alert to the receiving phone,
