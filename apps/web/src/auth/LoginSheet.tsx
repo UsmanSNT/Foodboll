@@ -1,4 +1,7 @@
+import type { UserRole } from '@foodboll/contracts';
+import { USER_ROLES } from '@foodboll/contracts';
 import { useState } from 'react';
+import { ROLE_LABEL_KEY } from '../features/admin/people/labels';
 import { useAuthConfig, useDevLogin, useTelegramLogin } from '../api/queries';
 import { useI18n } from '../i18n/I18nProvider';
 import { Alert } from '../ui/Alert';
@@ -9,6 +12,8 @@ import { Sheet } from '../ui/Sheet';
 import { ErrorState } from '../ui/ErrorState';
 import { useAuth } from './AuthProvider';
 import { TelegramLoginButton } from './TelegramLoginButton';
+
+const DEFAULT_DEV_ROLE: UserRole = 'PLAYER';
 
 /** The sign-in sheet. Opened by anything that needs an account (joining, notifications, players). */
 export function LoginSheet({
@@ -24,6 +29,7 @@ export function LoginSheet({
   const telegram = useTelegramLogin();
   const dev = useDevLogin();
   const [name, setName] = useState('');
+  const [role, setRole] = useState<UserRole>(DEFAULT_DEV_ROLE);
 
   const finish = (token: string) => {
     signIn(token);
@@ -65,7 +71,8 @@ export function LoginSheet({
             onSubmit={(event) => {
               event.preventDefault();
               dev.mutate(
-                { name: name.trim(), role: 'PLAYER' },
+                // The API keeps an existing user's role unless one is sent, so only send a deliberate choice.
+                { name: name.trim(), ...(role !== DEFAULT_DEV_ROLE && { role }) },
                 { onSuccess: (result) => finish(result.accessToken) },
               );
             }}
@@ -80,6 +87,22 @@ export function LoginSheet({
                   maxLength={60}
                   required
                 />
+              )}
+            </Field>
+            <Field label={t('auth.devRole')}>
+              {(props) => (
+                <select
+                  {...props}
+                  className="select"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as UserRole)}
+                >
+                  {USER_ROLES.map((value) => (
+                    <option key={value} value={value}>
+                      {t(ROLE_LABEL_KEY[value])}
+                    </option>
+                  ))}
+                </select>
               )}
             </Field>
             <Button

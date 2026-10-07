@@ -23,20 +23,23 @@ export function DateStrip({
         </span>
         <span className="chip__day chip__day--text">{t('feed.allDays')}</span>
       </Chip>
-      {days.map((day, index) => (
-        <Chip
-          key={day.key}
-          day
-          selected={value === day.key}
-          onClick={() => onChange(day.key)}
-          aria-label={formatDate(`${day.key}T12:00:00+09:00`)}
-        >
-          <span className="chip__dow">
-            {index === 0 ? t('feed.today') : t('format.weekdayShort', { weekday: day.weekday })}
-          </span>
-          <span className="chip__day num">{day.day}</span>
-        </Chip>
-      ))}
+      {days.map((day, index) => {
+        const weekday =
+          index === 0 ? t('feed.today') : t('format.weekdayShort', { weekday: day.weekday });
+        return (
+          <Chip
+            key={day.key}
+            day
+            selected={value === day.key}
+            onClick={() => onChange(day.key)}
+            // The name starts with the visible text so voice control can say what it sees.
+            aria-label={`${weekday} ${day.day}, ${formatDate(`${day.key}T12:00:00+09:00`)}`}
+          >
+            <span className="chip__dow">{weekday}</span>
+            <span className="chip__day num">{day.day}</span>
+          </Chip>
+        );
+      })}
     </div>
   );
 }

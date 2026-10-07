@@ -82,6 +82,8 @@ function JoinBar({ match }: { readonly match: MatchDto }) {
   );
 
   const registered = match.viewer && match.viewer.status !== 'CANCELLED';
+  // Cancelled after paying: joining again is refused until the refund is done, so show its status.
+  const refundHold = match.viewer?.status === 'CANCELLED';
   const fee = match.feeKrw === 0 ? t('match.free') : formatKrw(match.feeKrw);
 
   let action: React.ReactNode;
@@ -94,6 +96,17 @@ function JoinBar({ match }: { readonly match: MatchDto }) {
         to={`/registrations/${match.viewer?.registrationId}`}
       >
         {t('match.viewRegistration')}
+      </ButtonLink>
+    );
+  } else if (refundHold) {
+    action = (
+      <ButtonLink
+        variant="primary"
+        size="lg"
+        block
+        to={`/registrations/${match.viewer?.registrationId}`}
+      >
+        {t('payment.refundPending')}
       </ButtonLink>
     );
   } else if (hasStarted(match)) {

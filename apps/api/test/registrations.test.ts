@@ -411,9 +411,15 @@ describe('cancelling and refunds', () => {
     expect((await post(admin.token, refundUrl)).statusCode).toBe(409); // not cancelled yet
     await post(player.token, `/v1/registrations/${reg.id}/cancel`);
     expect((await apply(player.token, matchId)).json().error.code).toBe('INVALID_STATE');
+    // While the refund is pending the match shows the cancelled registration, so no Join is offered.
+    expect((await get(player.token, `/v1/matches/${matchId}`)).json().viewer).toEqual({
+      registrationId: reg.id,
+      status: 'CANCELLED',
+    });
 
     const refunded = await post(admin.token, refundUrl);
     expect(refunded.json().payment.status).toBe('REFUNDED');
+    expect((await get(player.token, `/v1/matches/${matchId}`)).json().viewer).toBeNull();
 
     const again = await apply(player.token, matchId);
     expect(again.statusCode).toBe(201);

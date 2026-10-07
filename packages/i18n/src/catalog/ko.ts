@@ -26,6 +26,8 @@ export const ko = {
     close: '닫기',
     back: '뒤로',
     required: '필수',
+    reload: '새로고침',
+    crashed: '화면을 표시하는 중 문제가 발생했습니다. 페이지를 새로고침해 주세요.',
   },
   language: {
     select: '언어 선택',
@@ -284,6 +286,7 @@ export const ko = {
     unavailable: '지금은 로그인을 사용할 수 없습니다.',
     devTitle: '개발용 로그인',
     devName: '이름',
+    devRole: '역할',
     login: '로그인',
     logout: '로그아웃',
   },

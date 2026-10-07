@@ -30,6 +30,8 @@ export const en: typeof ko = {
     close: 'Close',
     back: 'Back',
     required: 'Required',
+    reload: 'Reload',
+    crashed: 'Something went wrong while showing this screen. Reload the page to continue.',
   },
   language: {
     select: 'Select language',
@@ -291,6 +293,7 @@ export const en: typeof ko = {
     unavailable: 'Log in is not available right now.',
     devTitle: 'Developer login',
     devName: 'Name',
+    devRole: 'Role',
     login: 'Log in',
     logout: 'Log out',
   },

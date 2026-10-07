@@ -9,7 +9,12 @@ import {
   type ReactNode,
 } from 'react';
 import { apiRequest, UNAUTHORIZED_EVENT } from '../api/client';
-import { clearAccessToken, readAccessToken, writeAccessToken } from '../i18n/storage';
+import {
+  ACCESS_TOKEN_KEY,
+  clearAccessToken,
+  readAccessToken,
+  writeAccessToken,
+} from '../i18n/storage';
 
 interface AuthValue {
   readonly token: string | null;
@@ -55,6 +60,21 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, [queryClient]);
+
+  // Another tab signed in, out or switched user: follow it, so this tab never shows one account
+  // while its requests (which read the stored token) act as another, or as nobody.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      // `key === null` means the whole storage was cleared.
+      if (event.key !== null && event.key !== ACCESS_TOKEN_KEY) return;
+      const next = readAccessToken();
+      if (next === token) return;
+      setToken(next);
+      queryClient.clear();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [queryClient, token]);
 
   const value = useMemo(
     () => ({ token, signedIn: token !== null, signIn, signOut }),

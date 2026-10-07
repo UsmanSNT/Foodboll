@@ -15,7 +15,7 @@ import { Calendar, ChevronRight, MapPin } from '../../ui/icons';
 import { PageHeader } from '../../ui/PageHeader';
 import { Segmented } from '../../ui/Segmented';
 import { ListSkeleton } from '../../ui/Skeleton';
-import { paymentTone } from './status';
+import { hasRefundStatus, paymentTone } from './status';
 
 function RegistrationCard({ registration }: { readonly registration: RegistrationDto }) {
   const { t, formatDate } = useI18n();
@@ -23,7 +23,7 @@ function RegistrationCard({ registration }: { readonly registration: Registratio
   const cancelled = registration.status === 'CANCELLED';
   return (
     <Link to={`/registrations/${registration.id}`} className="card match-card">
-      <div className="match-card__time match-card__time--date num" aria-hidden="true">
+      <div className="match-card__time match-card__time--date num">
         <strong>{formatDate(match.startsAt)}</strong>
         <span>{formatTimeRange(match.startsAt, match.endsAt)}</span>
       </div>
@@ -49,6 +49,11 @@ function RegistrationCard({ registration }: { readonly registration: Registratio
             </Badge>
           ) : (
             <Badge tone="success">{t('match.confirmed')}</Badge>
+          )}
+          {cancelled && payment && hasRefundStatus(payment.status) && (
+            <Badge tone={paymentTone(payment.status)}>
+              {t(PAYMENT_STATUS_LABEL_KEY[payment.status])}
+            </Badge>
           )}
           {payment?.status === 'AWAITING_PAYMENT' && !cancelled && (
             <Badge tone="accent">{t('match.badgePay')}</Badge>

@@ -1,5 +1,5 @@
 import type { RegistrationStatus } from '@foodboll/contracts';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, or, sql } from 'drizzle-orm';
 import type { DbOrTx } from '../db/client';
 import { matchRegistrations } from '../db/schema';
 
@@ -41,7 +41,11 @@ export interface ViewerRegistration {
   readonly status: RegistrationStatus;
 }
 
-/** The signed-in user's live registrations for the given matches (cancelled ones are omitted). */
+/**
+ * The signed-in user's live registrations for the given matches. A cancelled registration is
+ * included only while its refund is pending: re-applying is refused until then, so the client must
+ * not offer "Join" and should point the player at the refund status instead.
+ */
 export async function loadViewerRegistrations(
   db: DbOrTx,
   userId: string,
@@ -61,11 +65,24 @@ export async function loadViewerRegistrations(
       and(
         eq(matchRegistrations.userId, userId),
         inArray(matchRegistrations.matchId, [...matchIds]),
-        inArray(matchRegistrations.status, ['APPLIED', 'CONFIRMED']),
-        sql`not (${matchRegistrations.status} = 'APPLIED' and ${lapsedHold(now)})`,
+        or(
+          and(
+            inArray(matchRegistrations.status, ['APPLIED', 'CONFIRMED']),
+            sql`not (${matchRegistrations.status} = 'APPLIED' and ${lapsedHold(now)})`,
+          ),
+          and(
+            eq(matchRegistrations.status, 'CANCELLED'),
+            sql`exists (
+              select 1 from registration_payments p
+               where p.registration_id = ${matchRegistrations.id}
+                 and p.status = 'REFUND_PENDING')`,
+          ),
+        ),
       ),
     );
   for (const row of rows) {
+    // A live registration always wins over a cancelled one for the same match.
+    if (row.status === 'CANCELLED' && out.has(row.matchId)) continue;
     out.set(row.matchId, { registrationId: row.id, status: row.status as RegistrationStatus });
   }
   return out;

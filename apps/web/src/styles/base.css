@@ -7,6 +7,14 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 8px);
+  /* Keep a focused field clear of the fixed tab bar and the bottom call-to-action bar. */
+  scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+/* Korean breaks between words, not inside them. */
+:lang(ko) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 body {

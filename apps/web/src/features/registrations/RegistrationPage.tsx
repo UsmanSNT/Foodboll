@@ -21,7 +21,7 @@ import { useToast } from '../../ui/Toast';
 import { MatchFacts } from '../match/MatchFacts';
 import { PaymentPanel } from './PaymentPanel';
 import { Stepper } from './Stepper';
-import { paymentTone } from './status';
+import { hasRefundStatus, paymentTone } from './status';
 
 function currentStep(registration: RegistrationDto): 1 | 2 | 3 {
   if (registration.status === 'CONFIRMED') return 3;
@@ -156,13 +156,21 @@ export function RegistrationPage() {
             ) : (
               <Badge tone="success">{t('match.confirmed')}</Badge>
             )}
+            {cancelled && payment && hasRefundStatus(payment.status) && (
+              <Badge tone={paymentTone(payment.status)}>
+                {t(PAYMENT_STATUS_LABEL_KEY[payment.status])}
+              </Badge>
+            )}
           </div>
         </Link>
 
         {cancelled ? (
-          <Alert tone="info">
-            {lapsed ? t('payment.expiredNote') : t('registration.cancelDone')}
-          </Alert>
+          <>
+            <Alert tone="info">
+              {lapsed ? t('payment.expiredNote') : t('registration.cancelDone')}
+            </Alert>
+            {hasRefundStatus(payment?.status) && <PaymentPanel registration={registration} />}
+          </>
         ) : (
           <PaymentPanel registration={registration} />
         )}

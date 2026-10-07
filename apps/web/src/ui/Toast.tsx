@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -17,11 +18,25 @@ const ToastContext = createContext<ToastApi | null>(null);
 export function ToastProvider({ children }: { readonly children: ReactNode }) {
   const [messages, setMessages] = useState<{ id: number; text: string }[]>([]);
   const next = useRef(0);
+  const timers = useRef(new Set<number>());
+
+  // A timer that outlives the provider would set state after unmount (and after test teardown).
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      for (const timer of pending) window.clearTimeout(timer);
+      pending.clear();
+    };
+  }, []);
 
   const show = useCallback((text: string) => {
     const id = next.current++;
     setMessages((current) => [...current.slice(-2), { id, text }]);
-    window.setTimeout(() => setMessages((current) => current.filter((m) => m.id !== id)), 2800);
+    const timer = window.setTimeout(() => {
+      timers.current.delete(timer);
+      setMessages((current) => current.filter((m) => m.id !== id));
+    }, 2800);
+    timers.current.add(timer);
   }, []);
 
   const api = useMemo(() => ({ show }), [show]);

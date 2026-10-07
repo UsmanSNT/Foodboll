@@ -205,7 +205,7 @@ export function useApiMutation<TBody, TResult = unknown>(
 }
 
 export const useDevLogin = () =>
-  useMutation<AuthTokenDto, Error, { name: string; role: 'PLAYER' | 'ORGANIZER' | 'ADMIN' }>({
+  useMutation<AuthTokenDto, Error, { name: string; role?: 'PLAYER' | 'ORGANIZER' | 'ADMIN' }>({
     mutationFn: (body) => apiRequest<AuthTokenDto>('/v1/auth/dev-login', { method: 'POST', body }),
   });
 

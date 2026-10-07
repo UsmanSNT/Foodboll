@@ -29,6 +29,8 @@ export const uz: typeof ko = {
     close: 'Yopish',
     back: 'Orqaga',
     required: 'Majburiy',
+    reload: 'Qayta yuklash',
+    crashed: 'Bu ekranni ko‘rsatishda xatolik yuz berdi. Davom etish uchun sahifani qayta yuklang.',
   },
   language: {
     select: 'Tilni tanlang',
@@ -107,7 +109,8 @@ export const uz: typeof ko = {
     keep: 'Joyimni saqlab qolish',
     heading: 'Mening arizam',
     cancelDone: 'Ariza bekor qilindi',
-    cancelWarnPaid: 'Agar allaqachon to‘lagan bo‘lsangiz, pulni tashkilotchi qaytaradi.',
+    cancelWarnPaid:
+      'Agar allaqachon to‘lagan bo‘lsangiz, pulni qaytarishni administratorlar hal qiladi.',
     uploaded: 'Chek yuklandi',
     title: 'Mening arizalarim',
     applied: 'Arizangiz qabul qilindi. To‘lovni amalga oshirib, chekni yuklang.',
@@ -291,6 +294,7 @@ export const uz: typeof ko = {
     unavailable: 'Hozircha kirish mavjud emas.',
     devTitle: 'Dasturchi uchun kirish',
     devName: 'Ism',
+    devRole: 'Rol',
     login: 'Kirish',
     logout: 'Chiqish',
   },

@@ -15,9 +15,11 @@
   --surface-3: #e3e9e1;
   --text: #0e1a13;
   --text-muted: #55655b;
-  --text-faint: #7d8c82;
+  --text-faint: #60706a; /* 4.8:1 on --bg, 5.2:1 on --surface */
   --border: #dfe6dd;
   --border-strong: #c8d2c6;
+  /* Boundary of inputs and buttons: 3:1 against --surface and --bg (WCAG 1.4.11). */
+  --border-control: #82928a;
 
   --primary: #0e7c4a;
   --primary-hover: #0a6a3e;
@@ -76,9 +78,10 @@
     --surface-3: #213228;
     --text: #e8f1ea;
     --text-muted: #9bb0a2;
-    --text-faint: #71857a;
+    --text-faint: #7c9186; /* 5.3:1 on --surface, 4.7:1 on --surface-2 */
     --border: #223228;
     --border-strong: #2f4437;
+    --border-control: #55705f;
 
     --primary: #3ddc84;
     --primary-hover: #5be99a;

@@ -206,7 +206,7 @@
   gap: 12px;
   min-height: 48px;
   padding: 8px 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
   background: var(--surface);
   cursor: pointer;
@@ -269,7 +269,7 @@
   width: 100%;
   min-height: 56px;
   padding: 12px 14px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
   background: var(--surface);
   text-align: start;

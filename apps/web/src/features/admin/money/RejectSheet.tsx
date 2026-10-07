@@ -23,15 +23,23 @@ interface RejectSheetProps {
 
 /**
  * Rejecting a receipt under review asks the player to pay again. The same call closes out a
- * cancelled registration whose money never arrived, which needs different wording.
+ * cancelled registration whose money never arrived, and undoes a wrongly confirmed payment
+ * (the player is asked to pay again). Each needs different wording.
  */
 export function RejectSheet({ item, onClose, handlers }: RejectSheetProps) {
   const { t } = useI18n();
   const closing = item?.payment.status === 'REFUND_PENDING';
+  const revoking = item?.payment.status === 'PAYMENT_CONFIRMED';
   return (
     <Sheet
       open={item !== null}
-      title={closing ? t('adminPayments.closeTitle') : t('adminPayments.rejectTitle')}
+      title={
+        closing
+          ? t('adminPayments.closeTitle')
+          : revoking
+            ? t('adminPayments.revokeTitle')
+            : t('adminPayments.rejectTitle')
+      }
       onClose={onClose}
     >
       {item && (
@@ -39,6 +47,7 @@ export function RejectSheet({ item, onClose, handlers }: RejectSheetProps) {
           key={item.registrationId}
           item={item}
           closing={closing}
+          revoking={revoking === true}
           onClose={onClose}
           handlers={handlers}
         />
@@ -50,11 +59,12 @@ export function RejectSheet({ item, onClose, handlers }: RejectSheetProps) {
 interface RejectFormProps {
   readonly item: AdminPaymentDto;
   readonly closing: boolean;
+  readonly revoking: boolean;
   readonly onClose: () => void;
   readonly handlers: PaymentHandlers;
 }
 
-function RejectForm({ item, closing, onClose, handlers }: RejectFormProps) {
+function RejectForm({ item, closing, revoking, onClose, handlers }: RejectFormProps) {
   const { t } = useI18n();
   const toast = useToast();
   const reject = useRejectPayment(item.registrationId);
@@ -67,7 +77,7 @@ function RejectForm({ item, closing, onClose, handlers }: RejectFormProps) {
     // The promise (not mutate's callbacks) because the sheet may be dismissed while this is in flight.
     void reject.mutateAsync(input.data.reason).then(
       () => {
-        toast.show(t('adminPayments.rejected', { name }));
+        toast.show(t(revoking ? 'adminPayments.revoked' : 'adminPayments.rejected', { name }));
         handlers.resolved(item.registrationId);
       },
       (error: unknown) => {
@@ -86,7 +96,11 @@ function RejectForm({ item, closing, onClose, handlers }: RejectFormProps) {
     >
       <PaymentSummary item={item} />
       <p className="small muted">
-        {closing ? t('adminPayments.closeHint') : t('adminPayments.rejectHint')}
+        {closing
+          ? t('adminPayments.closeHint')
+          : revoking
+            ? t('adminPayments.revokeHint')
+            : t('adminPayments.rejectHint')}
       </p>
       <fieldset className="money-choices">
         <legend>{t('payment.rejectReasonLabel')}</legend>
@@ -111,7 +125,11 @@ function RejectForm({ item, closing, onClose, handlers }: RejectFormProps) {
         loading={reject.isPending}
         disabled={!input.success}
       >
-        {closing ? t('adminPayments.closeWithoutRefund') : t('adminPayments.rejectSubmit')}
+        {closing
+          ? t('adminPayments.closeWithoutRefund')
+          : revoking
+            ? t('adminPayments.revokeSubmit')
+            : t('adminPayments.rejectSubmit')}
       </Button>
       <Button block onClick={onClose}>
         {t('common.cancel')}

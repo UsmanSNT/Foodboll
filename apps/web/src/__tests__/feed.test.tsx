@@ -113,7 +113,9 @@ describe('match feed', () => {
 
     const day = upcomingDays(5)[3]!;
     await user.click(
-      screen.getByRole('button', { name: formatDate('en', `${day.key}T12:00:00+09:00`) }),
+      screen.getByRole('button', {
+        name: new RegExp(`${formatDate('en', `${day.key}T12:00:00+09:00`)}$`),
+      }),
     );
     await waitFor(() => expect(api.calls.at(-1)?.url.searchParams.get('date')).toBe(day.key));
   });
@@ -137,7 +139,7 @@ describe('match feed', () => {
     renderApp();
     await screen.findByRole('link', { name: /Gangnam Friday futsal/ });
 
-    await user.click(screen.getByRole('button', { name: 'Change region' }));
+    await user.click(screen.getByRole('button', { name: /, Change region$/ }));
     const dialog = await screen.findByRole('dialog');
     await user.click(await within(dialog).findByRole('button', { name: /Busan/ }));
 

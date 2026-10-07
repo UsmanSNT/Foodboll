@@ -1759,3 +1759,52 @@ describe('merging deposit queues', () => {
     expect(ids(slice.items)).toEqual(['c', 'b']);
   });
 });
+
+describe('payment review: revoking a confirmed payment', () => {
+  const startsInFuture = (n: number, registrationStatus: RegistrationStatus = 'CONFIRMED') =>
+    adminPayment(n, { status: 'PAYMENT_CONFIRMED', registrationStatus });
+
+  it('offers Revoke on a confirmed payment of an upcoming match and sends the reason', async () => {
+    let queue = [startsInFuture(1)];
+    servePayments(() => queue);
+    api.handlers[paymentPath(1, 'reject')] = () => {
+      queue = [];
+      return json({});
+    };
+    const user = userEvent.setup();
+    renderApp('/admin/payments?status=PAYMENT_CONFIRMED');
+
+    await user.click(await screen.findByRole('button', { name: 'Revoke: Aziz Karimov' }));
+    const dialog = await dialogOf('Revoke the confirmation?');
+    expect(dialog.getByText(/confirmed by mistake/)).toBeInTheDocument();
+    expect(dialog.getByText(/asked to pay again/)).toBeInTheDocument();
+    const submit = dialog.getByRole('button', { name: 'Revoke confirmation' });
+    expect(submit).toBeDisabled();
+    await user.click(dialog.getByRole('radio', { name: 'The receipt can’t be read' }));
+    await user.click(submit);
+
+    expect(await screen.findByText('Confirmation revoked: Aziz Karimov')).toBeInTheDocument();
+    expect(bodyOf(api.find('POST', paymentPath(1, 'reject')))).toEqual({
+      reason: 'RECEIPT_UNREADABLE',
+    });
+  });
+
+  it('does not offer Revoke once the match has started or the registration is not confirmed', async () => {
+    const started = adminPayment(1, {
+      status: 'PAYMENT_CONFIRMED',
+      registrationStatus: 'CONFIRMED',
+    });
+    const past = {
+      ...started,
+      match: {
+        ...started.match,
+        startsAt: '2020-05-04T13:00:00.000Z',
+        endsAt: '2020-05-04T15:00:00.000Z',
+      },
+    };
+    servePayments(() => [past, startsInFuture(2, 'CANCELLED')]);
+    renderApp('/admin/payments?status=PAYMENT_CONFIRMED');
+    await screen.findAllByRole('article');
+    expect(screen.queryByRole('button', { name: /^Revoke/ })).not.toBeInTheDocument();
+  });
+});

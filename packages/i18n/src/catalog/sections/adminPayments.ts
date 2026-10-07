@@ -58,6 +58,12 @@ export const adminPaymentsKo = {
   closeHint:
     '선수가 취소했고 입금이 확인되지 않은 경우에 사용하세요. 선수에게 알림은 가지 않습니다.',
   rejectSubmit: '반려하기',
+  revoke: '확인 취소',
+  revokeTitle: '입금 확인을 취소할까요?',
+  revokeHint:
+    '입금을 잘못 확인했을 때만 사용하세요. 확인이 취소되어 선수의 신청이 다시 신청 상태로 돌아가고, 선수는 다시 입금하라는 안내를 받습니다.',
+  revokeSubmit: '확인 취소하기',
+  revoked: '입금 확인을 취소했어요: {name}',
   refundTitle: '환불 완료로 처리할까요?',
   refundHint:
     '환불 사실을 기록할 뿐입니다. 먼저 은행에서 선수에게 돈을 돌려준 뒤 여기서 확인해 주세요. 선수에게 알림이 갑니다.',
@@ -125,6 +131,12 @@ export const adminPaymentsUz: typeof adminPaymentsKo = {
   closeHint:
     'Futbolchi arizasini bekor qilgan va pul kelmagan bo‘lsa, shuni tanlang. Futbolchiga xabar yuborilmaydi.',
   rejectSubmit: 'To‘lovni rad etish',
+  revoke: 'Tasdiqni bekor qilish',
+  revokeTitle: 'Tasdiq bekor qilinsinmi?',
+  revokeHint:
+    'Buni faqat to‘lov xato tasdiqlangan bo‘lsagina ishlating. Tasdiq bekor qilinadi, futbolchining arizasi yana “ariza” holatiga qaytadi va undan qayta to‘lash so‘raladi.',
+  revokeSubmit: 'Tasdiqni bekor qilish',
+  revoked: 'To‘lov tasdig‘i bekor qilindi: {name}',
   refundTitle: 'Pul qaytarildi deb belgilansinmi?',
   refundHint:
     'Bu faqat qaytarilganini qayd etadi. Avval pulni bankdan futbolchiga qaytaring, keyin shu yerda tasdiqlang. Futbolchiga xabar yuboriladi.',
@@ -191,6 +203,12 @@ export const adminPaymentsEn: typeof adminPaymentsKo = {
   closeTitle: 'Close without refund',
   closeHint: 'Use this when the player cancelled and no money arrived. The player isn’t notified.',
   rejectSubmit: 'Reject payment',
+  revoke: 'Revoke',
+  revokeTitle: 'Revoke the confirmation?',
+  revokeHint:
+    'Use this only if the payment was confirmed by mistake. It undoes the confirmation: the player’s registration goes back to applied and the player is asked to pay again.',
+  revokeSubmit: 'Revoke confirmation',
+  revoked: 'Confirmation revoked: {name}',
   refundTitle: 'Mark as refunded?',
   refundHint:
     'This only records the refund. Return the money to the player from your bank first, then confirm here. The player will be notified.',

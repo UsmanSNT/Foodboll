@@ -38,9 +38,30 @@ export function writeDeviceLocaleSynced(tag: string): void {
   write(DEVICE_LOCALE_SYNCED_KEY, tag);
 }
 
+export const ACCESS_TOKEN_KEY = 'foodboll.accessToken';
+
 /** Access token issued by the auth module; this app only reads it. */
 export function readAccessToken(): string | null {
-  return read('foodboll.accessToken');
+  return read(ACCESS_TOKEN_KEY);
+}
+
+const LANGUAGE_UNSAVED_KEY = 'foodboll.languageUnsaved';
+
+/** True while the stored language choice has not been saved to the account yet. */
+export function readLanguageUnsaved(): boolean {
+  return read(LANGUAGE_UNSAVED_KEY) === '1';
+}
+
+export function writeLanguageUnsaved(unsaved: boolean): void {
+  if (unsaved) {
+    write(LANGUAGE_UNSAVED_KEY, '1');
+    return;
+  }
+  try {
+    window.localStorage.removeItem(LANGUAGE_UNSAVED_KEY);
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 const REGION_KEY = 'foodboll.region';
@@ -58,12 +79,12 @@ export function writeStoredRegion(value: string): void {
 }
 
 export function writeAccessToken(token: string): void {
-  write('foodboll.accessToken', token);
+  write(ACCESS_TOKEN_KEY, token);
 }
 
 export function clearAccessToken(): void {
   try {
-    window.localStorage.removeItem('foodboll.accessToken');
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   } catch {
     /* storage unavailable */
   }

@@ -18,3 +18,8 @@ export function paymentTone(status: PaymentStatus): Tone {
       return 'neutral';
   }
 }
+
+/** A cancelled registration still owes the player the refund status of what they paid. */
+export function hasRefundStatus(status: PaymentStatus | undefined): boolean {
+  return status === 'REFUND_PENDING' || status === 'REFUNDED';
+}

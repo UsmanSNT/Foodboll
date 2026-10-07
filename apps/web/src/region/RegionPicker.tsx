@@ -148,7 +148,12 @@ export function RegionPill({
 }) {
   const { t } = useI18n();
   return (
-    <button type="button" className="region-pill" onClick={onClick} aria-label={t('region.change')}>
+    <button
+      type="button"
+      className="region-pill"
+      onClick={onClick}
+      aria-label={`${label}, ${t('region.change')}`}
+    >
       <MapPin size={16} aria-hidden="true" />
       <span>{label}</span>
     </button>

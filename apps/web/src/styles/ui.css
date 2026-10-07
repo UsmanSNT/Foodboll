@@ -2,7 +2,7 @@
 .btn {
   --btn-bg: var(--surface);
   --btn-fg: var(--text);
-  --btn-border: var(--border-strong);
+  --btn-border: var(--border-control);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -66,6 +66,11 @@
 }
 .btn--block {
   width: 100%;
+  /* Long labels (e.g. Uzbek) wrap instead of being clipped on narrow phones. */
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+  padding-block: 8px;
 }
 .btn--icon {
   width: 44px;
@@ -467,9 +472,11 @@ a.card:active {
   min-height: 46px;
   padding: 0 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   background: var(--surface);
   color: var(--text);
+  /* Below 16px iOS Safari zooms the page when a field is focused. */
+  font-size: 16px;
 }
 .textarea {
   padding: 12px 14px;
@@ -528,6 +535,7 @@ a.list__item:hover {
   background: var(--surface-2);
 }
 .kv {
+  margin: 0;
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 8px 16px;
@@ -694,6 +702,10 @@ a.list__item:hover {
   }
   .page-header {
     top: 64px;
+  }
+  /* Stack screens have no top tab bar to sit below. */
+  .app__main--stack .page-header {
+    top: 0;
   }
   .toasts {
     bottom: 24px;

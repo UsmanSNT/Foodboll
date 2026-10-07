@@ -11,6 +11,8 @@ import { PlayersPage } from './features/players/PlayersPage';
 import { MyMatchesPage } from './features/registrations/MyMatchesPage';
 import { RegistrationPage } from './features/registrations/RegistrationPage';
 import { Layout, StackLayout } from './features/shell/Layout';
+import { ErrorBoundary } from './features/shell/ErrorBoundary';
+import { RouteEffects } from './features/shell/RouteEffects';
 import { RequireRole } from './features/shell/RequireRole';
 import { ListSkeleton } from './ui/Skeleton';
 import { NotFoundPage } from './features/shell/NotFoundPage';
@@ -96,128 +98,132 @@ export function App() {
   return (
     <>
       <ScrollToTop />
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<FeedPage />} />
-          <Route path="players" element={<PlayersPage />} />
-          <Route path="my-matches" element={<MyMatchesPage />} />
-          <Route path="me" element={<MePage />} />
-        </Route>
-        <Route element={<StackLayout />}>
-          <Route path="matches/:id" element={<MatchDetailPage />} />
-          <Route path="registrations/:id" element={<RegistrationPage />} />
-          <Route path="players/:id" element={<PlayerProfilePage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="legal" element={<LegalIndexPage />} />
-          <Route path="legal/:type" element={<LegalPage />} />
-          <Route
-            path="organizer"
-            element={
-              <Guarded roles={STAFF}>
-                <OrganizerHomePage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="organizer/apply"
-            element={
-              <Guarded>
-                <OrganizerApplyPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="organizer/matches/new"
-            element={
-              <Guarded roles={STAFF}>
-                <MatchFormPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="organizer/matches/:id/edit"
-            element={
-              <Guarded roles={STAFF}>
-                <MatchFormPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="organizer/matches/:id/roster"
-            element={
-              <Guarded roles={STAFF}>
-                <RosterPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminHomePage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/payments"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminPaymentsPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/deposits"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminDepositsPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/applications"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminApplicationsPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/users"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminUsersPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/payment-info"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminPaymentInfoPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/legal"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminLegalPage />
-              </Guarded>
-            }
-          />
-          <Route
-            path="admin/legal/:type"
-            element={
-              <Guarded roles={ADMIN}>
-                <AdminLegalPage />
-              </Guarded>
-            }
-          />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
+      <RouteEffects />
+      {/* Keyed by path so navigating away from a crashed screen clears the error. */}
+      <ErrorBoundary key={pathname}>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<FeedPage />} />
+            <Route path="players" element={<PlayersPage />} />
+            <Route path="my-matches" element={<MyMatchesPage />} />
+            <Route path="me" element={<MePage />} />
+          </Route>
+          <Route element={<StackLayout />}>
+            <Route path="matches/:id" element={<MatchDetailPage />} />
+            <Route path="registrations/:id" element={<RegistrationPage />} />
+            <Route path="players/:id" element={<PlayerProfilePage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="legal" element={<LegalIndexPage />} />
+            <Route path="legal/:type" element={<LegalPage />} />
+            <Route
+              path="organizer"
+              element={
+                <Guarded roles={STAFF}>
+                  <OrganizerHomePage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="organizer/apply"
+              element={
+                <Guarded>
+                  <OrganizerApplyPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="organizer/matches/new"
+              element={
+                <Guarded roles={STAFF}>
+                  <MatchFormPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="organizer/matches/:id/edit"
+              element={
+                <Guarded roles={STAFF}>
+                  <MatchFormPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="organizer/matches/:id/roster"
+              element={
+                <Guarded roles={STAFF}>
+                  <RosterPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminHomePage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/payments"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminPaymentsPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/deposits"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminDepositsPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/applications"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminApplicationsPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/users"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminUsersPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/payment-info"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminPaymentInfoPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/legal"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminLegalPage />
+                </Guarded>
+              }
+            />
+            <Route
+              path="admin/legal/:type"
+              element={
+                <Guarded roles={ADMIN}>
+                  <AdminLegalPage />
+                </Guarded>
+              }
+            />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </ErrorBoundary>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { Button } from '../../ui/Button';
 import { Check, Copy } from '../../ui/icons';
@@ -28,13 +28,17 @@ export function CopyButton({ value, label }: { readonly value: string; readonly 
   const { t } = useI18n();
   const toast = useToast();
   const [copied, setCopied] = useState(false);
+  const resetTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(resetTimer.current), []);
 
   const copy = async () => {
     try {
       await writeClipboard(value);
       setCopied(true);
       toast.show(t('payment.copied'));
-      window.setTimeout(() => setCopied(false), 2000);
+      window.clearTimeout(resetTimer.current);
+      resetTimer.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {
       /* the value stays selectable on screen; there is nothing more useful to do */
     }

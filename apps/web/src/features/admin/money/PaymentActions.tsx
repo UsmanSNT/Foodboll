@@ -1,4 +1,5 @@
 import type { AdminPaymentDto } from '@foodboll/contracts';
+import { hasStarted } from '../../../lib/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { Button } from '../../../ui/Button';
 import { useToast } from '../../../ui/Toast';
@@ -32,8 +33,13 @@ export function PaymentActions({ item, withReceipt, handlers }: PaymentActionsPr
   const name = item.user.displayName;
   const reviewing = item.payment.status === 'PAYMENT_REVIEW';
   const refunding = item.payment.status === 'REFUND_PENDING';
+  // A wrongly confirmed payment can be undone until the match starts (the API checks the rest).
+  const revoking =
+    item.payment.status === 'PAYMENT_CONFIRMED' &&
+    item.registrationStatus === 'CONFIRMED' &&
+    !hasStarted(item.match);
   const receipt = withReceipt && item.payment.hasReceipt;
-  if (!receipt && !reviewing && !refunding) return null;
+  if (!receipt && !reviewing && !refunding && !revoking) return null;
 
   // Each button's name carries the player, so a list of cards stays distinguishable by ear.
   const label = (action: string) => t('adminPayments.actionLabel', { action, name });
@@ -69,6 +75,15 @@ export function PaymentActions({ item, withReceipt, handlers }: PaymentActionsPr
             onClick={() => handlers.open('reject', item)}
           >
             {t('adminPayments.reject')}
+          </Button>
+        )}
+        {revoking && (
+          <Button
+            variant="danger"
+            aria-label={label(t('adminPayments.revoke'))}
+            onClick={() => handlers.open('reject', item)}
+          >
+            {t('adminPayments.revoke')}
           </Button>
         )}
         {refunding && (

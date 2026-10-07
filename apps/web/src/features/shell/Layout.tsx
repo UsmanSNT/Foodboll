@@ -24,7 +24,7 @@ export function Layout() {
 
   return (
     <div className="app">
-      <main className="app__main" id="main">
+      <main className="app__main" id="main" tabIndex={-1}>
         <Outlet />
       </main>
       <nav className="tabs" aria-label={t('nav.main')}>
@@ -41,7 +41,7 @@ export function Layout() {
 export function StackLayout() {
   return (
     <div className="app">
-      <main className="app__main app__main--stack" id="main">
+      <main className="app__main app__main--stack" id="main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

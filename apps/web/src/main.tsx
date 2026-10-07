@@ -21,6 +21,29 @@ import './styles/admin-settings.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
 
+// A deploy removes old hashed chunks: reload once to pick up the new build. If it fails again the
+// event is left alone, so the error boundary shows its reload screen instead of looping.
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const key = 'foodboll.chunkReload';
+    if (window.sessionStorage.getItem(key)) return;
+    window.sessionStorage.setItem(key, String(Date.now()));
+    event.preventDefault();
+    window.location.reload();
+  } catch {
+    /* storage unavailable: fall through to the error boundary */
+  }
+});
+window.addEventListener('load', () => {
+  window.setTimeout(() => {
+    try {
+      window.sessionStorage.removeItem('foodboll.chunkReload');
+    } catch {
+      /* storage unavailable */
+    }
+  }, 10_000);
+});
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

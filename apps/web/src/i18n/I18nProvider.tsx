@@ -8,6 +8,7 @@ import {
   LOCALES,
   planLanguageSync,
   resolveLocale,
+  type LanguageSyncAction,
   type LocaleCode,
   type Translator,
 } from '@foodboll/i18n';
@@ -17,6 +18,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -24,8 +26,10 @@ import { apiRequest } from '../api/client';
 import { useAuth } from '../auth/AuthProvider';
 import {
   readDeviceLocaleSynced,
+  readLanguageUnsaved,
   readStoredLanguage,
   writeDeviceLocaleSynced,
+  writeLanguageUnsaved,
   writeStoredLanguage,
 } from './storage';
 
@@ -79,15 +83,21 @@ export function I18nProvider({ children }: { readonly children: ReactNode }) {
   useEffect(() => {
     if (token === null) return;
     const controller = new AbortController();
-    // Never leave the app blank because the API is slow or unreachable.
-    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(5_000)]);
+    let cancelled = false;
+    // Never leave the app blank because the API is slow or unreachable. (AbortSignal.any and
+    // AbortSignal.timeout are missing in older mobile browsers, so use one controller and a timer.)
+    const timer = setTimeout(() => controller.abort(), 5_000);
+    const { signal } = controller;
     void (async () => {
       try {
         const me = await apiRequest<MeDto>('/v1/me', { signal });
-        const action = planLanguageSync({
-          account: me.preferredLanguage,
-          stored: readStoredLanguage(),
-        });
+        const stored = readStoredLanguage();
+        // A choice that never reached the account must win over the stale account value.
+        const planned = planLanguageSync({ account: me.preferredLanguage, stored });
+        const action: LanguageSyncAction =
+          planned.type === 'adoptAccount' && stored !== null && readLanguageUnsaved()
+            ? { type: 'pushToAccount', locale: stored }
+            : planned;
         if (action.type === 'adoptAccount') {
           writeStoredLanguage(action.locale);
           setStored(action.locale);
@@ -101,33 +111,56 @@ export function I18nProvider({ children }: { readonly children: ReactNode }) {
         if (Object.keys(body).length > 0) {
           await apiRequest<MeDto>('/v1/me/language', { method: 'PATCH', body, signal });
           if (body.deviceLocale) writeDeviceLocaleSynced(body.deviceLocale);
-          if (body.preferredLanguage) setAccount(body.preferredLanguage);
+          if (body.preferredLanguage) {
+            writeLanguageUnsaved(false);
+            setAccount(body.preferredLanguage);
+          }
         }
       } catch {
-        /* offline or signed out: the on-device choice keeps working */
+        /* offline, timed out or signed out: the on-device choice keeps working */
       } finally {
-        if (!controller.signal.aborted) setAccountPending(false);
+        clearTimeout(timer);
+        if (!cancelled) setAccountPending(false);
       }
     })();
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [token]);
 
+  // Saves run one after another and only the latest choice is sent, so a quick ko -> uz -> en
+  // can never end with an older response overwriting the newer language on the account.
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const latestChoice = useRef<LocaleCode | null>(null);
+
   const setLanguage = useCallback(
-    async (next: LocaleCode) => {
+    (next: LocaleCode): Promise<void> => {
       writeStoredLanguage(next);
       setStored(next);
       setAccount((current) => (current === null ? current : next));
       setAccountSaveFailed(false);
-      if (token === null) return;
-      try {
-        await apiRequest<MeDto>('/v1/me/language', {
-          method: 'PATCH',
-          body: { preferredLanguage: next },
-        });
-        setAccount(next);
-      } catch {
-        setAccountSaveFailed(true);
-      }
+      if (token === null) return Promise.resolve();
+      latestChoice.current = next;
+      writeLanguageUnsaved(true);
+      const save = async () => {
+        if (latestChoice.current !== next) return; // superseded by a newer choice
+        try {
+          await apiRequest<MeDto>('/v1/me/language', {
+            method: 'PATCH',
+            body: { preferredLanguage: next },
+          });
+          if (latestChoice.current !== next) return;
+          writeLanguageUnsaved(false);
+          setAccount(next);
+        } catch {
+          if (latestChoice.current === next) setAccountSaveFailed(true);
+        }
+      };
+      const run = saveQueue.current.then(save);
+      saveQueue.current = run;
+      return run;
     },
     [token],
   );
