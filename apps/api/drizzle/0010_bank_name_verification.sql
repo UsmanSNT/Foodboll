@@ -1,0 +1,3 @@
+ALTER TABLE "bank_deposits" DROP CONSTRAINT "bank_deposits_reason_valid";--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "depositor_name_verified" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "bank_deposits" ADD CONSTRAINT "bank_deposits_reason_valid" CHECK ("bank_deposits"."reason" is null or "bank_deposits"."reason" in ('AMOUNT_MISMATCH', 'NO_CANDIDATE', 'MULTIPLE_CANDIDATES', 'STALE_MESSAGE', 'RATE_GUARD', 'STATE_CHANGED', 'NOT_PARSED', 'MANUAL', 'NAME_UNVERIFIED'));

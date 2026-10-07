@@ -112,6 +112,9 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDeps): v
     ) {
       throw new AppError('UNAUTHENTICATED', 401);
     }
+    // Only a failed bank-channel ingest asks Telegram to redeliver (the dedupe key makes that
+    // idempotent). Everything else is acknowledged: a retry would not fix it.
+    let ingestFailed = false;
     try {
       const chatId = config.bank.telegramChatId;
       await handleTelegramUpdate(
@@ -121,8 +124,17 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDeps): v
           bankChannel: chatId
             ? {
                 chatId,
-                ingest: (input) =>
-                  ingestBankMessage(db, config.bank, { source: 'TELEGRAM', ...input }),
+                ingest: async (input) => {
+                  try {
+                    return await ingestBankMessage(db, config.bank, {
+                      source: 'TELEGRAM',
+                      ...input,
+                    });
+                  } catch (error) {
+                    ingestFailed = true;
+                    throw error;
+                  }
+                },
               }
             : null,
           onError: (error) => request.log.warn({ err: error }, 'telegram reply failed'),
@@ -130,8 +142,9 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDeps): v
         request.body,
       );
     } catch (error) {
-      // Acknowledge anyway: a 5xx makes Telegram redeliver the same update in a loop.
       request.log.error({ err: error }, 'telegram update handling failed');
+      // 500 through the error handler, so Telegram redelivers the deposit message.
+      if (ingestFailed) throw error;
     }
     return reply.status(200).send({ ok: true });
   });

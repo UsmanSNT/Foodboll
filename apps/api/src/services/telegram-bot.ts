@@ -1,5 +1,6 @@
 import { matchLocale, translate, DEFAULT_LOCALE, type LocaleCode } from '@foodboll/i18n';
 import { and, eq, sql } from 'drizzle-orm';
+import { cancelPendingTelegramNotifications } from './notification-worker';
 import { z } from 'zod';
 import type { Db } from '../db/client';
 import { userIdentities, users } from '../db/schema';
@@ -41,8 +42,9 @@ export interface BotDeps {
  * Reacts to messages people send the bot in a private chat:
  *  - /start: turns on Telegram notifications for the user whose Telegram id matches a login
  *  - /stop:  turns them off
- * A person who never logged in through the app is asked to do that first. Always resolves; a
- * failed reply must never make Telegram retry the webhook.
+ * A person who never logged in through the app is asked to do that first. A failed reply never
+ * rejects (it must not make Telegram retry). A failing bank-channel `ingest` does reject, so the
+ * webhook can answer non-2xx and Telegram redelivers the post.
  */
 export async function handleTelegramUpdate(deps: BotDeps, update: unknown): Promise<void> {
   const parsed = updateSchema.safeParse(update);
@@ -94,6 +96,7 @@ export async function handleTelegramUpdate(deps: BotDeps, update: unknown): Prom
       .update(users)
       .set({ telegramStartedAt: null, updatedAt: sql`now()` })
       .where(eq(users.id, row.userId));
+    await cancelPendingTelegramNotifications(deps.db, row.userId);
     reply = translate(locale, 'telegram.stopped');
   }
   try {

@@ -118,6 +118,8 @@ export const users = pgTable(
     /** Where the user plays; the match feed defaults to it. */
     /** Name their bank shows on transfers; one way to recognise their deposit. */
     depositorName: text('depositor_name'),
+    /** True once a deposit matched by code (or an admin) contained this exact name; reset on change. */
+    depositorNameVerified: boolean('depositor_name_verified').notNull().default(false),
     /** Set when the user pressed Start in the Telegram bot (so the bot may message them). */
     telegramStartedAt: timestamp('telegram_started_at', { withTimezone: true }),
     homeRegionId: uuid('home_region_id').references(() => regions.id, { onDelete: 'set null' }),

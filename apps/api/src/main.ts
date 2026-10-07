@@ -5,9 +5,14 @@ import { createTelegramClient } from './integrations/telegram';
 import { startNotificationWorker } from './services/notification-worker';
 
 const config = loadConfig();
-const handle = createDb(config.databaseUrl);
+let log: { error: (obj: object, msg: string) => void } | null = null;
+const handle = createDb(config.databaseUrl, {
+  onError: (error) =>
+    log ? log.error({ err: error }, 'database connection error') : console.error(error.message),
+});
 const telegram = config.telegram ? createTelegramClient({ token: config.telegram.botToken }) : null;
 const app = buildApp(config, handle.db, { telegram });
+log = app.log;
 
 // Deliver queued Telegram notifications in the background (only if the bot is configured).
 const worker = telegram
@@ -19,8 +24,12 @@ const worker = telegram
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, () => {
     app.log.info({ signal }, 'Shutting down');
-    worker?.stop();
-    void app.close().then(() => handle.close());
+    // Let a delivery in flight record its result before the pool closes.
+    void (async () => {
+      await worker?.stop();
+      await app.close();
+      await handle.close();
+    })();
   });
 }
 

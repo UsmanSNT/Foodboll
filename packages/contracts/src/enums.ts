@@ -100,6 +100,7 @@ export const BANK_DEPOSIT_REASONS = [
   'STATE_CHANGED',
   'NOT_PARSED',
   'MANUAL',
+  'NAME_UNVERIFIED',
 ] as const;
 export type BankDepositReason = (typeof BANK_DEPOSIT_REASONS)[number];
 

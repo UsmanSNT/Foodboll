@@ -1,4 +1,23 @@
+import { existsSync } from 'node:fs';
 import { z } from 'zod';
+
+/** Fastify's `trustProxy`: off, every hop, a number of hops, or a list of proxy addresses/CIDRs. */
+export type TrustProxy = boolean | number | readonly string[];
+
+function parseTrustProxy(value: string, ctx: z.RefinementCtx): TrustProxy {
+  const v = value.trim();
+  if (v === '' || v === 'false') return false;
+  if (v === 'true') return true;
+  if (/^\d+$/.test(v)) return Number(v);
+  const list = v.split(',').map((part) => part.trim());
+  const entry = /^[0-9a-fA-F:.]+(\/\d{1,3})?$|^(loopback|linklocal|uniquelocal)$/;
+  if (list.every((part) => entry.test(part))) return list;
+  ctx.addIssue({
+    code: 'custom',
+    message: 'TRUST_PROXY must be false, true, a hop count or a comma-separated list of IPs/CIDRs',
+  });
+  return z.NEVER;
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -53,7 +72,7 @@ const envSchema = z.object({
   BANK_AUTO_CONFIRM_LIMIT_PER_10_MIN: z.coerce.number().int().min(1).default(30),
   /** Messages older than this are never confirmed automatically (guards against replays). */
   BANK_MESSAGE_MAX_AGE_HOURS: z.coerce.number().int().min(1).max(168).default(36),
-  /** Local development only: enables POST /v1/auth/dev-login. Refused in production. */
+  /** Local development only: enables POST /v1/auth/dev-login. Needs NODE_ENV=development or test. */
   DEV_LOGIN: z
     .enum(['true', 'false'])
     .default('false')
@@ -71,10 +90,7 @@ const envSchema = z.object({
     .optional(),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
   /** Set when running behind a reverse proxy so client IPs (rate limiting) are correct. */
-  TRUST_PROXY: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((value) => value === 'true'),
+  TRUST_PROXY: z.string().default('false').transform(parseTrustProxy),
 });
 
 export interface TelegramConfig {
@@ -112,19 +128,24 @@ export interface AppConfig {
   readonly receiptDir: string;
   readonly rateLimitPerMinute: number;
   readonly uploadRateLimitPerMinute: number;
-  readonly trustProxy: boolean;
+  readonly trustProxy: TrustProxy;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  // Only the real environment reads ./.env (relative to the working directory); variables that
+  // are already set win. An injected env object (tests) is used as given.
+  if (env === process.env && existsSync('.env')) process.loadEnvFile('.env');
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
     const problems = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(`Invalid environment configuration: ${problems}`);
   }
   const e = parsed.data;
-  if (e.NODE_ENV === 'production' && e.DEV_LOGIN) {
+  // Checked against the raw value: an unset NODE_ENV defaults to development and must not count.
+  if (e.DEV_LOGIN && env.NODE_ENV !== 'development' && env.NODE_ENV !== 'test') {
     throw new Error(
-      'Invalid environment configuration: DEV_LOGIN must not be enabled in production',
+      'Invalid environment configuration: DEV_LOGIN is local-development only. Set NODE_ENV=development ' +
+        '(or test) explicitly to use it, or remove DEV_LOGIN; it must never be enabled in production',
     );
   }
   const telegramParts = [e.TELEGRAM_BOT_TOKEN, e.TELEGRAM_BOT_USERNAME, e.TELEGRAM_WEBHOOK_SECRET];

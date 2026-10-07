@@ -24,6 +24,30 @@ function localeForError(request: FastifyRequest) {
   );
 }
 
+/**
+ * Errors are logged without anything that embeds request data. Drizzle's DrizzleQueryError carries
+ * the SQL and every bound parameter (bank messages, names) in `query`, `params`, its message and
+ * its stack header, and pg errors carry `detail`/`where` with row values. Only the type, code,
+ * the first line of the message (cut at "Failed query:") and the stack frames are kept.
+ */
+export function serializeError(error: unknown): Record<string, unknown> {
+  if (!(error instanceof Error)) return { type: typeof error };
+  const cause = error.cause instanceof Error ? error.cause : undefined;
+  const code = (error as { code?: unknown }).code ?? (cause as { code?: unknown } | undefined)?.code;
+  const isQuery = error.message.startsWith('Failed query:');
+  const message = isQuery ? 'Failed query' : (error.message.split('\n')[0] ?? '');
+  const frames = (error.stack ?? '')
+    .split('\n')
+    .filter((line) => /^\s+at /.test(line))
+    .join('\n');
+  return {
+    type: error.name,
+    ...(typeof code === 'string' && { code }),
+    message,
+    stack: `${error.name}: ${message}\n${frames}`,
+  };
+}
+
 export function buildApp(
   config: AppConfig,
   db: Db,
@@ -37,8 +61,12 @@ export function buildApp(
         ? createTelegramClient({ token: config.telegram.botToken })
         : null;
   const app = Fastify({
-    logger: { level: config.logLevel, redact: ['req.headers.authorization'] },
-    trustProxy: config.trustProxy,
+    logger: {
+      level: config.logLevel,
+      redact: ['req.headers.authorization', 'req.headers.cookie'],
+      serializers: { err: serializeError },
+    },
+    trustProxy: config.trustProxy as boolean | number | string[],
     bodyLimit: 1_048_576,
     // Reject `__proto__` / `constructor` keys in JSON bodies instead of silently accepting them.
     onProtoPoisoning: 'error',
