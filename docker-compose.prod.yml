@@ -1,0 +1,94 @@
+# Production stack: PostgreSQL (internal only), one-shot migrations, API, and Caddy serving the web
+# app and proxying /api with automatic HTTPS. Run with the production env file:
+#   docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+# See docs/deployment.md. The development database stays in docker-compose.yml.
+name: foodboll
+
+# Docker keeps container logs without a limit by default; rotate them.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '5'
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: foodboll
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: foodboll
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U foodboll -d foodboll']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # Not published to the host: only the internal network reaches the database.
+
+  migrate:
+    build:
+      context: .
+      dockerfile: deploy/api.Dockerfile
+    image: foodboll-api:latest
+    command: ['node', 'dist/db/migrate-cli.js']
+    logging: *logging
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgres://foodboll:${POSTGRES_PASSWORD}@db:5432/foodboll
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/api.Dockerfile
+    image: foodboll-api:latest
+    restart: unless-stopped
+    logging: *logging
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://foodboll:${POSTGRES_PASSWORD}@db:5432/foodboll
+      RECEIPT_DIR: /app/data/receipts
+      # Exactly one proxy (Caddy) sits in front of the API, so client IPs come from its hop.
+      TRUST_PROXY: '1'
+    volumes:
+      - receipts:/app/data/receipts
+    expose:
+      - '3000'
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+    image: foodboll-web:latest
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env.production}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  receipts:
+  caddy-data:
+  caddy-config:

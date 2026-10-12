@@ -21,6 +21,7 @@ apps/api             Fastify + PostgreSQL (Drizzle) REST API
 apps/web             React (Vite) mobile-first web client
 docs/i18n.md         how localization works, how to add a language, open items
 docs/payments.md     bank-transfer payments, automatic confirmation, setup, limits and risks
+docs/deployment.md   production stack (Docker Compose, Caddy HTTPS), Telegram webhook, backups, updates
 ```
 
 ## Quick start
@@ -47,6 +48,10 @@ unless `NODE_ENV` is explicitly `development` or `test`. Without a role it creat
 never changes an existing user's role.
 
 ### Running in production
+
+The production stack (PostgreSQL, one-shot migrations, API, and Caddy serving the web app with
+automatic HTTPS) is defined in `docker-compose.prod.yml`; the steps are in `docs/deployment.md`.
+`GET /health` answers 200 while the database responds and 503 otherwise.
 
 Run the API under a restart supervisor (systemd, a Docker restart policy): a lost database
 connection fails the requests that were using it but other crash modes remain. Behind a reverse

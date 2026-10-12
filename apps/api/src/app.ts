@@ -3,6 +3,7 @@ import { DEFAULT_LOCALE, detectLocale, parseAcceptLanguage, translate } from '@f
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import { sql } from 'drizzle-orm';
 import Fastify, { type FastifyError, type FastifyInstance, type FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 import type { AppConfig } from './config';
@@ -107,6 +108,17 @@ export function buildApp(
   // Registered as a plugin so routes load AFTER the rate-limit plugin, which attaches to routes
   // through an `onRoute` hook and would silently skip any route defined before it.
   app.register(async (instance) => {
+    // Liveness for the container healthcheck and the restart supervisor. It reports only whether
+    // the database answers, so a lost connection shows up as 503 instead of a silent failure.
+    instance.get('/health', { config: { rateLimit: false } }, async (request, reply) => {
+      try {
+        await db.execute(sql`select 1`);
+        return { status: 'ok' };
+      } catch (error) {
+        request.log.error({ err: error }, 'health check: database unreachable');
+        return reply.status(503).send({ status: 'unavailable' });
+      }
+    });
     registerAuthRoutes(instance, { db, config, telegram });
     registerBankRoutes(instance, db, config);
     registerRoutes(instance, db, storage, {

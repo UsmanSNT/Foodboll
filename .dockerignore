@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/data
+**/coverage
+.git
+# Secrets never enter a build context or an image. Real values come from .env.production at runtime.
+.env
+.env.*
+!.env.example
+*.log
